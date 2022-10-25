@@ -1,7 +1,7 @@
 # DielTempVariability
 This repository contains the data and code associated with the publication "Genetic Drivers of Coral Response to Diel Temperature Variability", submitted to Nature Ecology and Evolution.
 
-Abstract associated with the publication: \r
+Abstract associated with the publication: <br />
 Persistence of reef-building corals in the Anthropocene depends on a complex interplay of their environment, host genetics, and associations with communities of algal and microbial symbionts. We assessed the roles of environment and holobiont genetics in driving phenomic responses of the reef-building coral Siderastrea siderea from six sites across Bocas del Toro, Panamá to 50 days of diel temperature variability (DTV) followed by a 15-day heat challenge and 16-day recovery. While DTV increased coral growth, other phenotypes were more strongly shaped by the presence of three cryptic host lineages, which differed in their spatial distributions, phenomes, and algal associations. Relative to other lineages, the lineage found predominantly at offshore sites was more likely to host Durusdinium trenchii algal symbionts, had elevated energetic reserves, exhibited higher growth, had smaller corallites, and greater resistance under heat challenge, highlighting the potential ecological specialization of these cryptic lineages. However, we also observed unique combinations of host-symbiont pairings interacted to shape variation in thermotolerance, showcasing the complexities associated with projecting bleaching. Overall, these results highlight the role of DTV in coral growth and the need to characterize cryptic diversity when evaluating responses of corals to global change, with broad implications for reef restoration.
 
 
