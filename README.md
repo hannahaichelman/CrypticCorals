@@ -7,4 +7,4 @@ Persistence of reef-building corals in the Anthropocene depends on a complex int
 
 This repository is organized such that each folder contains the data (or details on where to access the data) and code needed to recreate the 2bRADseq population genetic analyses, ITS2 and 16S metabarcoding analyses, as well as coral host and symbiont physiology analyses. 
 
-For any questions, please contact Hannah Aichelman (hannahaichelman (at) gmail.com)
+For any questions, please contact Hannah Aichelman (hannahaichelman @ gmail.com)
