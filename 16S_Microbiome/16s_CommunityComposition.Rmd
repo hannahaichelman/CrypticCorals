@@ -1,0 +1,1574 @@
+---
+title: "TVE 16s community composition"
+author: "Nicola G. Kriefall, updated by Hannah A."
+date: "10/7/2021"
+output:
+ rmarkdown::html_document:
+    theme: cerulean
+    toc: yes
+    toc_float: yes
+    highlight: haddock
+    number_sections: true
+---
+
+# Setup
+
+```{r packages composition}
+library(rlang)
+library(stringr)
+library(dplyr)
+library(stats)
+library(ggpubr)
+library(vegan)
+library(cowplot)
+library(tidyverse)
+#library(MCMC.OTU)
+#install.packages("remotes")
+#remotes::install_github("Jtrachsel/funfuns")
+library(funfuns)
+library(phyloseq)
+```
+
+Read in data
+
+```{r read in data}
+setwd("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/")
+
+samdf <- read.csv("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/samdf_noL3.csv",header=TRUE) %>%
+  select(-X)
+load("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/taxa2.Rdata")
+
+#load("ps.clean.Rdata")
+#load("ps.rare.Rdata")
+load("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/ps.trim.rare.Rdata") # rare otu's trimmed, then rarefied (1k)
+load("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/ps.trim.Rdata") # rare otu's trimmed, not rarefied
+
+# remove Control 2, and lineage NA's
+ps.trim.rare <- subset_samples(ps.trim.rare,(treat!="Control 2"))
+ps.trim.rare <- subset_samples(ps.trim.rare,(!is.na(lineage)))
+ps.trim.rare <- subset_samples(ps.trim.rare,(!is.na(treat)))
+
+ps.trim <- subset_samples(ps.trim,(treat!="Control 2"))
+ps.trim <- subset_samples(ps.trim,(!is.na(lineage)))
+ps.trim <- subset_samples(ps.trim,(!is.na(treat)))
+# moving forward with trimmed and rarefied data, doesn't seem to make a difference in the results whether rare OTUs trimmed or not
+
+# make the factors of interest actual factors
+sample_data(ps.trim.rare)$treat = factor(sample_data(ps.trim.rare)$treat, levels = c("Control","Low Var", "Mod Var", "High Var"))
+levels(sample_data(ps.trim.rare)$treat)
+
+sample_data(ps.trim.rare)$sitename = as.factor(sample_data(ps.trim.rare)$sitename)
+levels(sample_data(ps.trim.rare)$sitename)
+
+sample_data(ps.trim.rare)$lineage = as.factor(sample_data(ps.trim.rare)$lineage)
+levels(sample_data(ps.trim.rare)$lineage)
+
+sample_data(ps.trim)$treat = factor(sample_data(ps.trim)$treat, levels = c("Control","Low Var", "Mod Var", "High Var"))
+levels(sample_data(ps.trim)$treat)
+
+sample_data(ps.trim)$sitename = as.factor(sample_data(ps.trim)$sitename)
+levels(sample_data(ps.trim)$sitename)
+
+sample_data(ps.trim)$lineage = as.factor(sample_data(ps.trim)$lineage)
+levels(sample_data(ps.trim)$lineage)
+
+# set color palettes
+cols_site_diverging <- c("CI" = "#543005", "PD"= "#bf812d",  "SP"= "#dfc27d",  "BN" = "#003c30", "BS"= "#35978f", "CA"= "#80cdc1")
+cols_treat_reds <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
+cols_lineage <- c("L1" = "#3f007d", "L2" = "#807dba")
+```
+
+Rename ASVs to be more informative
+
+```{r rename ASVs}
+tax <- as.data.frame(ps.trim.rare@tax_table@.Data)
+
+tax.clean <- data.frame(row.names = row.names(tax),
+                        Kingdom = str_replace(tax[,1], "D_0__",""),
+                        Phylum = str_replace(tax[,2], "D_1__",""),
+                        Class = str_replace(tax[,3], "D_2__",""),
+                        Order = str_replace(tax[,4], "D_3__",""),
+                        Family = str_replace(tax[,5], "D_4__",""),
+                        Genus = str_replace(tax[,6], "D_5__",""),
+                        Species = str_replace(tax[,7], "D_6__",""),
+                        stringsAsFactors = FALSE)
+tax.clean[is.na(tax.clean)] <- ""
+
+for (i in 1:7){ tax.clean[,i] <- as.character(tax.clean[,i])}
+####### Fill holes in the tax table
+tax.clean[is.na(tax.clean)] <- ""
+for (i in 1:nrow(tax.clean)){
+  if (tax.clean[i,2] == ""){
+    kingdom <- paste("Kingdom_", tax.clean[i,1], sep = "")
+    tax.clean[i, 2:7] <- kingdom
+  } else if (tax.clean[i,3] == ""){
+    phylum <- paste("Phylum_", tax.clean[i,2], sep = "")
+    tax.clean[i, 3:7] <- phylum
+  } else if (tax.clean[i,4] == ""){
+    class <- paste("Class_", tax.clean[i,3], sep = "")
+    tax.clean[i, 4:7] <- class
+  } else if (tax.clean[i,5] == ""){
+    order <- paste("Order_", tax.clean[i,4], sep = "")
+    tax.clean[i, 5:7] <- order
+  } else if (tax.clean[i,6] == ""){
+    family <- paste("Family_", tax.clean[i,5], sep = "")
+    tax.clean[i, 6:7] <- family
+  } else if (tax.clean[i,7] == ""){
+    tax.clean$Species[i] <- paste("Genus",tax.clean$Genus[i], sep = "_")
+  }
+}
+
+tax_table(ps.trim.rare) <- as.matrix(tax.clean)
+```
+
+# Core vs. accessory
+
+## Core
+
+```{r packages core, echo=FALSE}
+#BiocManager::install("microbiome")
+#remotes::install_github("r-lib/rlang")
+library(microbiome)
+```
+
+```{r core Lineages Together}
+# prevalence here means what percent of samples does the taxa need to be in to be considered 'core' 
+
+# Transform to compositional abundances
+pseq.rel <- microbiome::transform(ps.trim.rare, "compositional")
+
+# Calculate prevalences for all taxonomic groups
+head(prevalence(ps.trim.rare, detection = 1/100, sort = TRUE))
+
+# Pick the core (>0.1% relative abundance in >50% of the samples)
+pseq.core <- core(ps.trim.rare, detection = 0.1/100, prevalence = 0.5)
+pseq.core
+#5 taxa and 149 samples
+
+#saving
+core.tax <- data.frame(pseq.core@tax_table)
+#write.csv(core.tax,"/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/core.taxa.all.csv")
+
+# Plot bar plot
+ps_glom <- tax_glom(pseq.core, "Genus")
+ps0 <- transform_sample_counts(ps_glom, function(x) x / sum(x))
+ps1 <- merge_samples(ps0, "treat")
+ps2 <- transform_sample_counts(ps1, function(x) x / sum(x))
+
+plot = plot_bar(ps2, fill="Genus")+
+  geom_bar(stat="identity")+
+  theme_bw()+
+  scale_fill_brewer(palette="BrBG")
+ggsave(plot, file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/core.bar.pdf",width=8)
+
+# Core Bray-Curtis PCoAs
+
+#not rel abun
+plot_ordination(pseq.core,ordinate(pseq.core,"PCoA", "bray"),color="treat", shape="treat")+
+  stat_ellipse()+
+  theme_bw()+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))#+
+# these pcoa's look really strange, not sure we have enough taxa to make these pcoa's informative
+
+#rel abundance
+pseq.core.rel <- transform_sample_counts(pseq.core, function(x) x / sum(x))
+
+# treatment pcoa's
+plot.core.rel.treat = plot_ordination(pseq.core.rel,ordinate(pseq.core.rel,"PCoA", "bray"),color="treat",shape="treat")+
+  stat_ellipse()+
+  theme_bw()+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))
+
+# sitename pcoa's 
+plot.core.rel.site = plot_ordination(pseq.core.rel,ordinate(pseq.core.rel,"PCoA", "bray"),color="sitename",shape="sitename")+
+  stat_ellipse()+
+  theme_bw()+
+  scale_color_manual(name = "Site", 
+                     values=cols_site_diverging,
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  scale_shape_manual(name = "Site", 
+                     values=c(15,16,17,22,21,24),
+                     breaks = c("BN","BS","CA","CI","PD","SP"))
+
+# lineage pcoa's 
+plot.core.rel.lin = plot_ordination(pseq.core.rel,ordinate(pseq.core.rel,"PCoA", "bray"),color="lineage")+
+  stat_ellipse()+
+  theme_bw()+
+  scale_color_manual(name = "Lineage", 
+                     values=cols_lineage,
+                     breaks = c("L1","L2"))
+plots.core.rel = ggarrange(plot.core.rel.treat, plot.core.rel.site, plot.core.rel.lin, nrow = 1, ncol = 3, legend = "none")
+
+ggsave(plots.core.rel, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/pcoas.core.rel.all.pdf", width=8, height = 3, units=c("in"), useDingbats=FALSE)
+
+```
+
+
+```{r core Lineages Separate}
+# separate by lineage
+ps.trim.rare.L1 <- subset_samples(ps.trim.rare,lineage=="L1")
+ps.trim.rare.L2 <- subset_samples(ps.trim.rare,lineage=="L2")
+
+# prevalence here means what percent of samples does the taxa need to be in to be considered 'core' 
+
+# Transform to compositional abundances
+pseq.rel.L1 <- microbiome::transform(ps.trim.rare.L1, "compositional")
+pseq.rel.L2 <- microbiome::transform(ps.trim.rare.L2, "compositional")
+
+# Calculate prevalences for all taxonomic groups
+head(prevalence(ps.trim.rare.L1, detection = 1/100, sort = TRUE))
+head(prevalence(ps.trim.rare.L2, detection = 1/100, sort = TRUE))
+
+# Pick the core (>0.1% relative abundance in >50% of the samples)
+pseq.core.L1 <- core(ps.trim.rare.L1, detection = 0.1/100, prevalence = 0.5)
+pseq.core.L1 
+#5 taxa and 92 samples
+
+pseq.core.L2 <- core(ps.trim.rare.L2, detection = 0.1/100, prevalence = 0.5)
+pseq.core.L2 
+#3 taxa and 57 samples
+
+#saving
+core.tax.L1 <- data.frame(pseq.core.L1@tax_table)
+write.csv(core.tax.L1,"/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/core.taxa.L1.csv")
+core.tax.L2 <- data.frame(pseq.core.L2@tax_table)
+write.csv(core.tax.L2,"/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/core.taxa.L2.csv")
+
+# Plot Lineage 1 bar plot
+ps_glom.L1 <- tax_glom(pseq.core.L1, "Genus")
+ps0.L1 <- transform_sample_counts(ps_glom.L1, function(x) x / sum(x))
+ps1.L1 <- merge_samples(ps0.L1, "treat")
+ps2.L1 <- transform_sample_counts(ps1.L1, function(x) x / sum(x))
+
+plot.L1 = plot_bar(ps2.L1, fill="Genus")+
+  geom_bar(stat="identity")+
+  theme_bw()+
+  scale_fill_brewer(palette="BrBG")
+ggsave(plot.L1, file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/core.bar.L1.pdf",width=8)
+
+# Lineage 2 bar plot
+ps_glom.L2 <- tax_glom(pseq.core.L2, "Genus")
+ps0.L2 <- transform_sample_counts(ps_glom.L2, function(x) x / sum(x))
+ps1.L2 <- merge_samples(ps0.L2, "treat")
+ps2.L2 <- transform_sample_counts(ps1.L2, function(x) x / sum(x))
+
+plot.L2 = plot_bar(ps2.L2, fill="Genus")+
+  geom_bar(stat="identity")+
+  theme_bw()+
+  scale_fill_brewer(palette="BrBG")
+ggsave(plot.L2, file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/core.bar.L2.pdf",width=8)
+
+# Core Bray-Curtis PCoAs
+#not rel abun
+plot_ordination(pseq.core.L2,ordinate(pseq.core.L2,"PCoA", "bray"),color="treat", shape="treat")+
+  stat_ellipse()+
+  theme_bw()+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))#+
+# these pcoa's look really effed, not sure we have enough taxa to make these pcoa's informative?
+
+#rel abundance
+pseq.core.L1.rel <- transform_sample_counts(pseq.core.L1, function(x) x / sum(x))
+pseq.core.L2.rel <- transform_sample_counts(pseq.core.L2, function(x) x / sum(x))
+
+# treatment pcoa's
+plot.L1.core = plot_ordination(pseq.core.L1.rel,ordinate(pseq.core.L1.rel,"PCoA", "bray"),color="treat",shape="treat")+
+  stat_ellipse()+
+  theme_bw()+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  ggtitle("Lineage 1 Core")
+
+plot.L2.core = plot_ordination(pseq.core.L2.rel,ordinate(pseq.core.L2.rel,"PCoA", "bray"),color="treat",shape="treat")+
+  stat_ellipse()+
+  theme_bw()+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  ggtitle("Lineage 2 Core")
+
+plots.core = ggarrange(plot.L1.core, plot.L2.core, ncol=2, nrow=1, common.legend = TRUE, legend = "right")
+ggsave(plots.core, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/pcoas.core.rel.separatelineage.pdf", width=8,height=4, units=c("in"), useDingbats=FALSE)
+
+# sitename pcoa's have too much missing data to calculate ellipses for most sites
+plot.L1.core.site = plot_ordination(pseq.core.L1.rel,ordinate(pseq.core.L1.rel,"PCoA", "bray"),color="sitename",shape="sitename")+
+  stat_ellipse()+
+  theme_bw()+
+  scale_color_manual(name = "Site", 
+                     values=cols_site_diverging,
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  scale_shape_manual(name = "Site",
+                     values=c(15,16,17,22,21,24),
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  ggtitle("Lineage 1 Core")
+
+plot.L2.core.site = plot_ordination(pseq.core.L2.rel,ordinate(pseq.core.L2.rel,"PCoA", "bray"),color="sitename",shape="sitename")+
+  stat_ellipse()+
+  theme_bw()+
+  scale_color_manual(name = "Site", 
+                     values=cols_site_diverging,
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  scale_shape_manual(name = "Site",
+                     values=c(15,16,17,22,21,24),
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+   ggtitle("Lineage 2 Core")
+```
+
+```{r calculate core abundance}
+# calculating core abundances #
+# lineages together # 
+core.sqs <- tax_table(pseq.core)
+core.sqs.ids <- row.names(core.sqs)
+core.sqs.ids
+# "sq1"  "sq2"  "sq4"  "sq13" "sq69"
+
+ps.trim.rare.rel <- transform_sample_counts(ps.trim.rare, function(x) x / sum(x))
+seq.rare.rel <- data.frame(otu_table(ps.trim.rare.rel))
+tax.core <- tax_table(ps.trim.rare.rel)
+
+seq.core <- seq.rare.rel %>% select(c(core.sqs.ids))
+core.rel <- data.frame(colMeans(seq.core))
+
+total.rel <- data.frame(colMeans(seq.rare.rel))
+total.rel.ordered <- data.frame(total.rel[order(-total.rel$colMeans.seq.rare.rel),,drop=FALSE])
+
+# Now lineages separate #
+# Lineage 1 # 
+core.sqs.L1 <- tax_table(pseq.core.L1)
+core.sqs.ids.L1 <- row.names(core.sqs.L1)
+core.sqs.ids.L1
+# "sq1"  "sq2"  "sq4"  "sq13" "sq69"
+
+ps.trim.rare.rel.L1 <- transform_sample_counts(ps.trim.rare.L1, function(x) x / sum(x))
+seq.rare.rel.L1 <- data.frame(otu_table(ps.trim.rare.rel.L1))
+tax.core.L1 <- tax_table(ps.trim.rare.rel.L1)
+
+seq.core.L1 <- seq.rare.rel.L1 %>% select(c(core.sqs.ids.L1))
+core.rel.L1 <- data.frame(colMeans(seq.core.L1))
+
+total.rel.L1 <- data.frame(colMeans(seq.rare.rel.L1))
+total.rel.ordered.L1 <- data.frame(total.rel.L1[order(-total.rel.L1$colMeans.seq.rare.rel.L1),,drop=FALSE])
+
+
+# Lineage 2 #
+core.sqs.L2 <- tax_table(pseq.core.L2)
+core.sqs.ids.L2 <- row.names(core.sqs.L2)
+core.sqs.ids.L2
+# [1] "sq1"  "sq2"  "sq13"
+
+ps.trim.rare.rel.L2 <- transform_sample_counts(ps.trim.rare.L2, function(x) x / sum(x))
+seq.rare.rel.L2 <- data.frame(otu_table(ps.trim.rare.rel.L2))
+tax.core.L2 <- tax_table(ps.trim.rare.rel.L2)
+
+seq.core.L2 <- seq.rare.rel.L2 %>% select(c(core.sqs.ids.L2))
+core.rel.L2 <- data.frame(colMeans(seq.core.L2))
+
+total.rel.L2 <- data.frame(colMeans(seq.rare.rel.L2))
+total.rel.ordered.L2 <- data.frame(total.rel.L2[order(-total.rel.L2$colMeans.seq.rare.rel.L2),,drop=FALSE])
+```
+
+### Core stats
+
+```{r core stats Lineages together}
+# relative abundance data
+seq.core <- data.frame(otu_table(pseq.core.rel))
+
+dist.core <- vegdist(seq.core)
+samdf.core <- data.frame(sample_data(pseq.core))
+row.names(samdf.core)==row.names(seq.core)
+
+# treatment
+## Calculate multivariate dispersions
+bet.all <- betadisper(dist.core,samdf.core$treat)
+## Perform test
+anova(bet.all) # p=0.1786
+## Permutation test for F
+permutest(bet.all, pairwise = TRUE, permutations = 999) #all ns
+#(Observed p-value below diagonal, permuted p-value above diagonal)
+#           Control  Low Var  Mod Var High Var
+# Control           0.349000 0.117000    0.832
+# Low Var  0.327651          0.026000    0.478
+# Mod Var  0.110408 0.027876             0.135
+# High Var 0.846022 0.486326 0.145107         
+
+plot(bet.all)
+
+# site
+bet.all <- betadisper(dist.core,samdf.core$sitename)
+anova(bet.all) # p=0.3369
+permutest(bet.all, pairwise = TRUE, permutations = 999)
+#          BN       BS       CA       CI       PD    SP
+# BN          0.075000 0.021000 0.029000 0.045000 0.033
+# BS 0.078430          0.714000 0.679000 0.806000 0.686
+# CA 0.021076 0.715675          0.933000 0.938000 0.424
+# CI 0.038263 0.687383 0.937202          0.874000 0.450
+# PD 0.033359 0.804740 0.918123 0.868008          0.502
+# SP 0.032043 0.702414 0.410464 0.426981 0.494554      
+
+plot(bet.all) 
+
+# lineage
+bet.all <- betadisper(dist.core,samdf.core$lineage)
+anova(bet.all) # p=0.6139
+permutest(bet.all, pairwise = TRUE, permutations = 999) #all ns
+plot(bet.all) 
+
+#adonis(seq.core ~ sitename, data=samdf.core, permutations=999) #p=0.233
+adonis(seq.core ~ treat+lineage, data=samdf.core, permutations=999) 
+#            Df SumsOfSqs  MeanSqs F.Model      R2 Pr(>F)
+# treat       3    0.3886 0.129531 1.84759 0.03698  0.102
+# lineage     1    0.0237 0.023697 0.33801 0.00226  0.703
+# Residuals 144   10.0956 0.070108         0.96076       
+# Total     148   10.5078                  1.00000       
+
+pairwise.adonis(seq.core, factors = samdf.core$treat, permutations = 999) # all ns now after removing L3
+
+```
+
+```{r core stats Lineages separate}
+# relative abundance data
+seq.core.L1 <- data.frame(otu_table(pseq.core.L1.rel))
+seq.core.L2 <- data.frame(otu_table(pseq.core.L2.rel))
+
+# Lineage 1 #
+dist.core.L1 <- vegdist(seq.core.L1)
+samdf.core.L1 <- data.frame(sample_data(pseq.core.L1))
+row.names(samdf.core.L1)==row.names(seq.core.L1)
+
+# treatment
+## Calculate multivariate dispersions
+bet.all.L1 <- betadisper(dist.core.L1,samdf.core.L1$treat)
+## Perform test
+anova(bet.all.L1) # p=0.1659
+## Permutation test for F
+permutest(bet.all.L1, pairwise = TRUE, permutations = 999) #all ns
+#(Observed p-value below diagonal, permuted p-value above diagonal)
+#           Control  Low Var  Mod Var High Var
+# Control           0.610000 0.039000    0.630
+# Low Var  0.610480          0.025000    0.424
+# Mod Var  0.039296 0.033369             0.188
+# High Var 0.621103 0.386033 0.183634         
+
+plot(bet.all.L1)
+
+# site
+bet.all.L1 <- betadisper(dist.core.L1,samdf.core.L1$sitename)
+anova(bet.all.L1) # p=0.3152
+permutest(bet.all.L1, pairwise = TRUE, permutations = 999) 
+#          BN       BS       CA       CI    PD
+# BN          0.077000 0.018000 0.050000 0.121
+# BS 0.089057          0.791000 0.815000 0.863
+# CA 0.021265 0.762135          0.977000 0.730
+# CI 0.054083 0.803955 0.979831          0.750
+# PD 0.179363 0.810492 0.656687 0.708348      
+
+plot(bet.all.L1) 
+
+adonis(seq.core.L1 ~ sitename, data=samdf.core.L1, permutations=999) #p=0.171
+adonis(seq.core.L1 ~ treat, data=samdf.core.L1, permutations=999) #p=0.302
+
+# Lineage 2 #
+dist.core.L2 <- vegdist(seq.core.L2)
+samdf.core.L2 <- data.frame(sample_data(pseq.core.L2))
+row.names(samdf.core.L2)==row.names(seq.core.L2)
+
+# treatment
+bet.all.L2 <- betadisper(dist.core.L2,samdf.core.L2$treat)
+anova(bet.all.L2) # p=0.05313
+plot(bet.all.L2) #very much overlap
+
+# site
+bet.all.L2 <- betadisper(dist.core.L2,samdf.core.L2$sitename)
+anova(bet.all.L2) # p=0.3692
+permutest(bet.all.L2, pairwise = TRUE, permutations = 999) #all ns
+plot(bet.all.L2) 
+
+adonis(seq.core.L2 ~ sitename, data=samdf.core.L2, permutations=999) #p=0.321
+adonis(seq.core.L2 ~ treat, data=samdf.core.L2, permutations=999) #p=0.05 
+
+pairwise.adonis(seq.core.L2, factors = samdf.core.L2$treat, permutations = 999) 
+# # control different from low variability and high variability
+#                 pairs   F.Model         R2 p.value p.adjusted
+# 1  Control vs Low Var 4.4708230 0.16274806   0.025      0.025
+# 2  Control vs Mod Var 1.0381452 0.03702617   0.359      0.359
+# 3 Control vs High Var 4.5160347 0.14329324   0.014      0.014
+# 4  Low Var vs Mod Var 1.4824327 0.05394110   0.233      0.233
+# 5 Low Var vs High Var 1.0216350 0.03780804   0.350      0.350
+# 6 Mod Var vs High Var 0.8463364 0.02743718   0.493      0.493
+
+```
+
+## Core Summary
+
+When analyzing lineages together, nothing significantly affects dispersion or adonis (not treatment, lineage, or site of origin). Essentially, the core microbiome is very resistant to changes regardless of the factor of interest.
+
+When analyzing the core microbiome separately for Lineage 1 + 2, the only thing significant is effect of treatment on Lineage 2 - and this is marginally significant (p = 0.05).
+
+## Accessory
+
+```{r accessory lineages together}
+ps.trim.rare.otu <- data.frame(ps.trim.rare@otu_table)
+core.tax <- data.frame(pseq.core@tax_table)
+core.ids <- c(rownames(core.tax))
+ps.trim.rare.acc.otu <- ps.trim.rare.otu[,!colnames(ps.trim.rare.otu) %in% core.ids ]
+row.names(samdf.core) <- samdf.core$frag
+
+#remake phyloseq object
+ps.acc <- phyloseq(otu_table(ps.trim.rare.acc.otu, taxa_are_rows=FALSE), 
+                         sample_data(samdf.core), 
+                         tax_table(taxa2))
+ps.acc #636 taxa accessory and 149 samples
+
+
+# make bray-curtis dissimilarity pcoas for accessory microbiome
+#treatment
+pcoa.acc.all.treat = plot_ordination(ps.acc,ordinate(ps.acc,"PCoA", "bray"),color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  stat_ellipse()+
+  theme_bw()
+
+#sitename
+pcoa.acc.all.site = plot_ordination(ps.acc,ordinate(ps.acc,"PCoA", "bray"),color="sitename", shape="sitename")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Site",
+                     values=cols_site_diverging,
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  scale_shape_manual(name="Site",
+                     values=c(15,16,17,22,21,24),
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  stat_ellipse()+
+  theme_bw()
+
+#lineage
+pcoa.acc.all.lin = plot_ordination(ps.acc,ordinate(ps.acc,"PCoA", "bray"),color="lineage")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Lineage",
+                     values=cols_lineage,
+                     breaks = c("L1","L2"))+
+  stat_ellipse()+
+  theme_bw()
+
+gg.pcoa.acc.all = ggarrange(pcoa.acc.all.treat, pcoa.acc.all.site,pcoa.acc.all.lin, nrow=1, ncol=3, common.legend=F,legend="none")
+
+ggsave(gg.pcoa.acc.all, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/pcoas.accessory_all.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+
+#rel abundance
+pseq.acc.rel <- transform_sample_counts(ps.acc, function(x) x / sum(x))
+
+#treatment
+pcoa.acc.all.rel.treat = plot_ordination(pseq.acc.rel,ordinate(pseq.acc.rel,"PCoA", "bray"),color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  stat_ellipse()+
+  theme_bw()
+
+#sitename
+pcoa.acc.all.rel.site = plot_ordination(pseq.acc.rel,ordinate(pseq.acc.rel,"PCoA", "bray"),color="sitename", shape="sitename")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Site",
+                     values=cols_site_diverging,
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  scale_shape_manual(name="Site",
+                     values=c(15,16,17,22,21,24),
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  stat_ellipse()+
+  theme_bw()
+
+#lineage
+pcoa.acc.all.rel.lin = plot_ordination(pseq.acc.rel,ordinate(pseq.acc.rel,"PCoA", "bray"),color="lineage")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Lineage",
+                     values=cols_lineage,
+                     breaks = c("L1","L2"))+
+  stat_ellipse()+
+  theme_bw()
+
+gg.pcoa.acc.rel.all = ggarrange(pcoa.acc.all.rel.treat, pcoa.acc.all.rel.site,pcoa.acc.all.rel.lin, nrow=1, ncol=3, common.legend=F,legend="none")
+
+ggsave(gg.pcoa.acc.rel.all, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/pcoas.accessory.rel.all.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+
+```
+
+```{r accessory lineages separate}
+#ps.rare.trim.otu <- data.frame(ps.trim@otu_table)
+# Lineage 1 #
+ps.trim.rare.otu <- data.frame(ps.trim.rare.L1@otu_table)
+core.tax <- data.frame(pseq.core.L1@tax_table)
+core.ids <- c(rownames(core.tax))
+ps.trim.rare.acc.otu <- ps.trim.rare.otu[,!colnames(ps.trim.rare.otu) %in% core.ids ]
+row.names(samdf.core.L1) <- samdf.core.L1$frag
+
+#remake phyloseq object
+ps.acc.L1 <- phyloseq(otu_table(ps.trim.rare.acc.otu, taxa_are_rows=FALSE), 
+                         sample_data(samdf.core.L1), 
+                         tax_table(taxa2))
+ps.acc.L1 #636 taxa accessory and 92 samples
+
+# Lineage 2 # 
+ps.trim.rare.otu <- data.frame(ps.trim.rare.L2@otu_table)
+core.tax <- data.frame(pseq.core.L2@tax_table)
+core.ids <- c(rownames(core.tax))
+ps.trim.rare.acc.otu <- ps.trim.rare.otu[,!colnames(ps.trim.rare.otu) %in% core.ids ]
+row.names(samdf.core.L2) <- samdf.core.L2$frag
+
+#remake phyloseq object
+ps.acc.L2 <- phyloseq(otu_table(ps.trim.rare.acc.otu, taxa_are_rows=FALSE), 
+                         sample_data(samdf.core.L2), 
+                         tax_table(taxa2))
+ps.acc.L2 #638 taxa accessory and 57 samples
+
+# make bray-curtis dissimilarity pcoas for accessory microbiome
+#treatment
+pcoa.treat.L1 = plot_ordination(ps.acc.L1,ordinate(ps.acc.L1,"PCoA", "bray"),color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  ggtitle("Lineage 1 Accessory")+
+  stat_ellipse()+
+  theme_bw()
+
+pcoa.treat.L2 = plot_ordination(ps.acc.L2,ordinate(ps.acc.L2,"PCoA", "bray"),color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  ggtitle("Lineage 2 Accessory")+
+  stat_ellipse()+
+  theme_bw()
+
+#sitename
+pcoa.site.L1 = plot_ordination(ps.acc.L1,ordinate(ps.acc.L1,"PCoA", "bray"),color="sitename", shape="sitename")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Site",
+                     values=cols_site_diverging,
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  scale_shape_manual(name="Site",
+                     values=c(15,16,17,22,21,24),
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  ggtitle("Lineage 1 Accessory")+
+  stat_ellipse()+
+  theme_bw()
+
+pcoa.site.L2 = plot_ordination(ps.acc.L2,ordinate(ps.acc.L2,"PCoA", "bray"),color="sitename", shape="sitename")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Site",
+                     values=cols_site_diverging,
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  scale_shape_manual(name="Site",
+                     values=c(15,16,17,22,21,24),
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  ggtitle("Lineage 2 Accessory")+
+  stat_ellipse()+
+  theme_bw()
+
+gg.pcoa.acc.treat = ggarrange(pcoa.treat.L1, pcoa.treat.L2, nrow=1, ncol=2, common.legend=TRUE,legend="right")
+
+ggsave(gg.pcoa.acc.treat, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/pcoas.accessory_lineages.separate.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+
+# relative abundance
+pseq.acc.L1.rel <- transform_sample_counts(ps.acc.L1, function(x) x / sum(x))
+pseq.acc.L2.rel <- transform_sample_counts(ps.acc.L2, function(x) x / sum(x))
+
+# make bray-curtis dissimilarity pcoas for rel abundance accessory microbiome
+#treatment
+pcoa.treat.rel.L1 = plot_ordination(pseq.acc.L1.rel,ordinate(pseq.acc.L1.rel,"PCoA", "bray"),color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  ggtitle("Lineage 1 Accessory")+
+  stat_ellipse()+
+  theme_bw()
+
+pcoa.treat.rel.L2 = plot_ordination(pseq.acc.L2.rel,ordinate(pseq.acc.L2.rel,"PCoA", "bray"),color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  ggtitle("Lineage 2 Accessory")+
+  stat_ellipse()+
+  theme_bw()
+
+#sitename
+pcoa.site.rel.L1 = plot_ordination(pseq.acc.L1.rel,ordinate(pseq.acc.L1.rel,"PCoA", "bray"),color="sitename", shape="sitename")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Site",
+                     values=cols_site_diverging,
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  scale_shape_manual(name="Site",
+                     values=c(15,16,17,22,21,24),
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  ggtitle("Lineage 1 Accessory")+
+  stat_ellipse()+
+  theme_bw()
+
+pcoa.site.rel.L2 = plot_ordination(pseq.acc.L2.rel,ordinate(pseq.acc.L2.rel,"PCoA", "bray"),color="sitename", shape="sitename")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Site",
+                     values=cols_site_diverging,
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  scale_shape_manual(name="Site",
+                     values=c(15,16,17,22,21,24),
+                     breaks = c("BN","BS","CA","CI","PD","SP"))+
+  ggtitle("Lineage 2 Accessory")+
+  stat_ellipse()+
+  theme_bw()
+
+gg.pcoa.acc.rel.treat = ggarrange(pcoa.treat.rel.L1, pcoa.treat.rel.L2, nrow=1, ncol=2, common.legend=TRUE,legend="right")
+
+ggsave(gg.pcoa.acc.rel.treat, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/pcoas.accessory.rel.lineages.separate.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+
+# Try faceting by other parameters 
+# Really not enough replication for these figures though...
+#treatment + site
+pcoa.treat.site.L1 = plot_ordination(ps.acc.L1,ordinate(ps.acc.L1,"PCoA", "bray"),color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  ggtitle("Lineage 1")+
+  stat_ellipse()+
+  theme_bw()+
+  facet_wrap(~sitename)
+
+pcoa.treat.site.L2 = plot_ordination(ps.acc.L2,ordinate(ps.acc.L2,"PCoA", "bray"),color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  ggtitle("Lineage 2")+
+  stat_ellipse()+
+  theme_bw()+
+  facet_wrap(~sitename)
+
+gg.pcoa.acc = ggarrange(pcoa.treat.site.L1, pcoa.treat.site.L2, nrow=1, ncol=2, common.legend=F,legend="none")
+
+ggsave(gg.pcoa.acc, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/bray_pcoas_accessory_trim.rare.lineages.separate.facets.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+
+```
+
+```{r stats acc - lineages together}
+# use relative abundance data
+seq.acc <- data.frame(otu_table(pseq.acc.rel))
+
+dist.acc <- vegdist(seq.acc)
+samdf.acc <- data.frame(sample_data(pseq.acc.rel))
+row.names(samdf.acc)==row.names(seq.acc)
+
+#treatment
+bet.all <- betadisper(dist.acc,samdf.acc$treat)
+anova(bet.all) # p=0.2039
+permutest(bet.all, pairwise = TRUE, permutations = 999) #no diff in disp
+plot(bet.all) #still lots of overlap
+
+#sitename
+bet.all <- betadisper(dist.acc,samdf.acc$sitename)
+anova(bet.all) #p=0.3036
+permutest(bet.all, pairwise = TRUE, permutations = 999) #SP+BS, SP+CA diff
+plot(bet.all) 
+
+#lineage
+bet.all <- betadisper(dist.acc,samdf.acc$lineage)
+anova(bet.all) #p=0.01248
+permutest(bet.all, pairwise = TRUE, permutations = 999) 
+plot(bet.all) 
+
+adonis(seq.acc ~ treat+lineage, data=samdf.acc, permutations=999) 
+#            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)   
+# treat       3     1.871 0.62358  1.4571 0.02911  0.004 **
+# lineage     1     0.761 0.76135  1.7791 0.01185  0.006 **
+# Residuals 144    61.625 0.42795         0.95904          
+# Total     148    64.257                 1.00000          
+
+pairwise.adonis(seq.acc, factors = samdf.acc$treat, permutations = 999) 
+# control different from low (p=0.004), mod (p=0.005), high (p=0.007) var
+#                 pairs  F.Model         R2 p.value p.adjusted
+# 1  Control vs Low Var 1.846376 0.02569895   0.007      0.007
+# 2  Control vs Mod Var 1.836664 0.02359639   0.005      0.005
+# 3 Control vs High Var 1.746242 0.02336227   0.008      0.008
+# 4  Low Var vs Mod Var 1.056560 0.01446222   0.334      0.334
+# 5 Low Var vs High Var 1.220663 0.01738324   0.130      0.130
+# 6 Mod Var vs High Var 1.014195 0.01334218   0.433      0.433
+
+pairwise.adonis(seq.acc, factors = samdf.acc$sitename, permutations = 999) 
+```
+
+
+```{r stats acc - lineages separate}
+# Lineage 1 #
+seq.acc.L1 <- data.frame(otu_table(pseq.acc.L1.rel))
+
+dist.acc.L1 <- vegdist(seq.acc.L1)
+samdf.acc.L1 <- data.frame(sample_data(pseq.acc.L1.rel))
+row.names(samdf.acc.L1)==row.names(seq.acc.L1)
+
+#treatment
+bet.all <- betadisper(dist.acc.L1,samdf.acc.L1$treat)
+anova(bet.all) # p=0.1351
+plot(bet.all) #still lots of overlap
+
+#sitename
+bet.all <- betadisper(dist.acc.L1,samdf.acc.L1$sitename)
+anova(bet.all) #p=0.1369
+permutest(bet.all, pairwise = TRUE, permutations = 999) #PD+BS, PD+CA
+plot(bet.all) 
+
+adonis(seq.acc.L1 ~ treat, data=samdf.acc.L1, permutations=999) #p=0.015
+adonis(seq.acc.L1 ~ sitename, data=samdf.acc.L1, permutations=999) #p=0.007
+
+pairwise.adonis(seq.acc.L1, factors = samdf.acc.L1$treat, permutations = 999) 
+# control different from all other treatments, no other diffs
+#                 pairs   F.Model         R2 p.value p.adjusted
+# 1 Control vs High Var 1.4996215 0.03295899   0.025      0.025
+# 2  Control vs Mod Var 1.6676091 0.03426528   0.009      0.009
+# 3  Control vs Low Var 1.4785608 0.03181167   0.024      0.024
+# 4 High Var vs Mod Var 1.0579643 0.02401301   0.314      0.314
+# 5 High Var vs Low Var 1.1888169 0.02817848   0.134      0.134
+# 6  Mod Var vs Low Var 0.8289221 0.01849079   0.826      0.826
+
+pairwise.adonis(seq.acc.L1, factors = samdf.acc.L1$sitename, permutations = 999) 
+# Sig: CI vs BN, BN vs BS
+
+# Lineage 2 #
+seq.acc.L2 <- data.frame(otu_table(pseq.acc.L2.rel))
+
+dist.acc.L2 <- vegdist(seq.acc.L2)
+samdf.acc.L2 <- data.frame(sample_data(pseq.acc.L2.rel))
+row.names(samdf.acc.L2)==row.names(seq.acc.L2)
+
+#treatment
+bet.all.L2 <- betadisper(dist.acc.L2,samdf.acc.L2$treat)
+anova(bet.all.L2) # p=0.8974
+plot(bet.all.L2) #still lots of overlap
+
+#site name 
+bet.all.L2 <- betadisper(dist.acc.L2,samdf.acc.L2$sitename)
+anova(bet.all.L2) # p=0.1232
+plot(bet.all.L2) #still lots of overlap
+
+adonis(seq.acc.L2 ~ treat, data=samdf.acc.L2, permutations=999) #p=0.371
+adonis(seq.acc.L2 ~ sitename, data=samdf.acc.L2, permutations=999) #p=0.27
+
+pairwise.adonis(seq.acc.L2, factors = samdf.acc.L2$treat, permutations = 999) 
+# all ns
+
+```
+
+## Accessory Summary
+
+Both lineage and treatment have a significant effect from adonis when lineages analyzed together. Lineage also has significant difference in dispersion when analyzed together. 
+
+No differences in dispersion by treatment or site (for either lineage) when lineages analyzed separately. Treatment and site are still significantly different from adonis when lineages analyzed separate, but only for L1 - no differences for L2.
+
+# Bar plots {.tabset}
+
+## All, by Phylum
+
+```{r bar plot, eval=FALSE}
+# ps.sz <- merge_samples(ps.rare.trim, "site_zone")
+# ps.rel.sz <- transform_sample_counts(ps.sz, function(x) x / sum(x))
+# plot_bar(ps.rel.sz, fill="Class")+
+#   geom_bar(stat="identity")
+
+#rel abundance
+ps.trim.rare.rel <- transform_sample_counts(ps.trim.rare, function(x) x / sum(x))
+
+ps.all.tab <- psmelt(ps.trim.rare.rel)%>%
+  filter(!is.na(Abundance))%>%
+  #filter(!is.na(Phylum))%>%
+  filter(!is.na(Genus))%>%
+  #group_by(sitename,treat,lineage,Phylum,OTU)%>%
+  group_by(sitename,treat,lineage,Genus,OTU)%>%
+  summarize_at("Abundance",mean)
+  #filter(Abundance > .1)
+
+
+#ps.all.tab$zone[ps.all.tab$zone == "Forereef"] <- "FR"
+#ps.all.tab$zone[ps.all.tab$zone == "Backreef"] <- "BR"
+
+gg.bar.all.phy <- ggplot(ps.all.tab,aes(x=treat,y=Abundance,fill=Genus))+
+  geom_bar(stat="identity")+
+  theme_bw()+
+  #theme(legend.position="none")+
+  xlab('Treatment')+  
+  facet_wrap(~lineage)
+gg.bar.all.phy
+
+ggsave(gg.bar.all.phy, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/barplot.all.phylum.pdf", width=12, height=6, units=c("in"), useDingbats=FALSE)
+
+```
+
+
+# All ASVs
+
+## Trimmed + Rarefied Data
+
+```{r site rarefied}
+ord <- ordinate(ps.trim.rare, "PCoA", "bray")
+
+#treatment
+pcoa.treat = plot_ordination(ps.trim.rare, ord, color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  stat_ellipse()+
+  theme_bw()
+
+pcoa.site = plot_ordination(ps.trim.rare, ord, color="sitename", shape="sitename")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Site",values=cols_site_diverging)+
+  scale_shape_manual(name="Site",values=c(15,16,17,22,21,24))+
+  stat_ellipse()+
+  theme_bw()
+
+pcoa.lineage = plot_ordination(ps.trim.rare,ord,color="lineage")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Lineage",values=cols_lineage)+
+  stat_ellipse()+
+  theme_bw()
+
+gg.pcoa.all.trim.rare = ggarrange(pcoa.site,pcoa.treat,pcoa.lineage,
+                                  labels = c("(a)","(b)","(c)"),
+                                  nrow=1,
+                                  common.legend=F,legend="none")
+
+ggsave(gg.pcoa.all.trim.rare, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/pcoas.all.trim.rare.pdf", width=8, height=3, units=c("in"), useDingbats=FALSE)
+
+# Relative abundance trimmed + rarefied
+ord.rel <- ordinate(ps.trim.rare.rel, "PCoA", "bray")
+
+#treatment
+pcoa.treat.rel = plot_ordination(ps.trim.rare.rel, ord.rel, color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  stat_ellipse()+
+  theme_bw()
+
+pcoa.site.rel = plot_ordination(ps.trim.rare.rel, ord.rel, color="sitename", shape="sitename")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Site",values=cols_site_diverging)+
+  scale_shape_manual(name="Site",values=c(15,16,17,22,21,24))+
+  stat_ellipse()+
+  theme_bw()
+
+pcoa.lineage.rel = plot_ordination(ps.trim.rare.rel,ord.rel,color="lineage")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Lineage",values=cols_lineage)+
+  stat_ellipse()+
+  theme_bw()
+
+gg.pcoa.all.trim.rare.rel = ggarrange(pcoa.site.rel,pcoa.treat.rel,pcoa.lineage.rel,
+                                  labels = c("(a)","(b)","(c)"),
+                                  nrow=1,
+                                  common.legend=F,legend="none")
+
+ggsave(gg.pcoa.all.trim.rare.rel, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/pcoas.all.trim.rare.rel.pdf", width=8, height=3, units=c("in"), useDingbats=FALSE)
+
+```
+
+###Trimmed + Rarefied Stats
+
+Help on adonis (here)[https://thebiobucket.blogspot.com/2011/04/assumptions-for-permanova-with-adonis.html#more]
+
+```{r stats site rare}
+# use relative abundance data since that is what we are plotting
+seq.rare <- data.frame(otu_table(ps.trim.rare.rel))
+
+# make distance matrix with vegdist():
+dist.rare <- vegdist(seq.rare)
+samdf.rare <- data.frame(sample_data(ps.trim.rare.rel))
+row.names(samdf.rare)==row.names(seq.rare)
+
+bet.all <- betadisper(dist.rare,samdf.rare$treat)
+anova(bet.all) # p=0.8144
+plot(bet.all) #very much overlap, not sig
+
+bet.all <- betadisper(dist.rare,samdf.rare$sitename)
+anova(bet.all) #p=0.9256
+permutest(bet.all, pairwise = TRUE, permutations = 999) # all ns
+plot(bet.all) 
+
+bet.all <- betadisper(dist.rare,samdf.rare$lineage)
+anova(bet.all) #p=0.2889
+#permutest(bet.all, pairwise = TRUE, permutations = 999) # all ns
+plot(bet.all) 
+
+adonis(seq.rare ~ treat+lineage, data=samdf.rare, permutations=999)
+#            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
+# treat       3     1.196 0.39883  1.5971 0.03182  0.035 *
+# lineage     1     0.449 0.44919  1.7988 0.01194  0.060 .
+# Residuals 144    35.960 0.24972         0.95624         
+# Total     148    37.606                 1.00000         
+
+pairwise.adonis(seq.rare, factors = samdf.rare$treat, permutations = 999)
+# Control different from all others, but no var's are signifiantly different
+#                 pairs   F.Model         R2 p.value p.adjusted
+# 1  Control vs Low Var 2.0180386 0.02802129   0.042      0.042
+# 2  Control vs Mod Var 2.0695230 0.02650872   0.023      0.023
+# 3 Control vs High Var 2.7376600 0.03614661   0.007      0.007
+# 4  Low Var vs Mod Var 0.8241380 0.01131682   0.552      0.552
+# 5 Low Var vs High Var 0.7624192 0.01092880   0.633      0.633
+# 6 Mod Var vs High Var 1.0206821 0.01342637   0.340      0.340
+
+```
+
+## Trimmed (not rarefied) data
+
+```{r sites rel abun}
+ps.trim.rel <- transform_sample_counts(ps.trim, function(x) x / sum(x))
+ord.rel <- ordinate(ps.trim.rel, "PCoA", "bray")
+
+pcoa.treat.rel = plot_ordination(ps.trim.rel, ord.rel, color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  stat_ellipse()+
+  theme_bw()
+
+pcoa.site.rel = plot_ordination(ps.trim.rel, ord.rel, color="sitename", shape="sitename")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Site",values=cols_site_diverging)+
+  scale_shape_manual(name="Site",values=c(15,16,17,22,21,24))+
+  stat_ellipse()+
+  theme_bw()
+
+pcoa.lineage.rel = plot_ordination(ps.trim.rel,ord.rel, color="lineage", shape="lineage")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Lineage",values=cols_lineage)+
+  scale_shape_manual(name="Lineage", values = c(19,17))+
+  stat_ellipse()+
+  theme_bw()
+
+gg.pcoa.rel = ggarrange(pcoa.site.rel,pcoa.treat.rel,pcoa.lineage.rel,nrow=1,common.legend=F,legend="none")
+ggsave(gg.pcoa.rel, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/pcoas.all.trim.rel.pdf", width=8, height=3, units=c("in"), useDingbats=FALSE)
+
+
+ #try faceting a few ways to see if I am missing anything
+
+pcoa.treat.rel.linfacet = plot_ordination(ps.trim.rel, ord.rel, color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  stat_ellipse()+
+  theme_bw()+
+  facet_wrap(~lineage)
+
+pcoa.treat.rel.sitefacet = plot_ordination(ps.trim.rel, ord.rel, color="treat", shape="treat")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Treatment",values=cols_treat_reds)+
+  scale_shape_manual(name="Treatment",values=c(15,16,17,18))+
+  stat_ellipse()+
+  theme_bw()+
+  facet_wrap(~sitename)
+
+pcoa.lineage.rel.facet = plot_ordination(ps.trim.rel,ord.rel, color="lineage", shape="lineage")+
+  geom_point(alpha=0.8)+
+  scale_color_manual(name="Lineage",values=cols_lineage)+
+  scale_shape_manual(name="Lineage", values = c(16,16))+
+  stat_ellipse()+
+  theme_bw()+
+  facet_wrap(~treat)
+
+gg.pcoa.rel.facets = ggarrange(pcoa.treat.rel.linfacet,pcoa.treat.rel.sitefacet,pcoa.lineage.rel.facet,nrow=1,common.legend=F,legend="none")
+
+ggsave(gg.pcoa.rel.facets, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/bray_pcoas_all.trim.rel.facets.pdf", width=12, height=6, units=c("in"), useDingbats=FALSE)
+```
+
+
+### Trimmed (not rarefied) Stats
+
+```{r stats site rel}
+seq.trim <- data.frame(otu_table(ps.trim.rel))
+
+dist.trim <- vegdist(seq.trim)
+samdf.trim <- data.frame(sample_data(ps.trim))
+row.names(samdf.trim)==row.names(seq.trim)
+
+bet.all <- betadisper(dist.trim,samdf.trim$treat)
+anova(bet.all) #p=0.7516
+permutest(bet.all, pairwise = TRUE, permutations = 999) # all ns
+plot(bet.all) #very much overlap, not sig
+
+bet.all <- betadisper(dist.trim,samdf.trim$sitename)
+anova(bet.all) #p=0.9023
+permutest(bet.all, pairwise = TRUE, permutations = 999) # all ns
+plot(bet.all) #overlap
+
+bet.all <- betadisper(dist.trim,samdf.trim$lineage)
+anova(bet.all) #p=0.3134
+plot(bet.all) #overlap
+
+adonis(seq.trim ~ treat+lineage, data=samdf.trim, permutations=999) 
+#            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
+# treat       3     1.267 0.42219  1.7197 0.03289  0.025 *
+# lineage     1     0.418 0.41833  1.7040 0.01086  0.088 .
+# Residuals 150    36.826 0.24550         0.95625         
+# Total     154    38.511                 1.00000         
+
+pairwise.adonis(seq.trim, factors = samdf.trim$treat, permutations = 999)
+# same as above - control different from all variabilities
+#                 pairs   F.Model         R2 p.value p.adjusted
+# 1  Control vs Low Var 2.1567807 0.02948162   0.027      0.027
+# 2  Control vs Mod Var 2.4471822 0.02932612   0.014      0.014
+# 3 Control vs High Var 2.8835101 0.03799917   0.012      0.012
+# 4  Low Var vs Mod Var 0.8824621 0.01118705   0.478      0.478
+# 5 Low Var vs High Var 0.7772710 0.01098193   0.557      0.557
+# 6 Mod Var vs High Var 1.0663479 0.01315401   0.279      0.279
+
+```
+
+## Plot - both versions of PCoA - rarefied and relative abundance
+
+```{r ggarrange pcoas}
+ggarrange(gg.pcoa.all.trim.rare,gg.pcoa.rel,labels="AUTO",common.legend=TRUE,legend="right")
+
+# make final microbiome combined pcoa fig - treatment pca's
+
+pcoas.combined = ggarrange(pcoa.treat.rel, plot.core.rel.treat, pcoa.acc.all.rel.treat,
+          labels = c("(a) All ASVs", "(b) Core ASVs", "(c) Accessory ASVs"),
+          common.legend = TRUE, legend = "right",
+          ncol = 3, nrow = 1)
+
+ggsave(pcoas.combined, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/all_pcoas_treat.pdf", width=9, height=4, units=c("in"), useDingbats=FALSE)
+
+# make final microbiome combined pcoa fig - lineage pca's
+
+pcoas.combined.lin = ggarrange(pcoa.lineage.rel, plot.core.rel.lin, pcoa.acc.all.rel.lin,
+          labels = c("(a) All ASVs", "(b) Core ASVs", "(c) Accessory ASVs"),
+          common.legend = TRUE, legend = "right",
+          ncol = 3, nrow = 1)
+
+ggsave(pcoas.combined.lin, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/all_pcoas_treat.pdf", width=9, height=4, units=c("in"), useDingbats=FALSE)
+
+```
+
+
+## Summary
+
+- No differences in results between relative abundance & rarefied plots/stats
+- Pairwise adonis significant between control treatment and all other variability treatments
+- No lineage effects to suggest cryptic lineages host different microbiomes
+- Beta dispersion not significantly different 
+
+
+# ANCOM
+
+Tutorial [here](https://github.com/FrederickHuangLin/ANCOM)
+
+## Setup
+
+```{r ancom packages}
+library(readr)
+library(tidyverse)
+#library(dplyr)
+library(nlme)
+#install.packages('compositions')
+library(compositions)
+source("ancom_v2.1.R")
+```
+```{r ancom treatment lineages together, eval=FALSE}
+otu_data_unt <- data.frame(ps.trim.rare@otu_table) 
+otu_data <- data.frame(t(otu_data_unt))
+
+meta_data = data.frame(ps.trim.rare@sam_data)
+meta_data = meta_data %>% dplyr::rename(Sample.ID = frag)
+
+# Step 1: Data pre-processing
+
+feature_table = otu_data; sample_var = "Sample.ID"; group_var = NULL
+out_cut = 0.05; zero_cut = 0.90; lib_cut = 900; neg_lb = FALSE
+prepro = feature_table_pre_process(feature_table, meta_data, sample_var, group_var,out_cut, zero_cut, lib_cut, neg_lb)
+feature_table = prepro$feature_table # Preprocessed feature table
+meta_data = prepro$meta_data # Preprocessed metadata
+struc_zero = prepro$structure_zeros # Structural zero info
+
+# Step 2: ANCOM
+
+main_var = "treat"; p_adj_method = "BH"; alpha = 0.05
+adj_formula = NULL; rand_formula = NULL
+
+res.all = ANCOM(feature_table, meta_data, struc_zero, main_var, p_adj_method, 
+            alpha, adj_formula, rand_formula)
+
+saveRDS(res.all,file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/ancom.res.treat.RDS")
+
+# Step 3: Volcano Plot
+
+# Number of taxa except structural zeros
+n_taxa = ifelse(is.null(struc_zero), nrow(feature_table), sum(apply(struc_zero, 1, sum) == 0))
+# Cutoff values for declaring differentially abundant taxa
+cut_off = c(0.9 * (n_taxa -1), 0.8 * (n_taxa -1), 0.7 * (n_taxa -1), 0.6 * (n_taxa -1))
+names(cut_off) = c("detected_0.9", "detected_0.8", "detected_0.7", "detected_0.6")
+
+# Annotation data
+dat_ann = data.frame(x = min(res.all$fig$data$x), y = cut_off["detected_0.6"], label = "W[0.6]")
+
+fig.treat = res.all$fig +  
+  geom_hline(yintercept = cut_off["detected_0.6"], linetype = "dashed") + 
+  geom_text(data = dat_ann, aes(x = x, y = y, label = label), 
+            size = 4, vjust = -0.5, hjust = 0, color = "orange", parse = TRUE)
+fig.treat
+```
+
+```{r ancom lineage lineages together, eval=FALSE}
+otu_data_unt <- data.frame(ps.trim.rare@otu_table)
+otu_data <- data.frame(t(otu_data_unt))
+
+meta_data = data.frame(ps.trim.rare@sam_data)
+meta_data = meta_data %>% dplyr::rename(Sample.ID = frag)
+
+# Step 1: Data pre-processing
+
+feature_table = otu_data; sample_var = "Sample.ID"; group_var = NULL
+out_cut = 0.05; zero_cut = 0.90; lib_cut = 900; neg_lb = FALSE
+prepro = feature_table_pre_process(feature_table, meta_data, sample_var, group_var, 
+                                   out_cut, zero_cut, lib_cut, neg_lb)
+feature_table = prepro$feature_table # Preprocessed feature table
+meta_data = prepro$meta_data # Preprocessed metadata
+struc_zero = prepro$structure_zeros # Structural zero info
+
+# Step 2: ANCOM
+
+main_var = "lineage"; p_adj_method = "BH"; alpha = 0.05
+adj_formula = NULL; rand_formula = NULL
+
+res.all = ANCOM(feature_table, meta_data, struc_zero, main_var, p_adj_method, 
+            alpha, adj_formula, rand_formula)
+
+saveRDS(res.all,file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/ancom.res.lineage.RDS")
+
+# Step 3: Volcano Plot
+
+# Number of taxa except structural zeros
+n_taxa = ifelse(is.null(struc_zero), nrow(feature_table), sum(apply(struc_zero, 1, sum) == 0))
+# Cutoff values for declaring differentially abundant taxa
+cut_off = c(0.9 * (n_taxa -1), 0.8 * (n_taxa -1), 0.7 * (n_taxa -1), 0.6 * (n_taxa -1))
+names(cut_off) = c("detected_0.9", "detected_0.8", "detected_0.7", "detected_0.6")
+
+# Annotation data
+dat_ann = data.frame(x = min(res.all$fig$data$x), y = cut_off["detected_0.6"], label = "W[0.6]")
+
+fig.lineage = res.all$fig +  
+  geom_hline(yintercept = cut_off["detected_0.6"], linetype = "dashed") + 
+  geom_text(data = dat_ann, aes(x = x, y = y, label = label), 
+            size = 4, vjust = -0.5, hjust = 0, color = "orange", parse = TRUE)
+fig.lineage
+# two differentially abundant taxa
+
+```
+
+```{r ancom treatment lineages separate, eval=FALSE}
+# separate by lineage - skipping this for now since there are no lineage differences for all asv's analyzed together. 
+
+ps.trim.rare.L1 <- subset_samples(ps.trim.rare, lineage=="L1")
+ps.trim.rare.L2 <- subset_samples(ps.trim,rare, lineage=="L2")
+
+# Lineage 1 #
+otu_data_unt.L1 <- data.frame(ps.trim.rare.L1@otu_table)
+otu_data.L1 <- data.frame(t(otu_data_unt.L1))
+
+meta_data.L1 = data.frame(ps.trim.rare.L1@sam_data)
+meta_data.L1 = meta_data.L1 %>% rename(Sample.ID = frag)
+
+# Step 1: Data pre-processing
+
+feature_table.L1 = otu_data.L1; sample_var = "Sample.ID"; group_var = NULL
+out_cut = 0.05; zero_cut = 0.90; lib_cut = 1000; neg_lb = FALSE
+prepro.L1 = feature_table_pre_process(feature_table.L1, meta_data.L1, sample_var, group_var, 
+                                   out_cut, zero_cut, lib_cut, neg_lb)
+feature_table = prepro.L1$feature_table # Preprocessed feature table
+meta_data = prepro.L1$meta_data # Preprocessed metadata
+struc_zero = prepro.L1$structure_zeros # Structural zero info
+
+# Step 2: ANCOM
+
+main_var = "treat"; p_adj_method = "BH"; alpha = 0.05
+adj_formula = NULL; rand_formula = NULL
+
+res.all.L1 = ANCOM(feature_table, meta_data, struc_zero, main_var, p_adj_method, 
+            alpha, adj_formula, rand_formula)
+
+saveRDS(res.all.L1,file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/ancom.res.treat.L1.RDS")
+
+# Step 3: Volcano Plot
+
+# Number of taxa except structural zeros
+n_taxa = ifelse(is.null(struc_zero), nrow(feature_table), sum(apply(struc_zero, 1, sum) == 0))
+# Cutoff values for declaring differentially abundant taxa
+cut_off = c(0.9 * (n_taxa -1), 0.8 * (n_taxa -1), 0.7 * (n_taxa -1), 0.6 * (n_taxa -1))
+names(cut_off) = c("detected_0.9", "detected_0.8", "detected_0.7", "detected_0.6")
+
+# Annotation data
+dat_ann.L1 = data.frame(x = min(res.all.L1$fig$data$x), y = cut_off["detected_0.6"], label = "W[0.6]")
+
+fig.treat.L1 = res.all.L1$fig +  
+  geom_hline(yintercept = cut_off["detected_0.6"], linetype = "dashed") + 
+  geom_text(data = dat_ann.L1, aes(x = x, y = y, label = label), 
+            size = 4, vjust = -0.5, hjust = 0, color = "orange", parse = TRUE)
+fig.treat.L1 
+
+
+# Lineage 2 #
+otu_data_unt.L2 <- data.frame(ps.trim.L2@otu_table)
+otu_data.L2 <- data.frame(t(otu_data_unt.L2))
+
+meta_data.L2 = data.frame(ps.trim.L2@sam_data)
+meta_data.L2 = meta_data.L2 %>% rename(Sample.ID = frag)
+
+# Step 1: Data pre-processing
+
+feature_table.L2 = otu_data.L2; sample_var = "Sample.ID"; group_var = NULL
+out_cut = 0.05; zero_cut = 0.90; lib_cut = 1000; neg_lb = FALSE
+prepro.L2 = feature_table_pre_process(feature_table.L2, meta_data.L2, sample_var, group_var, 
+                                   out_cut, zero_cut, lib_cut, neg_lb)
+feature_table = prepro.L2$feature_table # Preprocessed feature table
+meta_data = prepro.L2$meta_data # Preprocessed metadata
+struc_zero = prepro.L2$structure_zeros # Structural zero info
+
+# Step 2: ANCOM
+
+main_var = "treat"; p_adj_method = "BH"; alpha = 0.05
+adj_formula = NULL; rand_formula = NULL
+
+res.all.L2 = ANCOM(feature_table, meta_data, struc_zero, main_var, p_adj_method, 
+            alpha, adj_formula, rand_formula)
+
+saveRDS(res.all.L2,file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/ancom.res.treat.L2.RDS")
+
+# Step 3: Volcano Plot
+
+# Number of taxa except structural zeros
+n_taxa = ifelse(is.null(struc_zero), nrow(feature_table), sum(apply(struc_zero, 1, sum) == 0))
+# Cutoff values for declaring differentially abundant taxa
+cut_off = c(0.9 * (n_taxa -1), 0.8 * (n_taxa -1), 0.7 * (n_taxa -1), 0.6 * (n_taxa -1))
+names(cut_off) = c("detected_0.9", "detected_0.8", "detected_0.7", "detected_0.6")
+
+# Annotation data
+dat_ann.L2 = data.frame(x = min(res.all.L2$fig$data$x), y = cut_off["detected_0.6"], label = "W[0.6]")
+
+fig.treat.L2 = res.all.L2$fig +  
+  geom_hline(yintercept = cut_off["detected_0.6"], linetype = "dashed") + 
+  geom_text(data = dat_ann.L2, aes(x = x, y = y, label = label), 
+            size = 4, vjust = -0.5, hjust = 0, color = "orange", parse = TRUE)
+fig.treat.L2 
+```
+
+
+```{r ancom sitename lineages separate, eval=FALSE}
+# Lineage 1 #
+otu_data_unt.L1 <- data.frame(ps.trim.L1@otu_table)
+otu_data.L1 <- data.frame(t(otu_data_unt.L1))
+
+meta_data.L1 = data.frame(ps.trim.L1@sam_data)
+meta_data.L1 = meta_data.L1 %>% rename(Sample.ID = frag)
+
+# Step 1: Data pre-processing
+
+feature_table.L1 = otu_data.L1; sample_var = "Sample.ID"; group_var = NULL
+out_cut = 0.05; zero_cut = 0.90; lib_cut = 1000; neg_lb = FALSE
+prepro.L1 = feature_table_pre_process(feature_table.L1, meta_data.L1, sample_var, group_var, 
+                                   out_cut, zero_cut, lib_cut, neg_lb)
+feature_table = prepro.L1$feature_table # Preprocessed feature table
+meta_data = prepro.L1$meta_data # Preprocessed metadata
+struc_zero = prepro.L1$structure_zeros # Structural zero info
+
+# Step 2: ANCOM
+
+main_var = "sitename"; p_adj_method = "BH"; alpha = 0.05
+adj_formula = NULL; rand_formula = NULL
+
+res.all.L1 = ANCOM(feature_table, meta_data, struc_zero, main_var, p_adj_method, 
+            alpha, adj_formula, rand_formula)
+
+saveRDS(res.all.L1,file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/ancom.res.site.L1.RDS")
+
+# Step 3: Volcano Plot
+
+# Number of taxa except structural zeros
+n_taxa = ifelse(is.null(struc_zero), nrow(feature_table), sum(apply(struc_zero, 1, sum) == 0))
+# Cutoff values for declaring differentially abundant taxa
+cut_off = c(0.9 * (n_taxa -1), 0.8 * (n_taxa -1), 0.7 * (n_taxa -1), 0.6 * (n_taxa -1))
+names(cut_off) = c("detected_0.9", "detected_0.8", "detected_0.7", "detected_0.6")
+
+# Annotation data
+dat_ann.L1 = data.frame(x = min(res.all.L1$fig$data$x), y = cut_off["detected_0.6"], label = "W[0.6]")
+
+fig.treat.L1 = res.all.L1$fig +  
+  geom_hline(yintercept = cut_off["detected_0.6"], linetype = "dashed") + 
+  geom_text(data = dat_ann.L1, aes(x = x, y = y, label = label), 
+            size = 4, vjust = -0.5, hjust = 0, color = "orange", parse = TRUE)
+fig.treat.L1 
+# no differentially abundant taxa
+
+# Lineage 2 #
+otu_data_unt.L2 <- data.frame(ps.trim.L2@otu_table)
+otu_data.L2 <- data.frame(t(otu_data_unt.L2))
+
+meta_data.L2 = data.frame(ps.trim.L2@sam_data)
+meta_data.L2 = meta_data.L2 %>% rename(Sample.ID = frag)
+
+# Step 1: Data pre-processing
+
+feature_table.L2 = otu_data.L2; sample_var = "Sample.ID"; group_var = NULL
+out_cut = 0.05; zero_cut = 0.90; lib_cut = 1000; neg_lb = FALSE
+prepro.L2 = feature_table_pre_process(feature_table.L2, meta_data.L2, sample_var, group_var, 
+                                   out_cut, zero_cut, lib_cut, neg_lb)
+feature_table = prepro.L2$feature_table # Preprocessed feature table
+meta_data = prepro.L2$meta_data # Preprocessed metadata
+struc_zero = prepro.L2$structure_zeros # Structural zero info
+
+# Step 2: ANCOM
+
+main_var = "sitename"; p_adj_method = "BH"; alpha = 0.05
+adj_formula = NULL; rand_formula = NULL
+
+res.all.L2 = ANCOM(feature_table, meta_data, struc_zero, main_var, p_adj_method, 
+            alpha, adj_formula, rand_formula)
+
+saveRDS(res.all.L2,file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/ancom.res.site.L2.RDS")
+
+# Step 3: Volcano Plot
+
+# Number of taxa except structural zeros
+n_taxa = ifelse(is.null(struc_zero), nrow(feature_table), sum(apply(struc_zero, 1, sum) == 0))
+# Cutoff values for declaring differentially abundant taxa
+cut_off = c(0.9 * (n_taxa -1), 0.8 * (n_taxa -1), 0.7 * (n_taxa -1), 0.6 * (n_taxa -1))
+names(cut_off) = c("detected_0.9", "detected_0.8", "detected_0.7", "detected_0.6")
+
+# Annotation data
+dat_ann.L2 = data.frame(x = min(res.all.L2$fig$data$x), y = cut_off["detected_0.6"], label = "W[0.6]")
+
+fig.treat.L2 = res.all.L2$fig +  
+  geom_hline(yintercept = cut_off["detected_0.6"], linetype = "dashed") + 
+  geom_text(data = dat_ann.L2, aes(x = x, y = y, label = label), 
+            size = 4, vjust = -0.5, hjust = 0, color = "orange", parse = TRUE)
+fig.treat.L2
+# No differentially abundant taxa across site of origin for either lineage
+```
+
+
+## Synthesizing ANCOM results
+
+Re-read in data
+
+```{r load ancom results}
+res.treat <- readRDS("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/ancom.res.treat.RDS")
+
+res.lineage <- readRDS("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/ancom.res.lineage.RDS")
+
+```
+
+Which ones are 'significant'
+
+```{r subset out files}
+res.out.treat <- res.treat$out
+res.out.treat.sig <- res.out.treat[res.out.treat$detected_0.6==TRUE,]
+#4 seqs (sq13, sq33, sq38, sq81)
+
+res.out.lineage <- res.lineage$out
+res.out.lineage.sig <- res.out.lineage[res.out.lineage$detected_0.6==TRUE,]
+#2 seqs (sq4, sq19)
+
+```
+
+Subset the sig ones in phyloseq
+
+```{r}
+want.treat <- c(res.out.treat.sig$taxa_id)
+
+want.lineage <- c(res.out.lineage.sig$taxa_id)
+
+ps.sig.taxa.treat <- subset_taxa(ps.trim.rare,row.names(ps.trim.rare@tax_table) %in% want.treat)
+# Taxonomy Table:     [4 taxa by 7 taxonomic ranks]:
+#      Kingdom    Phylum            Class                 Order                 Family               
+# sq13 "Bacteria" "Proteobacteria"  "Alphaproteobacteria" "SAR11 clade"         "Clade I"            
+# sq33 "Bacteria" "Proteobacteria"  "Alphaproteobacteria" "SAR11 clade"         "Clade III"          
+# sq38 "Bacteria" "Bacteroidota"    "Bacteroidia"         "Flavobacteriales"    "Flavobacteriaceae"  
+# sq81 "Bacteria" "Patescibacteria" "Parcubacteria"       "Class_Parcubacteria" "Class_Parcubacteria"
+#      Genus                 Species              
+# sq13 "Clade Ia"            "Genus_Clade Ia"     
+# sq33 "Family_Clade III"    "Family_Clade III"   
+# sq38 "Tenacibaculum"       "mesophilum"         
+# sq81 "Class_Parcubacteria" "Class_Parcubacteria"
+
+ps.sig.taxa.lineage <- subset_taxa(ps.trim.rare,row.names(ps.trim.rare@tax_table) %in% want.lineage)
+# Taxonomy Table:     [2 taxa by 7 taxonomic ranks]:
+#      Kingdom    Phylum           Class                 Order             Family               Genus             
+# sq5  "Bacteria" "Proteobacteria" "Gammaproteobacteria" "Xanthomonadales" "Rhodanobacteraceae" "Dyella"          
+# sq33 "Bacteria" "Proteobacteria" "Alphaproteobacteria" "SAR11 clade"     "Clade III"          "Family_Clade III"
+#      Species           
+# sq5  "thiooxydans"     
+# sq33 "Family_Clade III"
+
+#for variability treatments
+plot = plot_bar(ps.sig.taxa.treat,x="treat",y="Abundance",fill="Order")+
+  facet_wrap(~Family,scales="free")
+ggsave(plot, file = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/sig.family.abun.treat.pdf",width=8)
+
+# Clade I and Clade III are SAR11, the most abundant plankton in the ocean. Evidence that P. astreoides eats them in mesocosm experiments: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0229442
+# Tenacibaculum in corals: https://journals.asm.org/doi/full/10.1128/mSystems.01086-20
+# Alteromonas found being released by spawning colonies supposedly to provision offspring: https://link.springer.com/article/10.1007/s00248-012-0105-z
+
+#for lineage
+plot = plot_bar(ps.sig.taxa.lineage,x="lineage",y="Abundance",fill="Family")+
+  facet_wrap(~Family,scales="free")
+ggsave(plot, file = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/sig.family.abun.lineage.pdf",width=8)
+
+# Rhodanobacteraceae (Dyella thiooxydans) - thiosulfate (oxidizing, found in sunflower fields in Korea
+
+```
+
+
+## Make heat map of ANCOM results
+
+```{r}
+#https://schuyler-smith.github.io/phylosmith/graphs.html
+
+#devtools::install_github('schuyler-smith/phylosmith')
+library(phylosmith)
+
+# treatment heat map
+ps.treat.glom <- tax_glom(ps.sig.taxa.treat, "Family")
+ps1 <- merge_samples(ps.treat.glom, "treat")
+
+heatmap = abundance_heatmap(ps1, treatment = c('treat'), 
+                  classification = "Family", transformation = "log",
+                  treatment_labels = c("Control","Low Var","Mod Var","High Var"),
+                  sample_labels = NULL)
+#                  classification_labels = c("SARII Clade I", "Sar11 Clade III",
+#                                            "Order_Flavobacteriales", "Class_Parcubacteria"))
+heatmap
+ggsave(heatmap, file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/heatmap.treat.pdf",width=6, height=4, units=c("in"), useDingbats=FALSE)
+
+# lineage heat map
+ps.lin.glom <- tax_glom(ps.sig.taxa.lineage, "Family")
+ps1 <- merge_samples(ps.lin.glom, "lineage")
+
+heatmap = abundance_heatmap(ps1, treatment = c('lineage'), 
+                  classification = "Family", transformation = "log",
+                  treatment_labels = c("L1","L2"),
+                  sample_labels = NULL)
+#                  classification_labels = c("SARII Clade I", "Sar11 Clade III",
+#                                            "Order_Flavobacteriales", "Class_Parcubacteria"))
+heatmap
+ggsave(heatmap, file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/heatmap.lineage.pdf",width=6, height=4, units=c("in"), useDingbats=FALSE)
+
+# combine with pcoa's to make big figure
+pcoas.combined = ggarrange(pcoa.treat.rel, plot.core.rel.treat, pcoa.acc.all.rel.treat,
+          labels = c("(a) All ASVs", "(b) Core ASVs", "(c) Accessory ASVs"),
+          common.legend = TRUE, legend = "right",
+          ncol = 2, nrow = 2)
+
+ggsave(pcoas.combined, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/all_pcoas_treat.pdf", width=8, height=6, units=c("in"), useDingbats=FALSE)
+
+# make final lineage pca's
+
+pcoas.combined.lin = ggarrange(pcoa.lineage.rel, plot.core.rel.lin, pcoa.acc.all.rel.lin,
+          labels = c("(a) All ASVs", "(b) Core ASVs", "(c) Accessory ASVs"),
+          common.legend = TRUE, legend = "right",
+          ncol = 2, nrow = 2)
+
+ggsave(pcoas.combined.lin, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/CommunityComposition/all_pcoas_lineage.pdf", width=8, height=6, units=c("in"), useDingbats=FALSE)
+
+```
+
