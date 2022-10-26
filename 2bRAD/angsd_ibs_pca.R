@@ -26,10 +26,10 @@ site=i2p[,2]
 # add in site name
 i2p$sitename <- ifelse(i2p$pop == 'I2', 'SP',
                        ifelse(i2p$pop == 'I3', 'CI',
-                              ifelse(i2p$pop == 'I4', 'PD',
-                                     ifelse(i2p$pop == 'O2', 'BS',
-                                            ifelse(i2p$pop == 'O3', 'CA',
-                                                   'BN')))))
+                       ifelse(i2p$pop == 'I4', 'PD',
+                       ifelse(i2p$pop == 'O2', 'BS',
+                       ifelse(i2p$pop == 'O3', 'CA',
+                       'BN')))))
 
 # create new data frame using i2p without clones (duplicated preps), but still with two actual clones (I4G + I4F)
 # this is removing files that have the lower coverage/fewer reads
@@ -101,7 +101,11 @@ pp0=capscale(ma~1)
 pp=capscale(ma~site,conds)
 
 # significance of by-site divergence
-adonis(ma~site,conds)
+adonis2(ma~site,conds)
+#         Df SumOfSqs      R2      F Pr(>F)
+# site      5  0.40473 0.21067 2.3487  0.001 ***
+# Residual 44  1.51640 0.78933
+# Total    49  1.92113 1.00000
 
 # eigenvectors
 plot(pp0$CA$eig)
