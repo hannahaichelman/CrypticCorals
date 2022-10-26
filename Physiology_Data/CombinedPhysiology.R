@@ -2506,9 +2506,23 @@ str(corrsa_phys_all_lin)
 corrsa_phys_all_lin$gen_site = as.factor(corrsa_phys_all_lin$gen_site)
 m1 <- lmer(corallite.avg.poly.mm2 ~ lineage + (1|gen_site), data = corrsa_phys_all_lin, REML=TRUE)
 summary(m1)
+# Fixed effects:
+#                 Estimate Std. Error      df t value Pr(>|t|)
+#   (Intercept)   8.7252     0.3435 44.7154  25.404  < 2e-16 ***
+#   lineageL2     5.1702     0.5718 44.8748   9.042 1.13e-11 ***
+#   lineageL3     8.5199     1.1102 44.9221   7.674 1.04e-09 ***
+
 anova(m1)
+# Type III Analysis of Variance Table with Satterthwaite's method
+#         Sum Sq Mean Sq NumDF  DenDF F value    Pr(>F)
+# lineage 206.02  103.01     2 44.904  59.483 2.384e-13 ***
 
 lsmeans(m1, pairwise~lineage, adjust="tukey")
+# $contrasts
+#             contrast estimate    SE   df t.ratio p.value
+# L1 - L2     -5.17 0.574 44.2  -9.009  <.0001
+# L1 - L3     -8.52 1.111 44.5  -7.666  <.0001
+# L2 - L3     -3.35 1.151 44.6  -2.911  0.0152
 
 #SummarySE to format data for plotting site name
 corrsa_means_site_all_lin <- summarySE(corrsa_phys_all_lin, measurevar="corallite.avg.poly.mm2", groupvars=c("sitename"))
