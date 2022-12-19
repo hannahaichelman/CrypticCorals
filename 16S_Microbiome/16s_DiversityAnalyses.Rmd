@@ -226,8 +226,21 @@ shapiro.test(df.div$Shannon) # fine
 leveneTest(df.div$Shannon~treat,data=df.div) #fine
 
 a.div <- aov(Shannon~treat+lineage,data=df.div)
-summary(a.div) #p=0.449
+summary(a.div) 
+#              Df Sum Sq Mean Sq F value Pr(>F)
+# treat         3   2.81  0.9362   1.006  0.392
+# lineage       1   0.15  0.1530   0.164  0.686
+# Residuals   151 140.51  0.9305               
+
 TukeyHSD(a.div) #ns for raw, rarefied, trimmed, or not
+# $treat
+#                         diff        lwr       upr     p adj
+# Low Var-Control  -0.16026181 -0.7437523 0.4232287 0.8916025
+# Mod Var-Control  -0.35255998 -0.9008184 0.1956985 0.3428562
+# High Var-Control -0.26280069 -0.8379199 0.3123185 0.6359302
+# Mod Var-Low Var  -0.19229818 -0.7570907 0.3724944 0.8129031
+# High Var-Low Var -0.10253888 -0.6934411 0.4883633 0.9693824
+# High Var-Mod Var  0.08975929 -0.4663806 0.6458992 0.9751104
 
 ```
 
@@ -296,8 +309,25 @@ shapiro.test(df.div$si.log) #fine
 leveneTest(df.div$si.log~treat,data=df.div) #fine 
 
 a.div <- aov(si.log~treat+lineage,data=df.div)
-summary(a.div) #p=0.603
+summary(a.div) 
+#              Df Sum Sq Mean Sq F value Pr(>F)
+# treat         3   1.40  0.4651   0.658  0.579
+# lineage       1   0.39  0.3872   0.547  0.461
+# Residuals   151 106.80  0.7073               
+
 TukeyHSD(a.div) #nothing, rarefied or not
+# $treat
+#                         diff        lwr       upr     p adj
+# Low Var-Control  -0.11727921 -0.6259824 0.3914240 0.9322462
+# Mod Var-Control  -0.22011752 -0.6981045 0.2578694 0.6301021
+# High Var-Control -0.23424266 -0.7356476 0.2671622 0.6191661
+# Mod Var-Low Var  -0.10283832 -0.5952401 0.3895635 0.9484119
+# High Var-Low Var -0.11696345 -0.6321284 0.3982015 0.9350293
+# High Var-Mod Var -0.01412513 -0.4989833 0.4707331 0.9998439
+# 
+# $lineage
+#            diff        lwr       upr     p adj
+# L2-L1 0.1022401 -0.1712182 0.3756985 0.4612308
 
 ```
 
@@ -354,6 +384,7 @@ gg.treat.lin.obs <- ggplot(df.div.treat.lin, aes(x=treat, y=Observed,color=treat
   facet_wrap(~lineage)
 gg.treat.lin.obs
 ```
+
 ```{r richness stats}
 #otu richness
 shapiro.test(df.div$Observed) #nope
@@ -362,8 +393,25 @@ shapiro.test(df.div$obs.log) #still no...
 leveneTest(df.div$obs.log~treat,data=df.div) #fine
 
 a.div <- aov(obs.log~treat+lineage,data=df.div)
-summary(a.div) #ptreat=0.0918, plineage=0.7766
+summary(a.div) 
+#             Df Sum Sq Mean Sq F value Pr(>F)  
+# treat         3   6.50  2.1655   2.188 0.0918 .
+# lineage       1   0.08  0.0800   0.081 0.7766  
+# Residuals   151 149.47  0.9899                 
+
 TukeyHSD(a.div) #no differences
+# $treat
+#                          diff        lwr        upr     p adj
+# Low Var-Control  -0.186595119 -0.7883976 0.41520733 0.8517681
+# Mod Var-Control  -0.538856988 -1.1043217 0.02660771 0.0678860
+# High Var-Control -0.180503182 -0.7736716 0.41266527 0.8586593
+# Mod Var-Low Var  -0.352261868 -0.9347796 0.23025584 0.3982789
+# High Var-Low Var  0.006091938 -0.6033548 0.61553871 0.9999937
+# High Var-Mod Var  0.358353806 -0.2152397 0.93194731 0.3688171
+# 
+# $lineage
+#             diff        lwr       upr     p adj
+# L2-L1 0.04646841 -0.2770364 0.3699732 0.7769487
 
 ```
 
@@ -426,8 +474,26 @@ shapiro.test(df.div$even) #nope
 leveneTest(df.div$even~treat,data=df.div) #fine
 
 a.div <- aov(even~treat+lineage,data=df.div)
-summary(a.div) #ptreat=0.337, plineage=0.509
+summary(a.div) 
+#              Df Sum Sq  Mean Sq F value Pr(>F)
+# treat         3 0.0496 0.016546   1.134  0.337
+# lineage       1 0.0064 0.006379   0.437  0.509
+# Residuals   151 2.2033 0.014592               
+
 TukeyHSD(a.div) #no differences, rarefied or not
+# $treat
+#                          diff         lwr        upr     p adj
+# Low Var-Control  -0.019476296 -0.09254259 0.05359000 0.8998382
+# Mod Var-Control  -0.005629518 -0.07428396 0.06302492 0.9965708
+# High Var-Control -0.046561614 -0.11857963 0.02545641 0.3380400
+# Mod Var-Low Var   0.013846778 -0.05687811 0.08457167 0.9569319
+# High Var-Low Var -0.027085318 -0.10107973 0.04690909 0.7773362
+# High Var-Mod Var -0.040932096 -0.11057347 0.02870928 0.4240158
+# 
+# $lineage
+#             diff         lwr        upr    p adj
+# L2-L1 0.01312293 -0.02615457 0.05240043 0.510176
+
 ```
 
 ## Combine plots so far
@@ -446,7 +512,7 @@ ggsave(plots.treat, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2
 
 ```
 
-## Hannah stopped here 3/11/22
+## Hannah stopped here for manuscript. 
 
 ## Phylogenetic diversity (Faith's D)
 

@@ -382,7 +382,12 @@ row.names(samdf.core)==row.names(seq.core)
 ## Calculate multivariate dispersions
 bet.all <- betadisper(dist.core,samdf.core$treat)
 ## Perform test
-anova(bet.all) # p=0.1786
+anova(bet.all) 
+# Response: Distances
+#            Df Sum Sq  Mean Sq F value Pr(>F)
+# Groups      3 0.2115 0.070495  1.6587 0.1786
+# Residuals 145 6.1625 0.042500               
+
 ## Permutation test for F
 permutest(bet.all, pairwise = TRUE, permutations = 999) #all ns
 #(Observed p-value below diagonal, permuted p-value above diagonal)
@@ -411,13 +416,17 @@ plot(bet.all)
 # lineage
 bet.all <- betadisper(dist.core,samdf.core$lineage)
 anova(bet.all) # p=0.6139
+#            Df Sum Sq  Mean Sq F value Pr(>F)
+# Groups      1 0.0108 0.010836  0.2556 0.6139
+# Residuals 147 6.2327 0.042399 
+
 permutest(bet.all, pairwise = TRUE, permutations = 999) #all ns
 plot(bet.all) 
 
 #adonis(seq.core ~ sitename, data=samdf.core, permutations=999) #p=0.233
 adonis(seq.core ~ treat+lineage, data=samdf.core, permutations=999) 
-#            Df SumsOfSqs  MeanSqs F.Model      R2 Pr(>F)
-# treat       3    0.3886 0.129531 1.84759 0.03698  0.102
+#           Df SumsOfSqs  MeanSqs F.Model      R2 Pr(>F)
+# treat       3    0.3886 0.129531 1.84759 0.03698  0.123
 # lineage     1    0.0237 0.023697 0.33801 0.00226  0.703
 # Residuals 144   10.0956 0.070108         0.96076       
 # Total     148   10.5078                  1.00000       
@@ -756,7 +765,12 @@ row.names(samdf.acc)==row.names(seq.acc)
 
 #treatment
 bet.all <- betadisper(dist.acc,samdf.acc$treat)
-anova(bet.all) # p=0.2039
+anova(bet.all) 
+# Response: Distances
+#            Df   Sum Sq   Mean Sq F value Pr(>F)
+# Groups      3 0.009255 0.0030849  1.5509 0.2039
+# Residuals 145 0.288423 0.0019891               
+
 permutest(bet.all, pairwise = TRUE, permutations = 999) #no diff in disp
 plot(bet.all) #still lots of overlap
 
@@ -769,6 +783,11 @@ plot(bet.all)
 #lineage
 bet.all <- betadisper(dist.acc,samdf.acc$lineage)
 anova(bet.all) #p=0.01248
+# Response: Distances
+#            Df   Sum Sq   Mean Sq F value  Pr(>F)  
+# Groups      1 0.010496 0.0104957   6.398 0.01248 *
+# Residuals 147 0.241148 0.0016405                  
+
 permutest(bet.all, pairwise = TRUE, permutations = 999) 
 plot(bet.all) 
 
@@ -981,10 +1000,20 @@ row.names(samdf.rare)==row.names(seq.rare)
 
 bet.all <- betadisper(dist.rare,samdf.rare$treat)
 anova(bet.all) # p=0.8144
+# Response: Distances
+#            Df Sum Sq  Mean Sq F value Pr(>F)
+# Groups      3 0.0346 0.011536  0.3152 0.8144
+# Residuals 145 5.3064 0.036596               
+
 plot(bet.all) #very much overlap, not sig
 
 bet.all <- betadisper(dist.rare,samdf.rare$sitename)
 anova(bet.all) #p=0.9256
+# Response: Distances
+#            Df Sum Sq  Mean Sq F value Pr(>F)
+# Groups      1 0.0371 0.037137   1.133 0.2889
+# Residuals 147 4.8182 0.032777               
+
 permutest(bet.all, pairwise = TRUE, permutations = 999) # all ns
 plot(bet.all) 
 

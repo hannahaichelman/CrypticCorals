@@ -1381,7 +1381,7 @@ calc_phys_2_lin = calc_phys_all_lin %>%
 
 # exploratory figure
 #scatter plot with linear regression and confidence interval
-ggplot(calc_phys, aes(treat, T3_T2_perc, color = sitename))+
+ggplot(calc_phys, aes(treat, T2_T0_perc, color = sitename))+
   geom_point()+
   geom_smooth(aes(group=sitename), method=lm)+
   theme_classic()
