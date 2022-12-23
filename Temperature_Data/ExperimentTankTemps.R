@@ -656,16 +656,21 @@ describe(Tank4.2_var$Temp) # High Var
 # will use the method from dan barshis:
 
 # Find overall mean during heat challenge and recovery periods:
+library(plotrix)
 
-
-all_stress_2 <- all_stress %>%
+all_stress_2 = all_stress %>%
   #dplyr::filter(DateTime < "2016-11-21 00:00:00" & DateTime > "2016-11-14 00:00:00") %>%# to look at just stress
-  dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-25 00:00:00") %>%# to look at just recivert
-  summarise_at(vars(Temp), list(mean_temp = mean), na.rm=TRUE)
+  dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-25 00:00:00") %>%# to look at just recovery
+  summarise_at(vars(Temp), list(mean_temp = mean, sd_temp = sd, se_temp = std.error), na.rm=TRUE)
 all_stress_2
 
-# mean_temp
-# 1  29.42072
+# mean_temp stress
+# mean_temp   sd_temp    se_temp
+# 1  31.81931 0.2255795 0.00282682
+
+# mean_temp recovery
+# mean_temp   sd_temp     se_temp
+# 1  29.42072 0.4755736 0.003924869
 
 #### DTV Function ####
 # use Dan Barshis' function to calculate dtv for these loggers
