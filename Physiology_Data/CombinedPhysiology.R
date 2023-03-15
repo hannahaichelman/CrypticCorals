@@ -205,7 +205,7 @@ ggplot(phys, aes(x=SAcm2, color = sitename, fill = sitename))+
   facet_wrap(~sitename, 6,1)
 
 # boxplot of nubbin sizes
-plot <- ggplot(phys, aes(x=sitename, y=SAcm2, fill = sitename, text = paste("Nubbin:",nubbin)))+
+plot <- ggplot(phys, aes(x=sitename, y=SAcm2, fill = sitename, text = paste("Nubbin:",frag)))+
   theme_bw()+
   geom_boxplot()+
   geom_jitter(aes(color = sitename),width = 0.3)+
@@ -1076,7 +1076,7 @@ ggsave(scarb_plot_lineage_sym, filename = "/Users/hannahaichelman/Documents/BU/T
 
 sym_phys = phys %>%
   select(frag,treat,symcount1,symcount2,symcount3,
-         survivedtoend,blastvol,gen_site,origsitecode,sitename,fragid,nubbin,
+         survivedtoend,blastvol,gen_site,origsitecode,sitename,fragid,
          reef,genet,SAcm2,dominant_div)
 
 head(sym_phys)
@@ -1105,14 +1105,14 @@ sym_phys_2_lin = sym_phys_all_lin %>%
 
 # Stats
 # first try with lmer()
-model.sym <- lmer(sym_cm2 ~ treat * sitename + (1|gen_site), data = sym_phys_nona)
+model.sym <- lmer(sym_cm2 ~ treat * sitename + (1|gen_site), data = sym_phys_2_lin)
 summary(model.sym)
 AIC(model.sym)
 lsmeans(model.sym, pairwise~treat, adjust="tukey")
 lsmeans(model.sym, pairwise~sitename, adjust="tukey")
 
 # and with anova()
-aov.sym <- aov(sym_cm2 ~ treat * sitename + Error(gen_site), data = sym_phys_nona)
+aov.sym <- aov(sym_cm2 ~ treat * sitename + Error(gen_site), data = sym_phys_2_lin)
 summary(aov.sym)
 tukey.prot <- TukeyHSD(aov.sym)
 
@@ -1916,6 +1916,36 @@ pam_plot_treatment <- ggplot(pam_means_treat_2_lin,aes(x = time, y = pam, color 
 pam_plot_treatment
 
 ggsave(pam_plot_treatment, file="/Users/hannahaichelman/Documents/BU/TVE/PAM/PAM_treat_2_lin.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
+
+#SummarySE to format data for plotting - dtv treatment faceted by lineage
+pam_means_treat_all_lin <- summarySE(phys_pam_all_lin_plots, measurevar="pam", groupvars=c("treat","time","lineage"))
+pam_means_treat_all_lin$time <- as.numeric(as.character(pam_means_treat_all_lin$time))
+pam_means_treat_2_lin <- summarySE(phys_pam_2_lin_plots, measurevar="pam", groupvars=c("treat","time","lineage"))
+pam_means_treat_2_lin$time <- as.numeric(as.character(pam_means_treat_2_lin$time))
+
+pam_means_treat_2_lin = pam_means_treat_2_lin %>%
+  drop_na(lineage)
+
+pam_plot_treatment_lin <- ggplot(pam_means_treat_2_lin,aes(x = time, y = pam, color = treat, fill = treat))+
+  theme_bw()+
+  annotate("rect", xmin = 51, xmax = 64, ymin = - Inf, ymax = Inf, fill = "red4", alpha = 0.15)+
+  annotate("rect", xmin = 64, xmax = 80, ymin = - Inf, ymax = Inf, fill = "royalblue4", alpha = 0.15)+
+  geom_point(size = 3, pch = 21, color = "black", position = position_dodge(width=0.3))+
+  geom_line(aes(group = treat), size = 0.5, linetype="dashed", position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = time, ymax = pam+se, ymin = pam-se), width = .2, position = position_dodge(width=0.3)) +
+  scale_fill_manual(name = "Treatment",
+                    labels = c("Control","Low Var","Mod Var","High Var"),
+                    values = cols_treat)+
+  scale_color_manual(name = "Treatment",
+                     labels = c("Control","Low Var","Mod Var","High Var"),
+                     values = cols_treat)+
+  ylab("Fv/Fm")+
+  scale_x_continuous(name = "Time Point", breaks = c(45,54,61,65,70,74,79))+
+  facet_wrap(~lineage)
+#ylim(0.4,0.7) +
+pam_plot_treatment_lin
+
+ggsave(pam_plot_treatment_lin, file="/Users/hannahaichelman/Documents/BU/TVE/PAM/PAM_treat_lin_facet.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
 
 
 #SummarySE to format data for plotting - lineage
