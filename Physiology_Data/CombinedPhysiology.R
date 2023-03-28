@@ -146,9 +146,9 @@ cols_lineage <- c("L1" = "#3f007d", "L2" = "#807dba", "L3" = "#bcbddc")
 its2_cols_greens = c("C1" = "#edf8e9", "C3af" = "#238b45","C3" = "#a1d99b","D1" = "#00441b")
 
 #### Test for Lineage Distribution ####
-str(phys_metadata_all) # includes all 3 lineages
-
 # Want to test whether distribution of lineages is significantly different across inshore and offshore sites.
+
+str(phys_metadata_all) # includes all 3 lineages
 
 # first try logit regression: https://stats.oarc.ucla.edu/r/dae/logit-regression/
 library(aod)
@@ -272,7 +272,7 @@ tiss_phys_2_lin = tiss_phys_all_lin %>%
 
 # can't combine with dominant sym type here because tissue thickness is from initial phys and sym types were from end of variability
 
-# Stats
+# STATS
 m1 <- lm(avgtiss ~ lineage+sitename, data = tiss_phys_all_lin)
 summary(m1)
 anova(m1)
@@ -286,21 +286,21 @@ anova(m1)
 
 lsmeans(m1, pairwise~lineage, adjust="tukey")
 
+# PLOTS
+
 #SummarySE to format data for plotting
 tiss_means_site_all_lin <- summarySE(tiss_phys_all_lin, measurevar="avgtiss", groupvars=c("treat","sitename"))
 tiss_means_site_2_lin <- summarySE(tiss_phys_2_lin, measurevar="avgtiss", groupvars=c("treat","sitename"))
 
 # plot, treatment x axis colored by site data figure
-tiss_plot_site <- ggplot(tiss_means_site_2_lin,aes(x = sitename, y = avgtiss, color = sitename, pch = sitename))+
+tiss_plot_site <- ggplot(tiss_means_site_2_lin,aes(x = sitename, y = avgtiss, fill = sitename, color = sitename))+
   theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = sitename, ymax = avgtiss+se, ymin = avgtiss-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_color_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
+  geom_errorbar(aes(x = sitename, ymax = avgtiss+se, ymin = avgtiss-se, color = sitename), width = .2, position = position_dodge(width=0.3)) +
+  geom_point(size = 3, pch = 21, position = position_dodge(width=0.3), color = "black")+
+  scale_fill_manual(name = "Site",
                      values = cols_site)+
-  scale_shape_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values=c(19,19,19,17,17,17))+
+  scale_color_manual(name = "Site",
+                     values = cols_site)+
   xlab("Site Name")+
   ylab("Tissue Thickness (mm)")+
   ylim(3.75,6) +
@@ -526,7 +526,7 @@ post_hprot_phys_2_lin = post_hprot_phys_all_lin %>%
 
 # STATS
 ## NEED TO RUN STATS SEPARATELY FOR INITIAL AND FINAL TIME POINTS
-# use lmer()
+
 model.prot.initial = lm(prot_mgcm2 ~ lineage+sitename, data = initial_hprot_phys_2_lin)
 summary(model.prot.initial)
 anova(model.prot.initial)
@@ -573,11 +573,7 @@ prot_plot_site <- ggplot(prot_means_site_2_lin,aes(x = treat, y = prot_mgcm2, fi
   geom_errorbar(aes(x = treat, ymax = prot_mgcm2+se, ymin = prot_mgcm2-se), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
   scale_fill_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
                      values = cols_site)+
-#  scale_shape_manual(name = "Site",
-#                     labels = c("CI","PD","SP","BN","BS","CA"),
-#                     values=c(19,19,19,17,17,17))+
   xlab("Treatment")+
   ylab(bquote("Total Protein (mg" ~cm^-2~')'))+
   ylim(0,0.4) +
@@ -604,7 +600,6 @@ prot_plot_lineage <- ggplot(prot_means_lineage_2_lin,aes(x = treat, y = prot_mgc
   geom_errorbar(aes(x = treat, ymax = prot_mgcm2+se, ymin = prot_mgcm2-se), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
   scale_fill_manual(name = "Lineage",
-                     breaks = c("L1","L2"),
                      values = cols_lineage)+
   xlab("Treatment")+
   ylab(bquote("Total Protein (mg" ~cm^-2~')'))+
@@ -625,7 +620,6 @@ ggsave(prot_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/Pr
 # plot, treatment x axis and symtype color
 #SummarySE to format data for plotting
 prot_means_sym <- summarySE(hprot_phys_2_lin_symtype, measurevar="prot_mgcm2", groupvars=c("treat","dominant_type"))
-its2_cols_greens = c("C1" = "#edf8e9", "C3af" = "#238b45","C3" = "#a1d99b","D1" = "#00441b")
 
 # plot, treatment x axis colored by site data figure
 prot_plot_sym <- ggplot(prot_means_sym,aes(x = treat, y = prot_mgcm2, fill = dominant_type))+
@@ -634,8 +628,6 @@ prot_plot_sym <- ggplot(prot_means_sym,aes(x = treat, y = prot_mgcm2, fill = dom
   geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
   scale_fill_manual(name = "Dominant Symbiont",
                      values = its2_cols_greens)+
-  #scale_shape_manual(name = "Lineage_Sym",
-  #                   values=c(19,17,19,17))+
   xlab("Treatment")+
   ylab(bquote("Total Protein (mg" ~cm^-2~')'))+
   ylim(0,0.4) +
@@ -661,10 +653,10 @@ ggsave(prot_plots_all, filename = "/Users/hannahaichelman/Documents/BU/TVE/Prote
 
 
 # plot just CI corals to see if lineage difference holds
-hprot_phys_2_lin_nona_CI = hprot_phys_2_lin_nona %>%
+hprot_phys_2_lin_CI = hprot_phys_2_lin %>%
   subset(sitename == "CI")
 
-hprot_means_lineage_CI <- summarySE(hprot_phys_2_lin_nona_CI, measurevar="prot_mgcm2", groupvars=c("treat","lineage"))
+hprot_means_lineage_CI <- summarySE(hprot_phys_2_lin_CI, measurevar="prot_mgcm2", groupvars=c("treat","lineage"))
 
 prot_plot_lineage_CI <- ggplot(hprot_means_lineage_CI,aes(x = treat, y = prot_mgcm2, color = lineage, pch = lineage))+
   theme_bw()+
@@ -686,7 +678,7 @@ prot_plot_lineage_CI
 ggsave(prot_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/Protein/plots/protein_lineage_CIonly.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 ##### Host Carbohydrate Concentrations #####
-
+# first, subset physiology data add in standard curve data needed to correct for separate carbohydrate plates
 hcarb_phys = phys %>%
   select(frag,treat,hcarbplate_ha,hcarb1_ha,hcarb2_ha,hcarb3_ha,
          survivedtoend,blastvol,gen_site,origsitecode,sitename,fragid,reef,genet,SAcm2,dominant_type,lineage)
@@ -792,7 +784,7 @@ post_hcarb_phys_2_lin = post_hcarb_phys_all_lin %>%
 
 # STATS
 ## NEED TO RUN STATS SEPARATELY FOR INITIAL AND FINAL TIME POINTS
-# use lmer()
+
 model.hcarb.initial = lm(hcarb_mgcm2 ~ lineage+sitename, data = initial_hcarb_phys_2_lin)
 summary(model.hcarb.initial)
 anova(model.hcarb.initial)
@@ -844,19 +836,14 @@ hcarb_plot_site <- ggplot(hcarb_means_site_2_lin,aes(x = treat, y = hcarb_mgcm2,
   geom_errorbar(aes(x = treat, ymax = hcarb_mgcm2+se, ymin = hcarb_mgcm2-se), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
   scale_fill_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
                      values = cols_site)+
   xlab("Treatment")+
   ylab(bquote("Total Host Carbohydrate (mg" ~cm^-2~')'))+
   ylim(0,0.8) +
   geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
-        legend.position = c(.95, .99),
-        legend.justification = c("right", "top"),
-        legend.box.just = "right",
-        legend.margin = margin(5, 5, 5, 5)
-        #legend.key = element_rect(fill = "none")
-  )
+        legend.position = "none"
+)
 hcarb_plot_site
 
 ggsave(hcarb_plot_site, filename = "/Users/hannahaichelman/Documents/BU/TVE/Carbohydrates/Plots/hcarb_site_2_lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
@@ -864,25 +851,19 @@ ggsave(hcarb_plot_site, filename = "/Users/hannahaichelman/Documents/BU/TVE/Carb
 #SummarySE to format data for plotting lineage
 hcarb_means_lineage_2_lin <- summarySE(hcarb_phys_2_lin, measurevar="hcarb_mgcm2", groupvars=c("treat","lineage"))
 
-# plot, treatment x axis colored by site data figure
+# plot, treatment x axis colored by lineage data figure
 hcarb_plot_lineage <- ggplot(hcarb_means_lineage_2_lin,aes(x = treat, y = hcarb_mgcm2, fill = lineage))+
   theme_bw()+
   geom_errorbar(aes(x = treat, ymax = hcarb_mgcm2+se, ymin = hcarb_mgcm2-se), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
   scale_fill_manual(name = "Lineage",
-                     #breaks = c("L1","L2","L3"),
-                     breaks = c("L1","L2"),
                      values = cols_lineage)+
   xlab("Treatment")+
   ylab(bquote("Total Host Carbohydrate (mg" ~cm^-2~')'))+
   ylim(0,0.8) +
   geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
-        legend.position = c(.95, .99),
-        legend.justification = c("right", "top"),
-        legend.box.just = "right",
-        legend.margin = margin(5, 5, 5, 5)
-        #legend.key = element_rect(fill = "none")
+        legend.position = "none"
 )
 hcarb_plot_lineage
 
@@ -905,12 +886,8 @@ hcarb_plot_sym <- ggplot(hcarb_means_sym,aes(x = treat, y = hcarb_mgcm2, fill = 
   ylim(0,0.8) +
   #geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
-        legend.position = c(.95, .99),
-        legend.justification = c("right", "top"),
-        legend.box.just = "right",
-        legend.margin = margin(5, 5, 5, 5)
-        #legend.key = element_rect(fill = "none")
-  )
+        legend.position = "none"
+)
 hcarb_plot_sym
 
 ggsave(hcarb_plot_sym, filename = "/Users/hannahaichelman/Documents/BU/TVE/Carbohydrates/Plots/protein_lineage_sym.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
@@ -1092,7 +1069,6 @@ scarb_plot_site <- ggplot(scarb_means_site_2_lin,aes(x = treat, y = scarb_mgcm2,
   geom_errorbar(aes(x = treat, ymax = scarb_mgcm2+se, ymin = scarb_mgcm2-se), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
   scale_fill_manual(name = "Site",
-                    labels = c("CI","PD","SP","BN","BS","CA"),
                     values = cols_site)+
   xlab("Treatment")+
   ylab(bquote("Total Symbiont Carbohydrate (mg" ~cm^-2~')'))+
@@ -1100,10 +1076,6 @@ scarb_plot_site <- ggplot(scarb_means_site_2_lin,aes(x = treat, y = scarb_mgcm2,
   geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
         legend.position = "none"
-#        legend.justification = c("right", "top"),
-#        legend.box.just = "right",
-#        legend.margin = margin(5, 5, 5, 5)
-        #legend.key = element_rect(fill = "none")
 )
 scarb_plot_site
 
@@ -1118,9 +1090,7 @@ scarb_plot_lineage <- ggplot(scarb_means_lineage_2_lin,aes(x = treat, y = scarb_
   geom_errorbar(aes(x = treat, ymax = scarb_mgcm2+se, ymin = scarb_mgcm2-se), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
   scale_fill_manual(name = "Lineage",
-                    #breaks = c("L1","L2","L3"),
-                    breaks = c("L1","L2"),
-                    values = cols_lineage)+
+                     values = cols_lineage)+
   xlab("Treatment")+
   ylab(bquote("Total Symbiont Carbohydrate (mg" ~cm^-2~')'))+
   ylim(0,0.35) +
@@ -1255,7 +1225,6 @@ sym_plot_site <- ggplot(sym_means_site_2_lin,aes(x = treat, y = sym_cm2_div, fil
   geom_errorbar(aes(x = treat, ymax = sym_cm2_div+se, ymin = sym_cm2_div-se), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
   scale_fill_manual(name = "Site",
-                    labels = c("CI","PD","SP","BN","BS","CA"),
                     values = cols_site)+
   xlab("Treatment")+
   ylab(bquote("Symbiont Density ("~x10^6~ 'cells' ~cm^-2~')'))+
@@ -1277,8 +1246,6 @@ sym_plot_lineage <- ggplot(sym_means_lineage_2_lin,aes(x = treat, y = sym_cm2_di
   geom_errorbar(aes(x = treat, ymax = sym_cm2_div+se, ymin = sym_cm2_div-se), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
   scale_fill_manual(name = "Lineage",
-                    #breaks = c("L1","L2","L3"),
-                    breaks = c("L1","L2"),
                     values = cols_lineage)+
   xlab("Treatment")+
   ylab(bquote("Symbiont Density ("~x10^6~ 'cells' ~cm^-2~')'))+
@@ -1351,6 +1318,227 @@ plot <- ggplot(phys,aes(x = treat, y = sym_cm2, color = sitename, pch = sitename
   ggtitle("Symbiont Density (cells/cm2)")
 #  labs(y=expression(paste("Protein (mg cm"^-2*' )')))
 ggplotly(subplot(list(plot),titleY=T) %>% layout(showlegend=T))
+
+
+##### Chlorophyll Concentration #####
+
+## check which chlorophyll frags we are missing
+chl <- read.csv('/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/OliviaSamples/TVEChlorphyll_ON.csv')
+
+phys_for_chl = phys %>%
+  select(frag, survivedtoend, treat, blastvol, blaster, SAcm2, reef, sitename, gen_site, dominant_type, lineage) %>%
+  mutate(treat = as.factor(treat), blastvol = as.numeric(blastvol))
+
+#want to keep all of the individuals in the original dtv spreadsheet and add NA's for any that don't have chl info for
+chl_phys <- left_join(phys_for_chl, chl, by = "frag")
+
+# find mean absorbance values for each wavelength
+chl_phys = chl_phys %>%
+  mutate(chl630_avg=rowMeans(.[ , c("blk_630_1","blk_630_2","blk_630_3")], na.rm=TRUE)) %>%
+  mutate(chl663_avg=rowMeans(.[ , c("blk_663_1","blk_663_2","blk_663_3")], na.rm=TRUE))
+
+# calculate chlorophyll A and C2 from values in ug/mL (equations come from Carly Kenkel's method, originally a Jeffrey and Haxo 1968 equation)
+# 20 cancels out mL so you end up with ug/cm2
+chl_phys$chlA <- ((((13.31*chl_phys$chl663_avg) - (0.27*chl_phys$chl630_avg))*20)/chl_phys$SAcm2)
+chl_phys$chlC2 <- ((((-8.37*chl_phys$chl663_avg) + (51.72*chl_phys$chl630_avg))*20)/chl_phys$SAcm2)
+
+head(chl_phys)
+
+# make data subsets for stats and plotting
+chl_phys_all_lin = chl_phys %>%
+  drop_na(chlA) %>%
+  filter(treat!="Control 2") %>%
+  filter(frag!="I2A12", frag!="I2A7", frag!="O4D8", frag!="I3E10", frag!="I3I10", frag!="I3E6_v2") %>% #these frags are being removed because they were duplicate genotypes within treatment and had the most complete information of the two
+  filter(frag!="I3A4") %>% # unexplained high outlier
+  filter(gen_site != "I4G") %>% # clone with I4F, remove from dataset
+  select(frag, gen_site, treat, sitename, dominant_type, lineage, chlA, chlC2)
+
+chl_phys_2_lin = chl_phys_all_lin %>%
+  filter(is.na(lineage) | lineage!="L3") %>%
+  drop_na(sitename, lineage) # doing this for plotting
+
+chl_phys_2_lin_symtype = chl_phys_2_lin %>%
+  drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
+
+initial_chl_phys_all_lin = chl_phys_all_lin %>%
+  filter(treat=="Initial")
+
+initial_chl_phys_2_lin = initial_chl_phys_all_lin %>%
+  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+
+post_chl_phys_all_lin = chl_phys_all_lin %>%
+  filter(treat!="Initial")
+
+post_chl_phys_2_lin = post_chl_phys_all_lin %>%
+  filter(is.na(lineage) | lineage!="L3")
+
+
+# STATS
+## NEED TO RUN STATS SEPARATELY FOR INITIAL AND FINAL TIME POINTS
+# use lmer()
+model.chl.initial = lm(chlA ~ lineage+sitename, data = initial_chl_phys_2_lin)
+summary(model.chl.initial)
+anova(model.chl.initial)
+#           Df Sum Sq Mean Sq F value    Pr(>F)
+# lineage    1 297.51 297.505 23.5187 2.377e-05 ***
+# sitename   5 141.08  28.215  2.2305   0.07232 .
+# Residuals 36 455.39  12.650
+
+check_model(model.chl.initial)
+
+
+model.chl.final <- lmer(chlA ~ treat+lineage+sitename+dominant_type + (1|gen_site), data = post_chl_phys_2_lin)
+summary(model.chl.final)
+anova(model.chl.final)
+# Type III Analysis of Variance Table with Satterthwaite's method
+#               Sum Sq Mean Sq NumDF   DenDF F value  Pr(>F)
+# treat         25.757  8.5855     3 107.320  3.2167 0.02575 *
+# lineage        9.504  9.5043     1  33.741  3.5610 0.06778 .
+# sitename      40.302  8.0604     5  35.670  3.0200 0.02249 *
+# dominant_type 13.384  4.4614     3  97.284  1.6716 0.17816
+
+check_model(model.chl.final)
+
+
+#specify model (because we are interested in pairwise, have to include the interaction)
+m.emm<- lmer(chlA ~ treat*lineage + (1|gen_site), data = post_chl_phys_2_lin, REML=FALSE)
+
+emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
+pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
+# treat    lineage_pairwise estimate    SE  df t.ratio p.value
+# Control  L1 - L2             1.687 0.658 151   2.561  0.0373
+# Low Var  L1 - L2             0.624 0.669 152   0.932  0.3527
+# Mod Var  L1 - L2             0.972 0.598 141   1.627  0.1414
+# High Var L1 - L2             1.497 0.629 146   2.380  0.0373
+
+# PLOTS
+#SummarySE to format data for plotting
+chla_means_site_2_lin <- summarySE(chl_phys_2_lin, measurevar="chlA", groupvars=c("treat","sitename"))
+
+# plot, treatment x axis colored by site data figure
+chla_plot_site <- ggplot(chla_means_site_2_lin,aes(x = treat, y = chlA, fill = sitename))+
+  theme_bw()+
+  geom_errorbar(aes(x = treat, ymax = chlA+se, ymin = chlA-se), width = .2, position = position_dodge(width=0.3)) +
+  geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
+  scale_fill_manual(name = "Site",
+                    values = cols_site)+
+  xlab("Treatment")+
+  ylab(bquote("Chl a ("*mu*"g" ~cm^-2~')'))+
+  ylim(0,15) +
+  geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
+        legend.position = "none")
+chla_plot_site
+
+ggsave(chla_plot_site, filename = "/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/plots/chla_site_2_lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+
+#SummarySE to format data for plotting
+chla_means_lineage_2_lin <- summarySE(chl_phys_2_lin, measurevar="chlA", groupvars=c("treat","lineage"))
+
+# plot, treatment x axis colored by lineage data figure
+chla_plot_lineage <- ggplot(chla_means_lineage_2_lin,aes(x = treat, y = chlA, fill = lineage))+
+  theme_bw()+
+  geom_errorbar(aes(x = treat, ymax = chlA+se, ymin = chlA-se), width = .2, position = position_dodge(width=0.3)) +
+  geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
+  scale_fill_manual(name = "Lineage",
+                    values = cols_lineage)+
+  xlab("Treatment")+
+  ylab(bquote("Chl a ("*mu*"g" ~cm^-2~')'))+
+  ylim(0,15) +
+  geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
+        legend.position = "none")
+chla_plot_lineage
+
+ggsave(chla_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/plots/chla_lineage_2_lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+
+# plot, treatment x axis and symtype color
+#SummarySE to format data for plotting
+chla_means_sym <- summarySE(chl_phys_2_lin_symtype, measurevar="chlA", groupvars=c("treat","dominant_type"))
+
+# plot, treatment x axis colored by site data figure
+chla_plot_sym <- ggplot(chla_means_sym,aes(x = treat, y = chlA, fill = dominant_type))+
+  theme_bw()+
+  geom_errorbar(aes(x = treat, ymax = chlA+se, ymin = chlA-se), width = .2, position = position_dodge(width=0.3)) +
+  geom_point(size = 3, pch = 21, position = position_dodge(width=0.3))+
+  scale_fill_manual(name = "Dominant Symbiont",
+                    values = its2_cols_greens)+
+  xlab("Treatment")+
+  ylab(bquote("Chl a ("*mu*"g" ~cm^-2~')'))+
+  ylim(0,15) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
+        legend.position = "none")
+chla_plot_sym
+
+ggsave(chla_plot_sym, filename = "/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/plots/chla_symtype_2_lin.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
+
+
+
+# Combine these chlorophyll A plots
+chla_plots_all = ggarrange(chla_plot_site, chla_plot_lineage, chla_plot_sym,
+                           ncol = 3, nrow = 1)
+ggsave(chla_plots_all, filename = "/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/plots/chla_all_plots.pdf", width=12, height=4, units=c("in"), useDingbats=FALSE)
+
+
+
+
+# plot just CI corals to see if lineage difference holds
+chl_phys_lineage_nona_CI = chl_phys_2_lin_nona %>%
+  subset(sitename == "CI")
+
+chla_means_lineage_CI <- summarySE(chl_phys_lineage_nona_CI, measurevar="chlA", groupvars=c("treat","lineage"))
+
+chla_plot_lineage_CI <- ggplot(chla_means_lineage_CI,aes(x = treat, y = chlA, color = lineage, pch = lineage))+
+  theme_bw()+
+  geom_point(size = 3, position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = treat, ymax = chlA+se, ymin = chlA-se), width = .2, position = position_dodge(width=0.3)) +
+  scale_color_manual(name = "Lineage",
+                     breaks = c("L1","L2"),
+                     values = cols_lineage)+
+  scale_shape_manual(name = "Lineage",
+                     breaks = c("L1","L2"),
+                     values=c(19,17))+
+  xlab("Treatment")+
+  ylab("Chlorophyll A")+
+  #ylim(0,0.4) +
+  geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+chla_plot_lineage_CI
+
+ggsave(chla_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/plots/chla_lineage_CIonly.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+
+
+
+# look for outliers with ggplotly
+# chl A
+# violin plot with individual data point overlay
+plot <- ggplot(chl_phys,aes(x = sitename, y = chlA, color = sitename, pch = sitename,text = paste("Frag:",frag)))+
+  theme_bw()+
+  geom_boxplot(alpha = 0.2, aes(fill = sitename))+
+  scale_fill_manual(values = cols_site)+
+  geom_jitter(aes(color = sitename),width = 0.3)+
+  ggtitle("Chl A")+
+  scale_color_manual(values = cols_site)+
+  theme(axis.title.x = element_blank())+
+  theme(axis.text.x=element_text(angle = 45, vjust = 0.5))
+#  labs(y=expression(paste("Chl A (ug cm"^-2*' )')))
+ggplotly(subplot(list(plot),nrows=1,titleY=T) %>% layout(showlegend=T))
+
+# chl C2
+plot <- ggplot(chl_phys,aes(x = sitename, y = chlC2, color = sitename, pch = sitename,text = paste("Frag:",frag)))+
+  theme_bw()+
+  geom_boxplot(alpha = 0.2, aes(fill = sitename))+
+  scale_fill_manual(values = palsite)+
+  geom_jitter(aes(color = sitename),width = 0.3)+
+  ggtitle("Chl C2")+
+  scale_color_manual(values = palsite)+
+  theme(axis.title.x = element_blank())+
+  theme(axis.text.x=element_text(angle = 45, vjust = 0.5))
+#  labs(y=expression(paste("Chl C2 (ug cm"^-2*' )')))
+ggplotly(subplot(list(plot),nrows=1,titleY=T) %>% layout(showlegend=T))
+
+# there are lots of negative chlorophyll c2 values...seems like something was off with these readings so omitting from the manuscript.
 
 ##### Growth #####
 # need to re-read in the data sheet for calcification only
@@ -1445,10 +1633,10 @@ calc_phys = calc_phys %>%
 # calculate relative growth rate (RGR)
 calc_phys = calc_phys %>%
   mutate(T0_PA_rgr=((ln(t0avgbw)-ln(paavgbw))/16)) %>%
-  mutate(T2_T0_rgr=((ln(t2avgbw)-ln(t0avgbw))/57)/SAcm2_t2) %>%
-  mutate(T2_T1_rgr=((ln(t2avgbw)-ln(t1avgbw))/22)/SAcm2_t2) %>%
-  mutate(T3_T2_rgr=((ln(t3avgbw)-ln(t2avgbw))/32)/SAcm2_t3) %>%
-  mutate(T3_T0_rgr=((ln(t3avgbw)-ln(t0avgbw))/79)/SAcm2_t3)
+  mutate(T2_T0_rgr=((ln(t2avgbw)-ln(t0avgbw))/57)) %>%
+  mutate(T2_T1_rgr=((ln(t2avgbw)-ln(t1avgbw))/22)) %>%
+  mutate(T3_T2_rgr=((ln(t3avgbw)-ln(t2avgbw))/32)) %>%
+  mutate(T3_T0_rgr=((ln(t3avgbw)-ln(t0avgbw))/79))
 
 # take a look at the dataset
 str(calc_phys)
@@ -1456,8 +1644,10 @@ str(calc_phys)
 # un-comment the drop_na() corresponding to the time point of data you want to look at.
 calc_phys2 = calc_phys %>%
   #drop_na(T3_T2_perc) %>%
-  drop_na(T2_T0_perc) %>%
+  #drop_na(T2_T0_perc) %>%
   #drop_na(T2_T0_g_cm2_day) %>%
+  drop_na(T2_T0_rgr) %>%
+  #drop_na(T3_T2_rgr) %>%
   filter(treat!="Control 2") %>%
   filter(gen_site != "I4G") # clone with I4F, remove from dataset
 
@@ -1487,7 +1677,7 @@ calc_phys_2_lin = calc_phys_all_lin %>%
 
 # exploratory figure
 #scatter plot with linear regression and confidence interval
-ggplot(calc_phys, aes(treat, T2_T0_perc, color = sitename))+
+ggplot(calc_phys, aes(treat, T2_T0_rgr, color = sitename))+
   geom_point()+
   geom_smooth(aes(group=sitename), method=lm)+
   theme_classic()
@@ -1496,7 +1686,7 @@ ggplot(calc_phys, aes(treat, T2_T0_perc, color = sitename))+
 ## Mixed Model
 # interested in the effects of dtv treatment and lineage
 
-m1 <- lmer(T2_T0_perc ~ treat+lineage + (1|gen_site), data = calc_phys_2_lin, REML=TRUE)
+m1 <- lmer(T2_T0_rgr ~ treat+lineage + (1|gen_site), data = calc_phys_2_lin, REML=TRUE)
 summary(m1)
 # T2-T0 percent change:
 # Fixed effects:
@@ -1539,7 +1729,7 @@ check_model(m1) #check assumptions and model fit
 # Now look at custom contrasts with emmmeans
 
 #specify model (because we are interested in pairwise, have to include the interaction)
-m.emm<- lmer(T2_T0_perc ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
+m.emm<- lmer(T2_T0_rgr ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
 
 emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
@@ -1566,18 +1756,18 @@ calc_phys_all_lin_nona = calc_phys_all_lin %>%
 calc_phys_2_lin_nona = calc_phys_2_lin %>%
   drop_na(lineage)
 
-growth_means_all_lin <- summarySE(calc_phys_all_lin_nona, measurevar="T2_T0_perc", groupvars=c("treat","lineage"))
-growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T2_T0_perc", groupvars=c("treat","lineage"))
+growth_means_all_lin <- summarySE(calc_phys_all_lin_nona, measurevar="T2_T0_rgr", groupvars=c("treat","lineage"))
+growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T2_T0_rgr", groupvars=c("treat","lineage"))
 
 # plot, treatment x axis colored by lineage data figure
-calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T2_T0_perc))+
+calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T2_T0_rgr))+
   theme_bw()+
   geom_jitter(aes(color = lineage, fill = lineage),
               position=position_dodge(width=0.3),
               alpha=0.2, pch = 21,
               color = "black") +
-  geom_errorbar(data = growth_means_2_lin, aes(x = treat, ymax = T2_T0_perc+se, ymin = T2_T0_perc-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
-  geom_point(data = growth_means_2_lin, mapping = aes(x=treat, y=T2_T0_perc, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  geom_errorbar(data = growth_means_2_lin, aes(x = treat, ymax = T2_T0_rgr+se, ymin = T2_T0_rgr-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = growth_means_2_lin, mapping = aes(x=treat, y=T2_T0_rgr, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
   scale_fill_manual(name = "Lineage",
                     breaks = c("L1","L2"),
                     values = cols_lineage)+
@@ -1585,7 +1775,7 @@ calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T2_T0_perc))
                      breaks = c("L1","L2"),
                      values = cols_lineage)+
   xlab("Treatment")+
-  ylab("% Change in Weight")+
+  ylab("Relative Growth Rate")+
   geom_hline(yintercept=0, linetype='dotted', color = 'gray')+
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
 calc_plot_lineage
@@ -2339,226 +2529,7 @@ quartz() # to be able to squish and save temp plot figure:
 tempplot
 
 
-##### Chlorophyll Concentration #####
-
-## check which chlorophyll frags we are missing
-chl <- read.csv('/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/OliviaSamples/TVEChlorphyll_ON.csv')
-
-phys_for_chl = phys %>%
-  select(frag, survivedtoend, treat, blastvol, blaster, sitename, SAcm2) %>%
-  mutate(treat = as.factor(treat), blastvol = as.numeric(blastvol)) %>%
-  filter(frag!="I2A12", frag!="I2A7", frag!="O4D8", frag!="I3E10", frag!="I3I10") %>% #these frags are being removed because they were duplicate genotypes within treatment and had the most complete information of the two
-  filter(frag!="I3A4") # high outlier
-
-#want to keep all of the individuals in the original dtv spreadsheet and add NA's for any that don't have chl info for
-chl_phys <- left_join(phys_for_chl, chl, by = "frag")
-
-# find mean absorbance values for each wavelength
-chl_phys = chl_phys %>%
-  mutate(chl630_avg=rowMeans(.[ , c("blk_630_1","blk_630_2","blk_630_3")], na.rm=TRUE)) %>%
-  mutate(chl663_avg=rowMeans(.[ , c("blk_663_1","blk_663_2","blk_663_3")], na.rm=TRUE))
-
-# calculate chlorophyll A and C2 from values in ug/mL (equations come from Carly Kenkel's method, originally a Jeffrey and Haxo 1968 equation)
-# 20 cancels out mL so you end up with ug/cm2
-chl_phys$chlA <- ((((13.31*chl_phys$chl663_avg) - (0.27*chl_phys$chl630_avg))*20)/chl_phys$SAcm2)
-chl_phys$chlC2 <- ((((-8.37*chl_phys$chl663_avg) + (51.72*chl_phys$chl630_avg))*20)/chl_phys$SAcm2)
-
-head(chl_phys)
-
-#add in descriptive information for coral samples
-chl_phys$origsitecode <- substr(chl_phys$frag, 1, 2)
-chl_phys$origsitecode <- as.factor(chl_phys$origsitecode)
-
-# add in descriptive site name with inshore/offshore indicator
-chl_phys$sitename <- ifelse(chl_phys$origsitecode == 'I2', 'SP',
-                            ifelse(chl_phys$origsitecode == 'I3', 'CI',
-                                   ifelse(chl_phys$origsitecode == 'I4', 'PD',
-                                          ifelse(chl_phys$origsitecode == 'O2', 'BS',
-                                                 ifelse(chl_phys$origsitecode == 'O3', 'CA',
-                                                        'BN')))))
-chl_phys$sitename <- as.factor(chl_phys$sitename)
-
-# extract the genotype and fragment number
-chl_phys$fragid <- substr(chl_phys$frag,3,5)
-
-# combine the new site ID with the genotype and fragment number
-chl_phys$nubbin <- paste(chl_phys$origsitecode,chl_phys$fragid, sep ='')
-
-# add inshore/offshore designation
-chl_phys$reef <- substr(chl_phys$frag,1,1)
-chl_phys$reef <- ifelse(chl_phys$reef == 'O', 'Outer Reef', 'Inner Reef')
-chl_phys$reef <- as.factor(chl_phys$reef)
-
-# add in genotype
-chl_phys$genet <- substr(chl_phys$fragid,1,1)
-
-#create a new column of combined genotype and site for stats later
-chl_phys = chl_phys %>%
-  unite(gen_site, c(origsitecode,genet), sep = "", remove = FALSE) %>%
-  mutate(gen_site = as.factor(gen_site)) %>%
-  drop_na(chlA) %>%
-  filter(treat!="Control 2") %>% # don't want to include this treatment
-  filter(gen_site!="I4G")
-
-# merge with lineage info and sym type for later plotting
-lineages = read.csv("/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/tuftscustompipeline_denovo_nosyms/tve_lineages_noclones.csv")
-
-chl_phys_all_lin <- left_join(chl_phys, lineages, by = "gen_site")
-chl_phys_all_lin$lineage = as.factor(chl_phys_all_lin$lineage)
-
-its2_types = read.csv("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ITS2.dominanttype.csv") %>%
-  select(-Sample_or_Control, -treat, -gen_site, -sitename, -reef, -lineage, -control)
-
-chl_phys_all_lin <- left_join(chl_phys_all_lin, its2_types, by = "frag")
-str(chl_phys_all_lin)
-
-chl_phys_all_lin$dominant_type = as.factor(chl_phys_all_lin$dominant_type)
-chl_phys_all_lin$minor_type = as.factor(chl_phys_all_lin$minor_type)
-
-chl_phys_2_lin = chl_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
-
-
-#SummarySE to format data for plotting
-chla_means_site_all_lin <- summarySE(chl_phys_all_lin, measurevar="chlA", groupvars=c("treat","sitename"))
-chla_means_site_2_lin <- summarySE(chl_phys_2_lin, measurevar="chlA", groupvars=c("treat","sitename"))
-
-# plot, treatment x axis colored by site data figure
-chla_plot_site <- ggplot(chla_means_site_2_lin,aes(x = treat, y = chlA, color = sitename, pch = sitename))+
-  theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = treat, ymax = chlA+se, ymin = chlA-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_color_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values = cols_site)+
-  scale_shape_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values=c(19,19,19,17,17,17))+
-  xlab("Treatment")+
-  ylab("Chlorophyll A")+
-  geom_vline(xintercept = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
-#ylim(0,2.5)
-chla_plot_site
-
-ggsave(chla_plot_site, filename = "/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/plots/chla_site_2_lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
-
-#SummarySE to format data for plotting
-chl_phys_all_lin_nona = chl_phys_all_lin %>%
-  drop_na(lineage)
-
-chl_phys_2_lin_nona = chl_phys_2_lin %>%
-  drop_na(lineage)
-
-chla_means_all_lin <- summarySE(chl_phys_all_lin_nona, measurevar="chlA", groupvars=c("treat","lineage"))
-chla_means_2_lin <- summarySE(chl_phys_2_lin_nona, measurevar="chlA", groupvars=c("treat","lineage"))
-
-# plot, treatment x axis colored by site data figure
-chla_plot_lineage <- ggplot(chla_means_2_lin,aes(x = treat, y = chlA, color = lineage, pch = lineage))+
-  theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = treat, ymax = chlA+se, ymin = chlA-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_color_manual(name = "Lineage",
-                     breaks = c("L1","L2"),
-                     #breaks = c("L1","L2","L3"),
-                     values = cols_lineage)+
-  scale_shape_manual(name = "Lineage",
-                     breaks = c("L1","L2"),
-                     #breaks = c("L1","L2","L3"),
-                     values=c(19,17,15))+
-  xlab("Treatment")+
-  ylab("Chlorophyll A")+
-  #ylim(0,0.4) +
-  geom_vline(xintercept = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
-chla_plot_lineage
-
-ggsave(chla_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/plots/chla_2_lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
-
-# plot just CI corals to see if lineage difference holds
-chl_phys_lineage_nona_CI = chl_phys_2_lin_nona %>%
-  subset(sitename == "CI")
-
-chla_means_lineage_CI <- summarySE(chl_phys_lineage_nona_CI, measurevar="chlA", groupvars=c("treat","lineage"))
-
-chla_plot_lineage_CI <- ggplot(chla_means_lineage_CI,aes(x = treat, y = chlA, color = lineage, pch = lineage))+
-  theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = treat, ymax = chlA+se, ymin = chlA-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_color_manual(name = "Lineage",
-                     breaks = c("L1","L2"),
-                     values = cols_lineage)+
-  scale_shape_manual(name = "Lineage",
-                     breaks = c("L1","L2"),
-                     values=c(19,17))+
-  xlab("Treatment")+
-  ylab("Chlorophyll A")+
-  #ylim(0,0.4) +
-  geom_vline(xintercept = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
-chla_plot_lineage_CI
-
-ggsave(chla_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/plots/chla_lineage_CIonly.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
-
-#SummarySE to format data for plotting - lineage + sym type
-chl_phys_2_linsym_nona = chl_phys_2_lin %>%
-  drop_na(lineage,dominant_type)
-
-# add in lineage_sym type combined metric
-chl_phys_2_linsym_nona$lineage_sym = paste(chl_phys_2_linsym_nona$lineage,chl_phys_2_linsym_nona$dominant_type, sep ='-')
-chl_phys_2_linsym_nona$lineage_sym = as.factor(chl_phys_2_linsym_nona$lineage_sym)
-
-chla_means_lineage_sym <- summarySE(chl_phys_2_linsym_nona, measurevar="chlA", groupvars=c("treat","lineage_sym"))
-
-# plot, treatment x axis colored by site data figure
-chla_plot_lineage_sym <- ggplot(chla_means_lineage_sym,aes(x = treat, y = chlA, color = lineage_sym, pch = lineage_sym))+
-  theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = treat, ymax = chlA+se, ymin = chlA-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_color_manual(name = "Lineage-Sym",
-                     values = c("#3f007d","#3f007d","#807dba","#807dba"))+
-  scale_shape_manual(name = "Lineage-Sym",
-                     values=c(19,17,19,17))+
-  xlab("Treatment")+
-  ylab("Chlorophyll A")+
-  #ylim(0,0.4) +
-  geom_vline(xintercept = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
-chla_plot_lineage_sym
-
-ggsave(chla_plot_lineage_sym, filename = "/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/plots/chla_lineage_sym.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
-
-# look for outliers with ggplotly
-# chl A
-# violin plot with individual data point overlay
-plot <- ggplot(chl_phys,aes(x = sitename, y = chlA, color = sitename, pch = sitename,text = paste("Frag:",frag)))+
-  theme_bw()+
-  geom_boxplot(alpha = 0.2, aes(fill = sitename))+
-  scale_fill_manual(values = cols_site)+
-  geom_jitter(aes(color = sitename),width = 0.3)+
-  ggtitle("Chl A")+
-  scale_color_manual(values = cols_site)+
-  theme(axis.title.x = element_blank())+
-  theme(axis.text.x=element_text(angle = 45, vjust = 0.5))
-#  labs(y=expression(paste("Chl A (ug cm"^-2*' )')))
-ggplotly(subplot(list(plot),nrows=1,titleY=T) %>% layout(showlegend=T))
-
-# chl C2
-plot <- ggplot(chl_phys,aes(x = sitename, y = chlC2, color = sitename, pch = sitename,text = paste("Frag:",frag)))+
-  theme_bw()+
-  geom_boxplot(alpha = 0.2, aes(fill = sitename))+
-  scale_fill_manual(values = palsite)+
-  geom_jitter(aes(color = sitename),width = 0.3)+
-  ggtitle("Chl C2")+
-  scale_color_manual(values = palsite)+
-  theme(axis.title.x = element_blank())+
-  theme(axis.text.x=element_text(angle = 45, vjust = 0.5))
-#  labs(y=expression(paste("Chl C2 (ug cm"^-2*' )')))
-ggplotly(subplot(list(plot),nrows=1,titleY=T) %>% layout(showlegend=T))
-
-# there are lots of negative chlorophyll c2 values...going to omit for now?
-
-#### Corrallite Surface Area ####
+#### Corallite Surface Area ####
 
 # corallite surface area has a few extra samples from other initial phys dataframes, but
 # it is still all taken from initial phys data
@@ -2769,109 +2740,6 @@ corrsa_plot_lineage_CI
 
 ggsave(corrsa_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/Corallite_SA/corrsa_lineage_CIonly.pdf", width=3, height=3, units=c("in"), useDingbats=FALSE)
 
-#### JP Coring Data ####
-
-cores = read.csv("/Users/hannahaichelman/Documents/BU/TVE/CoringData/Growth_allRegions_JPcoringdata.csv")
-
-head(cores)
-
-pan_cores = cores %>%
-  filter(region == "w") %>%
-  filter(spp == "s")
-
-str(pan_cores)
-
-pan_cores$rz = as.factor(pan_cores$rz)
-pan_cores$site = as.factor(pan_cores$site)
-pan_cores$spp = as.factor(pan_cores$spp)
-
-# Re-name factor levels for sites
-pan_cores$site <- recode(pan_cores$site,
-                         wirci = 'CI',
-                         wirpd = 'PD',
-                         wirpl = 'PL',
-                         wirsp = 'SP',
-                         worbn = 'BN',
-                         worbs = 'BS',
-                         worca = 'CA',
-                         wordm = 'DM')
-
-# Remove sites that we don't have corals from for this experiment
-pan_cores_tve = pan_cores %>%
-  subset(site != "PL") %>%
-  subset(site != "DM")
-
-# Subset to only include recent years (more confident in these data) as in JP's analysis
-pan_cores_tve_recent = pan_cores_tve %>%
-  dplyr::filter(Year >= "2005" & Year <= "2014")
-
-# Average density, calcification, and linear extension by site and plot
-
-sitemeans_linext = summarySE(data = pan_cores_tve_recent, measurevar = c("linext"), groupvars = c("site","rz"))
-sitemeans_den = summarySE(data = pan_cores_tve_recent, measurevar = c("density"), groupvars = c("site","rz"))
-sitemeans_calc = summarySE(data = pan_cores_tve_recent, measurevar = c("calc"), groupvars = c("site","rz"))
-
-# plot linear extension, treatment x axis colored by site data figure
-p.linext <- ggplot(sitemeans_linext,aes(x = site, y = linext, color = site, pch = site))+
-  theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = site, ymax = linext+se, ymin = linext-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_color_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values = cols_site)+
-  scale_shape_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values=c(19,19,19,17,17,17))+
-  xlab("Site Name")+
-  ylab("Linear Extension")+
-  #ylim(3.75,6) +
-  #geom_vline(xintercept = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
-p.linext
-
-p.den <- ggplot(sitemeans_den,aes(x = site, y = density, color = site, pch = site))+
-  theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = site, ymax = density+se, ymin = density-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_color_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values = cols_site)+
-  scale_shape_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values=c(19,19,19,17,17,17))+
-  xlab("Site Name")+
-  ylab("Density")+
-  #ylim(3.75,6) +
-  #geom_vline(xintercept = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
-p.den
-
-p.calc <- ggplot(sitemeans_calc,aes(x = site, y = calc, color = site, pch = site))+
-  theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = site, ymax = calc+se, ymin = calc-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_color_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values = cols_site)+
-  scale_shape_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values=c(19,19,19,17,17,17))+
-  xlab("Site Name")+
-  ylab("Calcification")+
-  #ylim(3.75,6) +
-  #geom_vline(xintercept = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
-p.calc
-
-
-core.plots = ggarrange(p.linext, p.den, p.calc,
-                       labels = c("A", "B", "C"),
-                       ncol = 3, nrow = 1)
-
-ggsave(core.plots, filename = "/Users/hannahaichelman/Documents/BU/TVE/CoringData/coring_plots_2005-2014.pdf", width=8, height=3, units=c("in"), useDingbats=FALSE)
 
 #### Prep data for PCA ####
 
@@ -3758,7 +3626,7 @@ adonis_OmegaSq(end_model, partial = TRUE)
 # sitename   3  0.037625 0.0125417  3.3015 0.16560 0.009599 **
 
 #### Correlation Matrices ####
-
+# these data are not included in the manuscript #
 #source the rquery.cormat function, will need it below
 source("http://www.sthda.com/upload/rquery_cormat.r")
 
@@ -3996,3 +3864,107 @@ corrplot(t0_L2_m, method = "circle",
          #title = "T30" #can add title, but adds it really high for some reason
 )
 dev.off()
+
+#### JP Coring Data ####
+# these data are not included in the manuscript #
+cores = read.csv("/Users/hannahaichelman/Documents/BU/TVE/CoringData/Growth_allRegions_JPcoringdata.csv")
+
+head(cores)
+
+pan_cores = cores %>%
+  filter(region == "w") %>%
+  filter(spp == "s")
+
+str(pan_cores)
+
+pan_cores$rz = as.factor(pan_cores$rz)
+pan_cores$site = as.factor(pan_cores$site)
+pan_cores$spp = as.factor(pan_cores$spp)
+
+# Re-name factor levels for sites
+pan_cores$site <- recode(pan_cores$site,
+                         wirci = 'CI',
+                         wirpd = 'PD',
+                         wirpl = 'PL',
+                         wirsp = 'SP',
+                         worbn = 'BN',
+                         worbs = 'BS',
+                         worca = 'CA',
+                         wordm = 'DM')
+
+# Remove sites that we don't have corals from for this experiment
+pan_cores_tve = pan_cores %>%
+  subset(site != "PL") %>%
+  subset(site != "DM")
+
+# Subset to only include recent years (more confident in these data) as in JP's analysis
+pan_cores_tve_recent = pan_cores_tve %>%
+  dplyr::filter(Year >= "2005" & Year <= "2014")
+
+# Average density, calcification, and linear extension by site and plot
+
+sitemeans_linext = summarySE(data = pan_cores_tve_recent, measurevar = c("linext"), groupvars = c("site","rz"))
+sitemeans_den = summarySE(data = pan_cores_tve_recent, measurevar = c("density"), groupvars = c("site","rz"))
+sitemeans_calc = summarySE(data = pan_cores_tve_recent, measurevar = c("calc"), groupvars = c("site","rz"))
+
+# plot linear extension, treatment x axis colored by site data figure
+p.linext <- ggplot(sitemeans_linext,aes(x = site, y = linext, color = site, pch = site))+
+  theme_bw()+
+  geom_point(size = 3, position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = site, ymax = linext+se, ymin = linext-se), width = .2, position = position_dodge(width=0.3)) +
+  scale_color_manual(name = "Site",
+                     labels = c("CI","PD","SP","BN","BS","CA"),
+                     values = cols_site)+
+  scale_shape_manual(name = "Site",
+                     labels = c("CI","PD","SP","BN","BS","CA"),
+                     values=c(19,19,19,17,17,17))+
+  xlab("Site Name")+
+  ylab("Linear Extension")+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
+p.linext
+
+p.den <- ggplot(sitemeans_den,aes(x = site, y = density, color = site, pch = site))+
+  theme_bw()+
+  geom_point(size = 3, position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = site, ymax = density+se, ymin = density-se), width = .2, position = position_dodge(width=0.3)) +
+  scale_color_manual(name = "Site",
+                     labels = c("CI","PD","SP","BN","BS","CA"),
+                     values = cols_site)+
+  scale_shape_manual(name = "Site",
+                     labels = c("CI","PD","SP","BN","BS","CA"),
+                     values=c(19,19,19,17,17,17))+
+  xlab("Site Name")+
+  ylab("Density")+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
+p.den
+
+p.calc <- ggplot(sitemeans_calc,aes(x = site, y = calc, color = site, pch = site))+
+  theme_bw()+
+  geom_point(size = 3, position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = site, ymax = calc+se, ymin = calc-se), width = .2, position = position_dodge(width=0.3)) +
+  scale_color_manual(name = "Site",
+                     labels = c("CI","PD","SP","BN","BS","CA"),
+                     values = cols_site)+
+  scale_shape_manual(name = "Site",
+                     labels = c("CI","PD","SP","BN","BS","CA"),
+                     values=c(19,19,19,17,17,17))+
+  xlab("Site Name")+
+  ylab("Calcification")+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
+p.calc
+
+
+core.plots = ggarrange(p.linext, p.den, p.calc,
+                       labels = c("A", "B", "C"),
+                       ncol = 3, nrow = 1)
+
+ggsave(core.plots, filename = "/Users/hannahaichelman/Documents/BU/TVE/CoringData/coring_plots_2005-2014.pdf", width=8, height=3, units=c("in"), useDingbats=FALSE)
