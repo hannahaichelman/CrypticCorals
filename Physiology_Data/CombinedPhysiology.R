@@ -253,8 +253,8 @@ tiss_phys = tiss_phys %>%
   unite(gen_site, c(origsitecode,genet), sep = "", remove = FALSE) %>%
   mutate(gen_site = as.factor(gen_site)) %>%
   mutate(avgtiss=rowMeans(.[ , c("tisthick1","tisthick2","tisthick3","tisthick4","tisthick5","tisthick6")], na.rm=TRUE)) %>%
-  filter(frag!= "I3E6_v2") %>% # redundant info, same as other I3E sample
-  filter(gen_site != "I4G") # clone pair, removed this sample from 2brad so removing from phys too
+  dplyr::filter(frag!= "I3E6_v2") %>% # redundant info, same as other I3E sample
+  dplyr::filter(gen_site != "I4G") # clone pair, removed this sample from 2brad so removing from phys too
 
 
 # merge with lineage info for later plotting
@@ -268,7 +268,7 @@ tiss_phys_all_lin$gen_site = as.factor(tiss_phys_all_lin$gen_site)
 tiss_phys_all_lin$lineage = as.factor(tiss_phys_all_lin$lineage)
 
 tiss_phys_2_lin = tiss_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+  dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
 
 # can't combine with dominant sym type here because tissue thickness is from initial phys and sym types were from end of variability
 
@@ -285,6 +285,11 @@ anova(m1)
 # Residuals 38 21.4605  0.5647
 
 lsmeans(m1, pairwise~lineage, adjust="tukey")
+# $contrasts
+# contrast estimate    SE df t.ratio p.value
+# L1 - L2   0.00459 0.404 38   0.011  0.9999
+# L1 - L3   1.20236 0.681 38   1.764  0.1952
+# L2 - L3   1.19778 0.549 38   2.182  0.0872
 
 # PLOTS
 
@@ -497,30 +502,30 @@ missing_blastinfo = hprot_phys %>%
 # make data subsets for stats and plotting
 hprot_phys_all_lin = hprot_phys %>%
   drop_na(prot_mgcm2) %>%
-  filter(treat!="Control 2") %>%
-  filter(frag != "I3E6_v2") %>% # no consensus on this I3E6 individual phenotype for this measure - so removing both
-  filter(frag != "I3E6") %>%
-  filter(gen_site != "I4G") %>% # clone with I4F, remove from dataset
+  dplyr::filter(treat!="Control 2") %>%
+  dplyr::filter(frag != "I3E6_v2") %>% # no consensus on this I3E6 individual phenotype for this measure - so removing both
+  dplyr::filter(frag != "I3E6") %>%
+  dplyr::filter(gen_site != "I4G") %>% # clone with I4F, remove from dataset
   select(frag, gen_site, treat, sitename, dominant_type, lineage, prot_mgcm2)
 
 hprot_phys_2_lin = hprot_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") %>%
+  dplyr::filter(is.na(lineage) | lineage!="L3") %>%
   drop_na(sitename, lineage) # doing this for plotting
 
 hprot_phys_2_lin_symtype = hprot_phys_2_lin %>%
   drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
 
 initial_hprot_phys_all_lin = hprot_phys_all_lin %>%
-  filter(treat=="Initial")
+  dplyr::filter(treat=="Initial")
 
 initial_hprot_phys_2_lin = initial_hprot_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+  dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
 
 post_hprot_phys_all_lin = hprot_phys_all_lin %>%
-  filter(treat!="Initial")
+  dplyr::filter(treat!="Initial")
 
 post_hprot_phys_2_lin = post_hprot_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3")
+  dplyr::filter(is.na(lineage) | lineage!="L3")
 
 # the values we have here seem to be similar to protein values from Wright et al. GCB, good sanity check.
 
@@ -687,8 +692,8 @@ head(hcarb_phys)
 
 # used this to sort out who we are still missing carbs from
 missing_hcarbs = hcarb_phys %>%
-  filter(survivedtoend=="yes") %>%
-  filter(is.na(hcarb1_ha))
+  dplyr::filter(survivedtoend=="yes") %>%
+  dplyr::filter(is.na(hcarb1_ha))
 # O2C8, I3B4, I4E7
 
 # For both host carbs and symbiont carbs, for all time points,
@@ -758,28 +763,28 @@ hcarb_phys$hcarb_mgcm2 <- (hcarb_phys$avghcarb*5*hcarb_phys$blastvol)/hcarb_phys
 # make data subsets for stats and plotting
 hcarb_phys_all_lin = hcarb_phys %>%
   drop_na(hcarb_mgcm2) %>%
-  filter(treat!="Control 2") %>%
-  filter(gen_site!="I4G") %>% # remove clone
+  dplyr::filter(treat!="Control 2") %>%
+  dplyr::filter(gen_site!="I4G") %>% # remove clone
   select(frag, gen_site, treat, sitename, dominant_type, lineage, hcarb_mgcm2)
 
 hcarb_phys_2_lin = hcarb_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") %>%
+  dplyr::filter(is.na(lineage) | lineage!="L3") %>%
   drop_na(sitename, lineage) # doing this for plotting
 
 hcarb_phys_2_lin_symtype = hcarb_phys_2_lin %>%
   drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
 
 initial_hcarb_phys_all_lin = hcarb_phys_all_lin %>%
-  filter(treat=="Initial")
+  dplyr::filter(treat=="Initial")
 
 initial_hcarb_phys_2_lin = initial_hcarb_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+  dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
 
 post_hcarb_phys_all_lin = hcarb_phys_all_lin %>%
-  filter(treat!="Initial")
+  dplyr::filter(treat!="Initial")
 
 post_hcarb_phys_2_lin = post_hcarb_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3")
+  dplyr::filter(is.na(lineage) | lineage!="L3")
 
 
 # STATS
@@ -996,28 +1001,28 @@ head(scarb_phys)
 # make data subsets for stats and plotting
 scarb_phys_all_lin = scarb_phys %>%
   drop_na(scarb_mgcm2) %>%
-  filter(treat!="Control 2") %>%
-  filter(gen_site!="I4G") %>% # remove clone
+  dplyr::filter(treat!="Control 2") %>%
+  dplyr::filter(gen_site!="I4G") %>% # remove clone
   select(frag, gen_site, treat, sitename, dominant_type, lineage, scarb_mgcm2)
 
 scarb_phys_2_lin = scarb_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") %>%
+  dplyr::filter(is.na(lineage) | lineage!="L3") %>%
   drop_na(sitename, lineage) # doing this for plotting
 
 scarb_phys_2_lin_symtype = scarb_phys_2_lin %>%
   drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
 
 initial_scarb_phys_all_lin = scarb_phys_all_lin %>%
-  filter(treat=="Initial")
+  dplyr::filter(treat=="Initial")
 
 initial_scarb_phys_2_lin = initial_scarb_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+  dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
 
 post_scarb_phys_all_lin = scarb_phys_all_lin %>%
-  filter(treat!="Initial")
+  dplyr::filter(treat!="Initial")
 
 post_scarb_phys_2_lin = post_scarb_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3")
+  dplyr::filter(is.na(lineage) | lineage!="L3")
 
 
 # STATS
@@ -1148,32 +1153,32 @@ sym_phys_all_lin = sym_phys %>%
   mutate(sym_cellsmL=avgsymcount*10000) %>% # this is based on the following website http://insilico.ehu.eus/counting_chamber/neubauer_improved.php
   mutate(sym_cm2=(sym_cellsmL*blastvol)/SAcm2) %>%
   mutate(sym_cm2_div = sym_cm2/1000000) %>%
-  filter(treat!="Control 2") %>%
-  filter(frag!="I3E6_v2") %>% # same data for sym count for original and v2 of I3E6
-  filter(frag!="I3A4") %>%
-  filter(gen_site != "I4G") %>% # remove clone
+  dplyr::filter(treat!="Control 2") %>%
+  dplyr::filter(frag!="I3E6_v2") %>% # same data for sym count for original and v2 of I3E6
+  dplyr::filter(frag!="I3A4") %>%
+  dplyr::filter(gen_site != "I4G") %>% # remove clone
   drop_na(sym_cm2) %>%
   select(frag, gen_site, treat, sitename, dominant_type, lineage, sym_cm2, sym_cm2_div)
 
 
 sym_phys_2_lin = sym_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") %>%
+  dplyr::filter(is.na(lineage) | lineage!="L3") %>%
   drop_na(sitename, lineage) # doing this for plotting
 
 sym_phys_2_lin_symtype = sym_phys_2_lin %>%
   drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
 
 initial_sym_phys_all_lin = sym_phys_all_lin %>%
-  filter(treat=="Initial")
+  dplyr::filter(treat=="Initial")
 
 initial_sym_phys_2_lin = initial_sym_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+  dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
 
 post_sym_phys_all_lin = sym_phys_all_lin %>%
-  filter(treat!="Initial")
+  dplyr::filter(treat!="Initial")
 
 post_sym_phys_2_lin = post_sym_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3")
+  dplyr::filter(is.na(lineage) | lineage!="L3")
 
 
 # STATS
@@ -1322,7 +1327,7 @@ ggplotly(subplot(list(plot),titleY=T) %>% layout(showlegend=T))
 
 ##### Chlorophyll Concentration #####
 
-## check which chlorophyll frags we are missing
+## read in additional chlorophyll data that Olivia added
 chl <- read.csv('/Users/hannahaichelman/Documents/BU/TVE/Chlorophyll/OliviaSamples/TVEChlorphyll_ON.csv')
 
 phys_for_chl = phys %>%
@@ -1347,30 +1352,30 @@ head(chl_phys)
 # make data subsets for stats and plotting
 chl_phys_all_lin = chl_phys %>%
   drop_na(chlA) %>%
-  filter(treat!="Control 2") %>%
-  filter(frag!="I2A12", frag!="I2A7", frag!="O4D8", frag!="I3E10", frag!="I3I10", frag!="I3E6_v2") %>% #these frags are being removed because they were duplicate genotypes within treatment and had the most complete information of the two
-  filter(frag!="I3A4") %>% # unexplained high outlier
-  filter(gen_site != "I4G") %>% # clone with I4F, remove from dataset
+  dplyr::filter(treat!="Control 2") %>%
+  dplyr::filter(frag!="I2A12", frag!="I2A7", frag!="O4D8", frag!="I3E10", frag!="I3I10", frag!="I3E6_v2") %>% #these frags are being removed because they were duplicate genotypes within treatment and had the most complete information of the two
+  dplyr::filter(frag!="I3A4") %>% # unexplained high outlier
+  dplyr::filter(gen_site != "I4G") %>% # clone with I4F, remove from dataset
   select(frag, gen_site, treat, sitename, dominant_type, lineage, chlA, chlC2)
 
 chl_phys_2_lin = chl_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") %>%
+  dplyr::filter(is.na(lineage) | lineage!="L3") %>%
   drop_na(sitename, lineage) # doing this for plotting
 
 chl_phys_2_lin_symtype = chl_phys_2_lin %>%
   drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
 
 initial_chl_phys_all_lin = chl_phys_all_lin %>%
-  filter(treat=="Initial")
+  dplyr::filter(treat=="Initial")
 
 initial_chl_phys_2_lin = initial_chl_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+  dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
 
 post_chl_phys_all_lin = chl_phys_all_lin %>%
-  filter(treat!="Initial")
+  dplyr::filter(treat!="Initial")
 
 post_chl_phys_2_lin = post_chl_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3")
+  dplyr::filter(is.na(lineage) | lineage!="L3")
 
 
 # STATS
@@ -1551,11 +1556,10 @@ calc_phys = post_phys_forcalc %>%
          t0sastan1, t0sastan2, t0sastan3, t0sarec1, t0sarec2, t0sarec3,
          t3sastan1, t3sastan2, t3sastan3, t3sarec1, t3sarec2, t3sarec3,
          pabwrec1,pabwrec2,pabwrec3,t0bwrec1, t0bwrec2,t0bwrec3,t1bwrec1, t1bwrec2,t1bwrec3,t2bwrec1, t2bwrec2,t2bwrec3,t3bwrec1, t3bwrec2,t3bwrec3) %>%
-  #dplyr::rename(sastan1 = t3sastan1, sastan2 = t3sastan2, sastan3 = t3sastan3, sarec1 = t3sarec1, sarec2 = t3sarec2, sarec3 = t3sarec3) %>%
   mutate(treat = as.factor(treat), blastvol = as.numeric(blastvol)) %>%
   mutate_at(c(6:23), as.numeric) %>%
-  filter(frag!="I2A12", frag!="I2A7", frag!="O4D8", frag!="I3E10", frag!="I3I10") %>% #these frags are being removed because they were duplicate genotypes within treatment and had the most complete information of the two
-  filter(frag!="O2F1", frag!="O4G7", frag!="O2I3", frag!="O3H3", frag!="I3D8", frag!="O3F4", frag!="O3G10", frag!="O3F3", frag!="I4F8") #these frags are being removed because they were unexplainable outliers with weird weight values
+  dplyr::filter(frag!="I2A12", frag!="I2A7", frag!="O4D8", frag!="I3E10", frag!="I3I10") %>% #these frags are being removed because they were duplicate genotypes within treatment and had the most complete information of the two
+  dplyr::filter(frag!="O2F1", frag!="O4G7", frag!="O2I3", frag!="O3H3", frag!="I3D8", frag!="O3F4", frag!="O3G10", frag!="O3F3", frag!="I4F8") #these frags are being removed because they were unexplainable outliers with weird weight values
 
 #calculate surface area of the coral fragments
 calc_phys$SAcm2_t0 <- (4*((calc_phys$t0sarec1+calc_phys$t0sarec2+calc_phys$t0sarec3)/3))/((calc_phys$t0sastan1+calc_phys$t0sastan2+calc_phys$t0sastan3)/3)
@@ -1613,7 +1617,7 @@ calc_phys = calc_phys %>%
   mutate(t2avgbw=rowMeans(.[ , c("t2bwrec1","t2bwrec2","t2bwrec3")], na.rm=TRUE)) %>%
   mutate(t3avgbw=rowMeans(.[ , c("t3bwrec1","t3bwrec2","t3bwrec3")], na.rm=TRUE))
 
-# calculate growth rate at the time point intervals
+# calculate growth rate at the time point intervals - can't use this though because we do not have dry weights
 calc_phys = calc_phys %>%
   mutate(T0_PA_g_cm2_day=((t0avgbw-paavgbw)/16)/SAcm2_t0) %>%
   mutate(T2_T0_g_cm2_day=((t2avgbw-t0avgbw)/57)/SAcm2_t2) %>%
@@ -1646,10 +1650,10 @@ calc_phys2 = calc_phys %>%
   #drop_na(T3_T2_perc) %>%
   #drop_na(T2_T0_perc) %>%
   #drop_na(T2_T0_g_cm2_day) %>%
-  drop_na(T2_T0_rgr) %>%
+  #drop_na(T2_T0_rgr) %>%
   #drop_na(T3_T2_rgr) %>%
-  filter(treat!="Control 2") %>%
-  filter(gen_site != "I4G") # clone with I4F, remove from dataset
+  dplyr::filter(treat!="Control 2") %>%
+  dplyr::filter(gen_site != "I4G") # clone with I4F, remove from dataset
 
 # merge with lineage info for later plotting
 lineages = read.csv("/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/tuftscustompipeline_denovo_nosyms/tve_lineages_noclones.csv")
@@ -1673,7 +1677,7 @@ head(calc_phys_all_lin)
 calc_phys_all_lin$dominant_type = as.factor(calc_phys_all_lin$dominant_type)
 
 calc_phys_2_lin = calc_phys_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+  dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
 
 # exploratory figure
 #scatter plot with linear regression and confidence interval
@@ -1686,7 +1690,7 @@ ggplot(calc_phys, aes(treat, T2_T0_rgr, color = sitename))+
 ## Mixed Model
 # interested in the effects of dtv treatment and lineage
 
-m1 <- lmer(T2_T0_rgr ~ treat+lineage + (1|gen_site), data = calc_phys_2_lin, REML=TRUE)
+m1 <- lmer(T3_T2_rgr ~ treat+lineage + (1|gen_site), data = calc_phys_2_lin, REML=TRUE)
 summary(m1)
 # T2-T0 percent change:
 # Fixed effects:
@@ -1697,12 +1701,6 @@ summary(m1)
 #   treatHigh Var   0.5806     0.2135 112.3344   2.719  0.00758 **
 #   lineageL2      -0.6754     0.3202  45.2749  -2.109  0.04050 *
 
-Anova(m1)
-# Response: T2_T0_perc
-#           Chisq Df Pr(>Chisq)
-# treat   10.3300  3    0.01596 *
-# lineage  4.4484  1    0.03493 *
-
 # T3-T2 percent change:
 # Fixed effects:
 #                  Estimate Std. Error        df t value Pr(>|t|)
@@ -1711,6 +1709,39 @@ Anova(m1)
 #   treatMod Var    0.28463    0.23236 107.33329   1.225 0.223266
 #   treatHigh Var   0.24759    0.23721 107.49086   1.044 0.298935
 #   lineageL2      -1.18362    0.30972  45.22985  -3.822 0.000403 ***
+
+# T2-T0 RGR:
+# Estimate Std. Error         df t value Pr(>|t|)
+# (Intercept)    2.373e-04  4.102e-05  8.510e+01   5.786 1.17e-07 ***
+# treatLow Var   5.005e-05  3.764e-05  1.123e+02   1.329  0.18638
+# treatMod Var   9.971e-05  3.580e-05  1.115e+02   2.785  0.00629 **
+# treatHigh Var  9.946e-05  3.686e-05  1.123e+02   2.698  0.00804 **
+# lineageL2     -1.161e-04  5.531e-05  4.528e+01  -2.099  0.04140 *
+
+# T3-T2 RGR:
+# Fixed effects:
+# Estimate Std. Error         df t value Pr(>|t|)
+# (Intercept)    7.091e-04  7.355e-05  9.495e+01   9.642 9.67e-16 ***
+# treatLow Var   2.575e-05  7.622e-05  1.089e+02   0.338 0.736157
+# treatMod Var   8.626e-05  7.109e-05  1.073e+02   1.213 0.227660
+# treatHigh Var  7.325e-05  7.258e-05  1.075e+02   1.009 0.315112
+# lineageL2     -3.620e-04  9.473e-05  4.520e+01  -3.821 0.000403 ***
+
+Anova(m1)
+# Response: T2_T0_perc
+#           Chisq Df Pr(>Chisq)
+# treat   10.3300  3    0.01596 *
+# lineage  4.4484  1    0.03493 *
+
+# Response: T2_T0_rgr
+# Chisq Df Pr(>Chisq)
+# treat   10.1798  3     0.0171 *
+# lineage  4.4067  1     0.0358 *
+
+# Response: T3_T2_rgr
+# Chisq Df Pr(>Chisq)
+# treat    1.8694  3  0.5999525
+# lineage 14.6009  1  0.0001329 ***
 
 # Response: T3_T2_perc
 #           Chisq Df Pr(>Chisq)
@@ -1729,7 +1760,7 @@ check_model(m1) #check assumptions and model fit
 # Now look at custom contrasts with emmmeans
 
 #specify model (because we are interested in pairwise, have to include the interaction)
-m.emm<- lmer(T2_T0_rgr ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
+m.emm<- lmer(T3_T2_rgr ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
 
 emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
@@ -1740,6 +1771,13 @@ pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
 # Mod Var  L1 - L2             0.787 0.403 106   1.954  0.1125
 # High Var L1 - L2             0.613 0.415 113   1.478  0.1896
 
+# for T2_T0_RGR
+# treat    lineage_pairwise estimate       SE  df t.ratio p.value
+# Control  L1 - L2          0.000081 7.26e-05 116   1.117  0.2664
+# Low Var  L1 - L2          0.000143 7.45e-05 122   1.926  0.1130
+# Mod Var  L1 - L2          0.000135 6.96e-05 106   1.942  0.1130
+# High Var L1 - L2          0.000105 7.17e-05 113   1.461  0.1958
+
 # for T3_T2_perc:
 # treat    lineage_pairwise estimate    SE  df t.ratio p.value
 # Control  L1 - L2              1.09 0.444 133   2.455  0.0205
@@ -1747,27 +1785,32 @@ pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
 # Mod Var  L1 - L2              1.19 0.414 120   2.886  0.0092
 # High Var L1 - L2              1.35 0.423 124   3.194  0.0071
 
+# for T3_T2_RGR:
+# treat    lineage_pairwise estimate       SE  df t.ratio p.value
+# Control  L1 - L2          0.000336 0.000136 133   2.473  0.0195
+# Low Var  L1 - L2          0.000325 0.000141 140   2.298  0.0230
+# Mod Var  L1 - L2          0.000364 0.000127 120   2.876  0.0095
+# High Var L1 - L2          0.000412 0.000129 124   3.185  0.0073
+
 
 # Make growth figures in manuscript:
 #SummarySE to format data for plotting by treatment and lineage
-calc_phys_all_lin_nona = calc_phys_all_lin %>%
-  drop_na(lineage)
 
 calc_phys_2_lin_nona = calc_phys_2_lin %>%
   drop_na(lineage)
 
-growth_means_all_lin <- summarySE(calc_phys_all_lin_nona, measurevar="T2_T0_rgr", groupvars=c("treat","lineage"))
-growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T2_T0_rgr", groupvars=c("treat","lineage"))
+#growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T2_T0_rgr", groupvars=c("treat","lineage"))
+growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T3_T2_rgr", groupvars=c("treat","lineage"))
 
 # plot, treatment x axis colored by lineage data figure
-calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T2_T0_rgr))+
+calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T3_T2_rgr))+
   theme_bw()+
   geom_jitter(aes(color = lineage, fill = lineage),
               position=position_dodge(width=0.3),
               alpha=0.2, pch = 21,
               color = "black") +
-  geom_errorbar(data = growth_means_2_lin, aes(x = treat, ymax = T2_T0_rgr+se, ymin = T2_T0_rgr-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
-  geom_point(data = growth_means_2_lin, mapping = aes(x=treat, y=T2_T0_rgr, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  geom_errorbar(data = growth_means_2_lin, aes(x = treat, ymax = T3_T2_rgr+se, ymin = T3_T2_rgr-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = growth_means_2_lin, mapping = aes(x=treat, y=T3_T2_rgr, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
   scale_fill_manual(name = "Lineage",
                     breaks = c("L1","L2"),
                     values = cols_lineage)+
@@ -1775,12 +1818,12 @@ calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T2_T0_rgr))+
                      breaks = c("L1","L2"),
                      values = cols_lineage)+
   xlab("Treatment")+
-  ylab("Relative Growth Rate")+
+  ylab(bquote("Specific Growth Rate ("~day^-1~')'))+
   geom_hline(yintercept=0, linetype='dotted', color = 'gray')+
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
 calc_plot_lineage
 
-ggsave(calc_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/Growth/calcification_T2T3_lineage_2_lin_jittered.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(calc_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/Growth/RGR_T3T2_lineage_2_lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 
 ## More exploratory figures below
@@ -2021,7 +2064,7 @@ pam_phys = post_phys_forpam %>%
                 t4pamrec1,t4pamrec2,t4pamrec3,t5pamrec1,t5pamrec2,t5pamrec3,t6pamrec1,t6pamrec2,t6pamrec3,t7pamrec1,t7pamrec2,t7pamrec3,t8pamrec1,t8pamrec2,t8pamrec3,t9pamrec1,t9pamrec2,t9pamrec3) %>%
   dplyr::rename(sastan1 = t3sastan1, sastan2 = t3sastan2, sastan3 = t3sastan3, sarec1 = t3sarec1, sarec2 = t3sarec2, sarec3 = t3sarec3) %>%
   mutate(treat = as.factor(treat), sarec3 = as.numeric(sarec3), blastvol = as.numeric(blastvol)) %>%
-  filter(frag!="I2A12", frag!="I2A7", frag!="O4D8", frag!="I3E10", frag!="I3I10") #these frags are being removed because they were duplicate genotypes within treatment and had the most complete information of the two
+  dplyr::filter(frag!="I2A12", frag!="I2A7", frag!="O4D8", frag!="I3E10", frag!="I3I10") #these frags are being removed because they were duplicate genotypes within treatment and had the most complete information of the two
 
 # add identifying data
 pam_phys$origsitecode <- substr(pam_phys$frag, 1, 2)
@@ -2093,14 +2136,14 @@ summary(lm02)
 par(mfrow=c(2,2))
 plot(lm02)
 TukeyHSD(lm02)
-# not a lot interesting happening here, on to usual stats and plotting
+# not a lot interesting happening here, on to stats and plotting
 
 # summarySE doesn't work with NA's, so use this!!
 phys_pam_wide = pam_phys %>%
-  filter(complete.cases(paavgpam,t0avgpam,t1avgpam,t2avgpam,t3avgpam,t4avgpam,t5avgpam,t6avgpam,t7avgpam,t8avgpam,t9avgpam)) %>% #drop any row that has an NA for any time point
-  filter(treat!="Control 2") %>%
+  dplyr::filter(complete.cases(paavgpam,t0avgpam,t1avgpam,t2avgpam,t3avgpam,t4avgpam,t5avgpam,t6avgpam,t7avgpam,t8avgpam,t9avgpam)) %>% #drop any row that has an NA for any time point
+  dplyr::filter(treat!="Control 2") %>%
   select(frag,treat,reef,gen_site,sitename,paavgpam,t0avgpam,t1avgpam,t2avgpam,t3avgpam,t4avgpam,t5avgpam,t6avgpam,t7avgpam,t8avgpam,t9avgpam) %>%
-  filter(gen_site != "I4G") # remove clone
+  dplyr::filter(gen_site != "I4G") # remove clone
 
 # transform the data to long format so time point is its own column
 phys_pam_long = phys_pam_wide %>%
@@ -2131,10 +2174,10 @@ pam_phys_all_lin <- left_join(pam_phys_all_lin, its2_divs, by = "frag")
 
 # filter to only include T3-T9 for plotting and stats
 phys_pam_all_lin_plots = pam_phys_all_lin %>%
-  filter(time != "-18" & time != "0" & time != "15" & time != "35")
+  dplyr::filter(time != "-18" & time != "0" & time != "15" & time != "35")
 
 phys_pam_2_lin_plots = phys_pam_all_lin_plots %>%
-  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+  dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
 
 phys_pam_lin1 = phys_pam_2_lin_plots %>%
   dplyr::filter(lineage == "L1")
@@ -2169,8 +2212,18 @@ Anova(m.full)
 #   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 # check interactions
-emms<-emmeans(m.full, ~dominant_type|lineage|time) #, adjust="Bonferoni"
+m.emm<- lmer(pam ~ time*lineage + (1|gen_site), data = phys_pam_2_lin_plots, REML=FALSE)
+
+emms<-emmeans(m.emm, ~lineage|time) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
+# time lineage_pairwise estimate     SE   df t.ratio p.value
+# 45   L1 - L2            0.0196 0.0161 70.9   1.219  0.2270
+# 54   L1 - L2            0.0368 0.0161 70.9   2.286  0.0590
+# 61   L1 - L2            0.0500 0.0161 70.9   3.107  0.0095
+# 65   L1 - L2            0.0537 0.0161 70.9   3.339  0.0094
+# 70   L1 - L2            0.0296 0.0161 70.9   1.839  0.1185
+# 74   L1 - L2            0.0281 0.0161 70.9   1.749  0.1185
+# 79   L1 - L2            0.0218 0.0161 70.9   1.357  0.2089
 
 
 #Check model fit
@@ -2189,9 +2242,9 @@ pam_plot_treatment <- ggplot(pam_means_treat_2_lin,aes(x = time, y = pam, color 
   theme_bw()+
   annotate("rect", xmin = 51, xmax = 64, ymin = - Inf, ymax = Inf, fill = "red4", alpha = 0.15)+
   annotate("rect", xmin = 64, xmax = 80, ymin = - Inf, ymax = Inf, fill = "royalblue4", alpha = 0.15)+
+  geom_errorbar(aes(x = time, ymax = pam+se, ymin = pam-se), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, pch = 21, color = "black", position = position_dodge(width=0.3))+
   geom_line(aes(group = treat), size = 0.5, linetype="dashed", position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = time, ymax = pam+se, ymin = pam-se), width = .2, position = position_dodge(width=0.3)) +
   scale_fill_manual(name = "Treatment",
                     labels = c("Control","Low Var","Mod Var","High Var"),
                     values = cols_treat)+
@@ -2218,9 +2271,9 @@ pam_plot_treatment_lin <- ggplot(pam_means_treat_2_lin,aes(x = time, y = pam, co
   theme_bw()+
   annotate("rect", xmin = 51, xmax = 64, ymin = - Inf, ymax = Inf, fill = "red4", alpha = 0.15)+
   annotate("rect", xmin = 64, xmax = 80, ymin = - Inf, ymax = Inf, fill = "royalblue4", alpha = 0.15)+
+  geom_errorbar(aes(x = time, ymax = pam+se, ymin = pam-se), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, pch = 21, color = "black", position = position_dodge(width=0.3))+
   geom_line(aes(group = treat), size = 0.5, linetype="dashed", position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = time, ymax = pam+se, ymin = pam-se), width = .2, position = position_dodge(width=0.3)) +
   scale_fill_manual(name = "Treatment",
                     labels = c("Control","Low Var","Mod Var","High Var"),
                     values = cols_treat)+
@@ -2540,8 +2593,8 @@ head(corrsa_phys)
 
 # remove test fragments and column of notes to look at data
 corrsa_phys = corrsa_phys %>%
-  filter(sample.ID != "I2A6 (test)") %>%
-  filter(sample.ID != "I2A6 (test2)") %>%
+  dplyr::filter(sample.ID != "I2A6 (test)") %>%
+  dplyr::filter(sample.ID != "I2A6 (test2)") %>%
   select(sample.ID, std.area, corallite.avg.area, corallite.avg.poly) %>%
   dplyr::rename(frag = sample.ID)
 
@@ -2572,7 +2625,7 @@ corrsa_phys$genet <- substr(corrsa_phys$frag,3,3)
 corrsa_phys = corrsa_phys %>%
   unite(gen_site, c(origsitecode,genet), sep = "", remove = FALSE) %>%
   mutate(gen_site = as.factor(gen_site)) %>%
-  filter(gen_site != "I4G") # clone with I4F, remove from dataset
+  dplyr::filter(gen_site != "I4G") # clone with I4F, remove from dataset
 
 # corallite.avg.area = Area of the corallite calculated by using area of ellipse formula (corallite.min/2*corallite.max/2*pi)
 # corallite.avg.poly = Area of the corallite measured in ImageJ using the polygon tool
@@ -2744,69 +2797,68 @@ ggsave(corrsa_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/T
 #### Prep data for PCA ####
 
 # separating data frames by metric and by time point to consider
-calc_pca_end = calc_phys %>%
-  filter(treat!="Control 2") %>%
-  select(frag,treat,sitename,reef,T2_T0_perc)
+calc_pca_end = calc_phys_all_lin %>%
+  select(frag,treat,sitename,lineage,T3_T0_rgr) # want to consider growth over the whole experiment
 
-hcarb_pca_t0 = hcarb_phys %>%
-  filter(treat=="Initial") %>%
-  select(frag,treat,sitename,reef,hcarb_mgcm2)
+hcarb_pca_t0 = hcarb_phys_all_lin %>%
+  dplyr::filter(treat=="Initial") %>%
+  select(frag,treat,sitename,lineage,hcarb_mgcm2)
 
-hcarb_pca_end = hcarb_phys %>%
-  filter(treat!="Initial" & treat!="Control 2") %>%
-  select(frag,treat,sitename,reef,hcarb_mgcm2)
+hcarb_pca_end = hcarb_phys_all_lin %>%
+  dplyr::filter(treat!="Initial") %>%
+  select(frag,treat,sitename,lineage,hcarb_mgcm2)
 
-scarb_pca_t0 = scarb_phys %>%
-  filter(treat=="Initial") %>%
-  select(frag,treat,sitename,reef,scarb_mgcm2)
+scarb_pca_t0 = scarb_phys_all_lin %>%
+  dplyr::filter(treat=="Initial") %>%
+  select(frag,treat,sitename,lineage,scarb_mgcm2)
 
-scarb_pca_end = scarb_phys %>%
-  filter(treat!="Initial" & treat!="Control 2") %>%
-  select(frag,treat,sitename,reef,scarb_mgcm2)
+scarb_pca_end = scarb_phys_all_lin %>%
+  dplyr::filter(treat!="Initial") %>%
+  select(frag,treat,sitename,lineage,scarb_mgcm2)
 
-hprot_pca_t0 = hprot_phys %>%
-  filter(treat=="Initial") %>%
-  select(frag,treat,sitename,reef,prot_mgcm2)
+hprot_pca_t0 = hprot_phys_all_lin %>%
+  dplyr::filter(treat=="Initial") %>%
+  select(frag,treat,sitename,lineage,prot_mgcm2)
 
-hprot_pca_end = hprot_phys %>%
-  filter(treat!="Initial" & treat!="Control 2") %>%
-  select(frag,treat,sitename,reef,prot_mgcm2)
+hprot_pca_end = hprot_phys_all_lin %>%
+  dplyr::filter(treat!="Initial") %>%
+  select(frag,treat,sitename,lineage,prot_mgcm2)
 
-tissthick_pca_t0 = tiss_phys %>%
-  select(frag,treat,sitename,reef,avgtiss)
+tissthick_pca_t0 = tiss_phys_all_lin %>%
+  select(frag,treat,sitename,lineage,avgtiss)
 
-chla_pca_t0 = chl_phys %>%
-  filter(treat=="Initial") %>%
-  select(frag,treat,sitename,reef,chlA)
+chla_pca_t0 = chl_phys_all_lin %>%
+  dplyr::filter(treat=="Initial") %>%
+  select(frag,treat,sitename,lineage,chlA)
 
-chla_pca_end = chl_phys %>%
-  filter(treat!="Initial" & treat!="Control 2") %>%
-  select(frag,treat,sitename,reef,chlA)
+chla_pca_end = chl_phys_all_lin %>%
+  dplyr::filter(treat!="Initial") %>%
+  select(frag,treat,sitename,lineage,chlA)
 
-corrsa_pca_t0 = corrsa_phys %>%
-  select(frag,treat,sitename,reef,corallite.avg.poly.mm2)
+corrsa_pca_t0 = corrsa_phys_all_lin %>%
+  select(frag,treat,sitename,lineage,corallite.avg.poly.mm2)
 
 # Initial PAM measurements were not taken, so no t0 PAM
-pam_pca_end = phys_pam_long %>%
-  filter(time=="46") %>%
-  select(frag,treat,sitename,reef,pam)
+pam_pca_end = pam_phys_all_lin %>%
+  dplyr::filter(time=="79") %>% # corresponds to the closest timepoint from when phenomic metrics were sampled
+  select(frag,treat,sitename,lineage,pam)
 
-sym_pca_t0 = sym_phys %>%
-  filter(treat=="Initial") %>%
-  select(frag,treat,sitename,reef,sym_cm2)
+sym_pca_t0 = sym_phys_all_lin %>%
+  dplyr::filter(treat=="Initial") %>%
+  select(frag,treat,sitename,lineage,sym_cm2)
 
-sym_pca_end = sym_phys %>%
-  filter(treat!="Initial" & treat!="Control 2") %>%
-  select(frag,treat,sitename,reef,sym_cm2)
+sym_pca_end = sym_phys_all_lin %>%
+  dplyr::filter(treat!="Initial") %>%
+  select(frag,treat,sitename,lineage,sym_cm2)
 
 # Make T0 combined data frame
-t0_full = join_all(list(hcarb_pca_t0,scarb_pca_t0,hprot_pca_t0,sym_pca_t0,tissthick_pca_t0,chla_pca_t0,corrsa_pca_t0), by = c("frag","treat","sitename","reef"), type = "full")
+t0_full = join_all(list(hcarb_pca_t0,scarb_pca_t0,hprot_pca_t0,sym_pca_t0,tissthick_pca_t0,chla_pca_t0,corrsa_pca_t0), by = c("frag","treat","sitename","lineage"), type = "full")
 
 str(t0_full)
 #write.csv(t0_full, "/Users/hannahaichelman/Documents/BU/TVE/PCAs/t0_full.csv",row.names=FALSE)
 
 t0_full_log = t0_full %>%
-  filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
+  dplyr::filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
   mutate_if(is.numeric, log)
 
 str(t0_full_log)
@@ -2816,29 +2868,32 @@ t0_full_log$treat <- as.factor(t0_full_log$treat)
 #write.csv(t0_full_log, "/Users/hannahaichelman/Documents/BU/TVE/PCAs/t0_full_log.csv", row.names=FALSE)
 
 # Make end of variability combined data frame
-end_full = join_all(list(calc_pca_end,hcarb_pca_end,scarb_pca_end,hprot_pca_end,pam_pca_end,sym_pca_end,chla_pca_end), by = c("frag","treat","sitename","reef"), type = "full")
+end_full = join_all(list(calc_pca_end,hcarb_pca_end,scarb_pca_end,hprot_pca_end,pam_pca_end,sym_pca_end,chla_pca_end), by = c("frag","treat","sitename","lineage"), type = "full")
 
 str(end_full)
 #write.csv(end_full, "/Users/hannahaichelman/Documents/BU/TVE/PCAs/end_full.csv", row.names = FALSE)
 
 end_full_log = end_full %>%
-  filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
-  mutate(T2_T0_perc_2 = T2_T0_perc + 2) %>%
-  select(-T2_T0_perc) %>% #get rid of the column with negative growth values before log transforming
+  dplyr::filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
+  mutate(T3_T0_rgr_2 = T3_T0_rgr + 2) %>%
+  select(-T3_T0_rgr) %>% #get rid of the column with negative growth values before log transforming
   mutate_if(is.numeric, log) # log transform the numeric columns
 
 str(end_full_log)
 
 end_full_log$sitename <- as.factor(end_full_log$sitename)
 end_full_log$treat <- as.factor(end_full_log$treat)
+end_full_log$lineage <- as.factor(end_full_log$lineage)
 #write.csv(end_full_log, "/Users/hannahaichelman/Documents/BU/TVE/PCAs/end_full_log.csv", row.names = FALSE)
 
 ##### Make our PCAs #####
+# once you have made the output files in the section above you can skip right to here to finalize filtering and make pca's
+
 library(ggpubr)
 library(ggfortify)
 library(ggplot2)
 library(cluster)
-library(FactoMineR) # this is my favorite PCA package! lots of options for visuals and summary stats
+library(FactoMineR) # lots of options for pca visuals and summary stats
 library(factoextra)
 library(corrplot)
 library(dplyr)
@@ -2855,86 +2910,65 @@ str(t0_pca)
 
 t0_pca$sitename <- as.factor(t0_pca$sitename)
 t0_pca$treat <- as.factor(t0_pca$treat)
-t0_pca$reef <- as.factor(t0_pca$reef)
-
-# add in genet id and combine with lineage dataframe to include 2bRAD population data in our T0 PCAs
-t0_pca$gen_site <- substr(t0_pca$frag,1,3)
-
-lineages = read.csv("/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/tuftscustompipeline_denovo_nosyms/tve_lineages_noclones.csv")
-
-t0_pca_lineage <- left_join(t0_pca, lineages, by = "gen_site")
+t0_pca$lineage <- as.factor(t0_pca$lineage)
 # all of the samples that have NA's for lineage are ones that didn't prep so we don't have lineage data for those genets
 
-colnames(t0_pca_lineage)[colnames(t0_pca_lineage)=="hcarb_mgcm2"] <-"hcarb"
-colnames(t0_pca_lineage)[colnames(t0_pca_lineage)=="scarb_mgcm2"] <-"scarb"
-colnames(t0_pca_lineage)[colnames(t0_pca_lineage)=="prot_mgcm2"] <-"prot"
-colnames(t0_pca_lineage)[colnames(t0_pca_lineage)=="sym_cm2"] <-"syms"
-colnames(t0_pca_lineage)[colnames(t0_pca_lineage)=="avgtiss"] <-"tiss"
-colnames(t0_pca_lineage)[colnames(t0_pca_lineage)=="corallite.avg.poly.mm2"] <-"corr_sa"
+colnames(t0_pca)[colnames(t0_pca)=="hcarb_mgcm2"] <-"hcarb"
+colnames(t0_pca)[colnames(t0_pca)=="scarb_mgcm2"] <-"scarb"
+colnames(t0_pca)[colnames(t0_pca)=="prot_mgcm2"] <-"prot"
+colnames(t0_pca)[colnames(t0_pca)=="sym_cm2"] <-"syms"
+colnames(t0_pca)[colnames(t0_pca)=="avgtiss"] <-"tiss"
+colnames(t0_pca)[colnames(t0_pca)=="corallite.avg.poly.mm2"] <-"corr_sa"
 
-t0_pca_all_lin = t0_pca_lineage %>%
+t0_pca_all_lin = t0_pca %>%
   drop_na(lineage)
 
 t0_pca_2_lin = t0_pca_all_lin %>%
-  filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+  dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
 
 t0_pca_lineage_CI = t0_pca_2_lin %>%
-  filter(sitename == "CI")
+  dplyr::filter(sitename == "CI")
 
-t0_pca_proposed = t0_pca_lineage %>%
-  filter(sitename != "SP") %>%
-  filter(sitename != "BN") %>%
-  filter(sitename != "BS") %>%
-  filter(sitename != "CA") %>%
-  filter(frag != "I3C6") # this fragment is from Cristobal, looks like a loser across all measures so removing
 
 # now end of variability pca data:
 str(end_pca)
 
 end_pca$sitename <- as.factor(end_pca$sitename)
 end_pca$treat <- as.factor(end_pca$treat)
-end_pca$reef <- as.factor(end_pca$reef)
+end_pca$lineage <- as.factor(end_pca$lineage)
 
 # re-level and re-name treatment
 end_pca$treat <- factor(end_pca$treat, levels = c("Control","Low Var","Mod Var","High Var"))
 
-# add in genet id and combine with lineage dataframe to include 2bRAD population data in our T0 PCAs
-end_pca$gen_site <- substr(end_pca$frag,1,3)
-end_pca_lineage <- left_join(end_pca, lineages, by = "gen_site")
-end_pca_lineage$lineage <- as.factor(end_pca_lineage$lineage)
-
 # re-name columns for legibility on plots
-colnames(end_pca_lineage)[colnames(end_pca_lineage)=="hcarb_mgcm2"] <-"hcarb"
-colnames(end_pca_lineage)[colnames(end_pca_lineage)=="scarb_mgcm2"] <-"scarb"
-colnames(end_pca_lineage)[colnames(end_pca_lineage)=="prot_mgcm2"] <-"prot"
-colnames(end_pca_lineage)[colnames(end_pca_lineage)=="sym_cm2"] <-"syms"
-colnames(end_pca_lineage)[colnames(end_pca_lineage)=="T2_T0_perc_2"] <-"growth"
+colnames(end_pca)[colnames(end_pca)=="hcarb_mgcm2"] <-"hcarb"
+colnames(end_pca)[colnames(end_pca)=="scarb_mgcm2"] <-"scarb"
+colnames(end_pca)[colnames(end_pca)=="prot_mgcm2"] <-"prot"
+colnames(end_pca)[colnames(end_pca)=="pam"] <-"fv_fm"
+colnames(end_pca)[colnames(end_pca)=="sym_cm2"] <-"syms"
+colnames(end_pca)[colnames(end_pca)=="T3_T0_rgr_2"] <-"growth"
 
 # add in dominant symbiont type dataframe
 its2_types = read.csv("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ITS2.dominanttype.csv") %>%
-  select(frag, dominant_type) #%>%
-#mutate(D1_1 = D1_sum+1) %>%
-#select(-D1_sum) %>%
-#mutate(propD1 = log(D1_1)) %>%
-#select(-D1_1)
+  select(frag, dominant_type)
+
 its2_types$dominant_type = as.factor(its2_types$dominant_type)
 
-end_pca_lin_sym <- left_join(end_pca_lineage, its2_types, by = "frag")
-str(end_pca_lin_sym)
+end_pca_sym <- left_join(end_pca, its2_types, by = "frag")
+str(end_pca_sym)
 
-end_pca_all_lin = end_pca_lin_sym %>%
+end_pca_all_lin = end_pca_sym %>%
   drop_na(lineage) %>%
-  #drop_na(propD1) %>%
   drop_na(dominant_type) %>%
-  unite(lin_sym, c(lineage,dominant_type), sep = "_", remove = FALSE) %>% # make new lineage_dominant type combined factor
-  mutate(lin_sym = as.factor(lin_sym)) %>%
-  select(frag, treat, sitename, reef, gen_site, lineage, dominant_type, lin_sym, hcarb, scarb, prot, pam, syms, chlA, growth)
+#  unite(lin_sym, c(lineage,dominant_type), sep = "_", remove = FALSE) %>% # make new lineage_dominant type combined factor
+#  mutate(lin_sym = as.factor(lin_sym)) %>%
+  select(frag, treat, sitename, lineage, dominant_type, hcarb, scarb, prot, fv_fm, syms, chlA, growth)
 
 end_pca_2_lin = end_pca_all_lin %>%
-  filter(lineage!="L3")
+  dplyr::filter(lineage!="L3")
 
 end_pca_lineage_CI = end_pca_2_lin %>%
-  filter(sitename == "CI")
+  dplyr::filter(sitename == "CI")
 
 ###
 # this part of the code uses the PCA function and stats from the FactoMineR package
@@ -2942,8 +2976,8 @@ end_pca_lineage_CI = end_pca_2_lin %>%
 facto_t0_all_lin <- PCA(t0_pca_all_lin[,5:11], scale.unit = TRUE, ncp = 10, graph = TRUE)
 facto_t0_2_lin <- PCA(t0_pca_2_lin[,5:11], scale.unit = TRUE, ncp = 10, graph = TRUE)
 
-facto_end_all_lin <- PCA(end_pca_all_lin[,9:15], scale.unit = TRUE, ncp = 10, graph = TRUE) # no sym type info
-facto_end_2_lin <- PCA(end_pca_2_lin[,9:15], scale.unit = TRUE, ncp = 10, graph = TRUE)
+facto_end_all_lin <- PCA(end_pca_all_lin[,6:12], scale.unit = TRUE, ncp = 10, graph = TRUE) # no sym type info
+facto_end_2_lin <- PCA(end_pca_2_lin[,6:12], scale.unit = TRUE, ncp = 10, graph = TRUE)
 
 #facto_t0_CI <- PCA(t0_pca_lineage_CI[,5:11], scale.unit = TRUE, ncp = 10, graph = TRUE)
 #facto_end_CI <- PCA(end_pca_lineage_CI[,5:11], scale.unit = TRUE, ncp = 10, graph = TRUE)
@@ -3001,8 +3035,7 @@ fviz_pca_biplot(facto_t0_CI)
 cols_treat
 cols_site
 cols_lineage
-cols_reef = c("red4","royalblue4")
-#cols_proposed_sites <- c("I-Cristobal" = "#fc4e2a", "I-Punta Donato"= "#fed976")
+its2_cols_greens
 
 # PCA for T0 Physiology - color = sitename
 fviz_pca_biplot(facto_t0_2_lin)
@@ -3029,28 +3062,6 @@ pca_t0_site
 
 ggsave(pca_t0_site, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_t0_site_2_lin.pdf", width=6, height=5, units=c("in"), useDingbats=FALSE)
 
-
-# PCA for T0 Physiology - color = reefzone
-pca_t0_reef <- fviz_pca_biplot(facto_t0_2_lin,
-                               label = "var",
-                               col.var = "black", labelsize = 4,
-                               alpha.ind = 0) + # makes individs transparent so they can be overwritten by geom_point()
-  geom_point(aes(colour=t0_pca_2_lin$reef), size = 2, stroke = 1) +
-  scale_color_manual(values = cols_reef,
-                     breaks=c("Inner Reef","Outer Reef"),
-                     name = "Site") +
-  #  stat_ellipse(geom = "polygon", type = "t", alpha = 0.2,
-  #               aes(fill= t0_pca_lineage$reef), show.legend = FALSE) + scale_fill_manual(values=cols_reef) + # ellipses assumes multivariate distribution using default confidence level (0.95)
-  stat_ellipse(aes(color=t0_pca_2_lin$reef), type = "t", lwd = 1)+
-  labs(x = "PC1 (51.1% explained variance)",
-       y = "PC2 (13.3% explained variance)") +
-  theme(plot.title = element_blank(),
-        axis.title = element_text(face = "bold"),
-        legend.title.align =  0.5, legend.text.align = 0,
-        legend.title = element_text(face = "bold"))
-pca_t0_reef
-
-ggsave(pca_t0_reef, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_t0_reef_2_lin.pdf", width=6, height=5, units=c("in"), useDingbats=FALSE)
 
 # PCA for T0 Physiology - color = lineage, shape = sitename
 pca_t0_lineage <- fviz_pca_biplot(facto_t0_2_lin,
@@ -3097,23 +3108,6 @@ pca_t0_lineage_CI
 
 ggsave(pca_t0_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_t0_lineage_CIonly.pdf", width=5, height=5, units=c("in"), useDingbats=FALSE)
 
-# PCA for Proposed Sites T0 Physiology - color = sitename
-pca_t0_propsite <- fviz_pca_biplot(facto_t0,
-                                   label = "var",
-                                   col.var = "black", labelsize = 4,
-                                   alpha.ind = 0) + # makes individs transparent so they can be overwritten by geom_point()
-  geom_point(aes(fill=t0_pca_proposed$sitename), pch = 21, color = "black", size = 3, stroke = 1) +
-  scale_fill_manual(values = cols_proposed_sites, breaks=c("I-Cristobal","I-Punta Donato"), name = "Site") +
-  #  stat_ellipse(geom = "polygon", type = "t", alpha = 0.4,
-  #               aes(fill= t0_pca_proposed$sitename), show.legend = FALSE) + scale_fill_manual(values=cols_proposed_sites) + # ellipses assumes multivariate distribution using default confidence level (0.95)
-  stat_ellipse(aes(color=t0_pca_proposed$sitename), type = "t", lwd = 1)+
-  labs(x = "PC1 (50.5% explained variance)",
-       y = "PC2 (19% explained variance)") +
-  theme(plot.title = element_blank(),
-        axis.title = element_text(face = "bold"))
-pca_t0_propsite
-
-ggsave(pca_t0_propsite, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_t0_proposedsites.pdf", width=6, height=5, units=c("in"), useDingbats=FALSE)
 
 # PCA for End of Variability Physiology - color = site, shape = site
 fviz_pca_biplot(facto_end_2_lin)
@@ -3132,8 +3126,8 @@ pca_end_site <- fviz_pca_biplot(facto_end_2_lin,
                      labels=c("BN", "BS", "CA", "CI", "PD", "SP"),
                      name = "Site") +
   stat_ellipse(aes(color=end_pca_2_lin$sitename), type = "t", lwd = 1, show.legend = FALSE)+
-  labs(x = "PC1 (43.4% explained variance)",
-       y = "PC2 (14.3% explained variance)") +
+  labs(x = "PC1 (45.4% explained variance)",
+       y = "PC2 (14.9% explained variance)") +
   theme(plot.title = element_blank(),
         axis.title = element_text(face = "bold"),
         legend.title.align =  0.5, legend.text.align = 0,
@@ -3161,8 +3155,8 @@ pca_end_treat <- fviz_pca_biplot(facto_end_2_lin,
   #  stat_ellipse(geom = "polygon", type = "t", alpha = 0.3,
   #               aes(fill= end_pca_lineage$treat), show.legend = FALSE) + scale_fill_manual(values=cols_treat) + # ellipses assumes multivariate distribution using default confidence level (0.95)
   stat_ellipse(aes(color=end_pca_2_lin$treat), type = "t", lwd = 1)+
-  labs(x = "PC1 (43.4% explained variance)",
-       y = "PC2 (14.3% explained variance)") +
+  labs(x = "PC1 (45.4% explained variance)",
+       y = "PC2 (14.9% explained variance)") +
   theme(plot.title = element_blank(),
         axis.title = element_text(face = "bold"),
         legend.title.align =  0.5, legend.text.align = 0,
@@ -3187,8 +3181,8 @@ pca_end_lineage <- fviz_pca_biplot(facto_end_2_lin,
   #  stat_ellipse(geom = "polygon", type = "t", alpha = 0.4,
   #               aes(fill= end_pca_lineage$lineage), show.legend = FALSE) + scale_fill_manual(values=cols_lineage) + # ellipses assumes multivariate distribution using default confidence level (0.95)
   stat_ellipse(aes(color= end_pca_2_lin$lineage), type = "t", lwd = 1)+
-  labs(x = "PC1 (43.4% explained variance)",
-       y = "PC2 (14.3% explained variance)") +
+  labs(x = "PC1 (45.4% explained variance)",
+       y = "PC2 (14.9% explained variance)") +
   theme(plot.title = element_blank(),
         axis.title = element_text(face = "bold"),
         legend.title.align =  0.5, legend.text.align = 0,
@@ -3198,7 +3192,6 @@ pca_end_lineage
 ggsave(pca_end_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_end_lineage_2.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 # PCA for End Variability Physiology - color = lineage+dominant sym type, shape = sitename
-its2_lin_cols_greens = c("L1_C1" = "#edf8e9", "L2_C1" = "#edf8e9", "L1_C3af" = "#238b45","L2_C3" = "#a1d99b","L1_D1" = "#00441b", "L2_D1" = "#00441b")
 its2_cols_greens = c("C1" = "#edf8e9", "C3af" = "#238b45","C3" = "#a1d99b","D1" = "#00441b")
 
 fviz_pca_biplot(facto_end_2_lin)
@@ -3215,8 +3208,8 @@ pca_end_lineagesym <- fviz_pca_biplot(facto_end_2_lin,
   stat_ellipse(aes(color= end_pca_2_lin$dominant_type), type = "t", lwd = 1, show.legend = FALSE)+
   scale_color_manual(values = its2_cols_greens,
                      name = "Majority ITS2") +
-  labs(x = "PC1 (43.4% explained variance)",
-       y = "PC2 (14.3% explained variance)") +
+  labs(x = "PC1 (45.4% explained variance)",
+       y = "PC2 (14.9% explained variance)") +
   theme(plot.title = element_blank(),
         axis.title = element_text(face = "bold"),
         legend.title.align =  0.5, legend.text.align = 0,
@@ -3246,62 +3239,6 @@ pca_end_lineage_CI
 
 ggsave(pca_end_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_end_lineage_CIonly.pdf", width=5, height=5, units=c("in"), useDingbats=FALSE)
 
-
-#these also work but don't fuse ggplot one is working to put sites as colors
-fviz_pca_biplot(facto_t0,
-                axes = c(1,2),
-                habillage = t0_pca$sitename,
-                addEllipses = TRUE,
-                palette = c('red4','indianred3','mistyrose3','royalblue4','cornflowerblue','lightblue'),
-                col.var = "black", alpha.var = "cos2", label = "var",
-                title = "T0 Physiology")
-
-fviz_pca_biplot(facto_t0,
-                axes = c(1,2),
-                habillage = t0_pca_lineage$lineage,
-                addEllipses = TRUE,
-                palette = c('red4','indianred3'),
-                col.var = "black", alpha.var = "cos2", label = "var",
-                title = "T0 Physiology")
-
-
-# biplot for proposed sites
-fviz_pca_biplot(facto_t0,
-                axes = c(1,2),
-                habillage = t0_pca_proposed$sitename,
-                addEllipses = TRUE,
-                palette = c('#fc4e2a','#fed976'),
-                col.var = "black", alpha.var = "cos2", label = "var",
-                title = "T0 Physiology")
-
-#end of tve pca colored by sitename
-fviz_pca_biplot(facto_end,
-                axes = c(1,2),
-                habillage = end_pca$sitename,
-                addEllipses = TRUE,
-                palette = c('red4','indianred3','mistyrose3','royalblue4','cornflowerblue','lightblue'),
-                col.var = "black", alpha.var = "cos2", label = "var",
-                title = "Post Variability Physiology")
-
-#end of tve pca colored by treatment
-fviz_pca_biplot(facto_end,
-                axes = c(1,2),
-                habillage = end_pca$treat,
-                addEllipses = TRUE,
-                palette = c("cornflowerblue","darkolivegreen3","darkgoldenrod1","coral2"),
-                col.var = "black", alpha.var = "cos2", label = "var",
-                title = "Post Variability Physiology")
-
-#end of tve pca colored by treatment and shape by sitename
-fviz_pca_biplot(facto_end,
-                axes = c(1,2),
-                # geom = "point", pointsize = 2, col.ind = end_pca$sitename,
-                geom.var = "point", pointsize = 2, col.ind = end_pca$sitename,
-                habillage = end_pca$treat,
-                addEllipses = TRUE,
-                palette = c("cornflowerblue","darkolivegreen3","darkgoldenrod1","coral2"),
-                col.var = "black", alpha.var = "cos2", label = "var",
-                title = "Post Variability Physiology")
 
 # try faceting by sitename using ggplot
 t0_df <- prcomp(t0_pca[,5:9], scale. = TRUE)
@@ -3339,132 +3276,6 @@ autoplot(end_df, data = end_pca_2_lin,
   ggtitle("End of Variability Physiology") +
   theme_bw()
 
-##### PCA Plasticity #####
-
-# Need to use prcomp instead of FactoMineR package in order for Colleen's PCA plasticity code to work
-# Starting by calculating plasticity from control treatment fragments at the end of the experiment
-
-str(end_pca_lineage)
-end_df <- prcomp(end_pca_lineage[,5:10], scale. = TRUE)
-end_sym_df <- prcomp(end_pca_lineage_symtype[,5:10], scale. = TRUE)
-
-# source the script Colleen wrote with the different functions to calculate plasticity
-source("/Users/hannahaichelman/Documents/BU/TVE/PCAs/PCA_Plasticity/PlasticityCustomFunctions_Bove.R")
-
-pca_plast_end <-  PCAplast(pca = end_df, # PCA dataframe containing the PCA eigenvalues
-                           data = end_pca_lineage[,c(1:4,11:12)], # condition/treatment data
-                           sample_ID = "frag", # name of column with unique ID per sample (if blank, will pull rownames for this)
-                           num_pca = "all", # number of PCs to include in measure (default is 'all' if left blank)
-                           control_col = "treat", # name of 'treatment' column
-                           control_lvl = "Control", # control level of the treatment
-                           group = "frag") # the grouping column (i.e., colony)
-
-pca_plast_end_sym <-  PCAplast(pca = end_sym_df, # PCA dataframe containing the PCA eigenvalues
-                               data = end_pca_lineage_symtype[,c(1:4,11:19)], # condition/treatment data
-                               sample_ID = "frag", # name of column with unique ID per sample (if blank, will pull rownames for this)
-                               num_pca = "all", # number of PCs to include in measure (default is 'all' if left blank)
-                               control_col = "treat", # name of 'treatment' column
-                               control_lvl = "Control", # control level of the treatment
-                               group = "frag") # the grouping column (i.e., colony)
-
-# Now plot PCA plasticity - lineage
-str(pca_plast_end)
-pca_plast_end$lineage = as.factor(pca_plast_end$lineage)
-
-dist_summ = summarySE(data = pca_plast_end, measurevar = "dist", groupvars = c("sitename"))
-
-lm = lm(dist ~ lineage, data = pca_plast_end)
-summary(lm)
-
-# Now plot PCA plasticity - lineage + sym type
-str(pca_plast_end_sym)
-pca_plast_end_sym$lineage = as.factor(pca_plast_end_sym$lineage)
-
-dist_summ_sym = summarySE(data = pca_plast_end_sym, measurevar = "dist", groupvars = c("sitename"))
-
-lm = lm(dist ~ lineage_sym, data = pca_plast_end_sym)
-summary(lm)
-
-# pca plasticity - lineage
-plast_boxplot <- ggplot(pca_plast_end, aes(x = lineage, y = dist)) +
-  geom_jitter(size = 3,
-              position=position_jitter(0.2),
-              alpha=0.99,
-              aes(color = lineage)) +
-  scale_color_manual(values = cols_lineage) + # for jittered points
-  geom_boxplot(outlier.shape = NA,
-               alpha = 0.85,
-               aes(fill = lineage))+
-  scale_fill_manual(values = cols_lineage) + # for boxplot
-  ylab("Phenotype Plasticity") +
-  ggtitle("End of Experiment - Distance to Control") +
-  theme_classic() +
-  theme(axis.title.x = element_blank(), legend.position = "none")
-plast_boxplot
-
-ggsave(plast_boxplot, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/PCA_Plasticity/PCA_plasticity_lineage.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
-
-# pca plasticity - lineage + sym type
-plast_boxplot <- ggplot(pca_plast_end_sym, aes(x = lineage_sym, y = dist)) +
-  geom_jitter(size = 3,
-              position=position_jitter(0.2),
-              alpha=0.99,
-              aes(color = lineage_sym)) +
-  scale_color_manual(values = c("#dadaeb","#bcbddc","#756bb1","#54278f")) + # for jittered points
-  geom_boxplot(outlier.shape = NA,
-               alpha = 0.85,
-               aes(fill = lineage_sym))+
-  scale_fill_manual(values = c("#dadaeb","#bcbddc","#756bb1","#54278f")) + # for boxplot
-  ylab("Phenotype Plasticity") +
-  ggtitle("End of Experiment - Distance to Control") +
-  theme_classic() +
-  theme(axis.title.x = element_blank(), legend.position = "none")
-plast_boxplot
-
-ggsave(plast_boxplot, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/PCA_Plasticity/PCA_plasticity_lineage_sym.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
-
-# pca plasticity - site
-plast_boxplot_site <- ggplot(pca_plast_end, aes(x = sitename, y = dist)) +
-  geom_jitter(size = 3,
-              position=position_jitter(0.2),
-              alpha=0.99,
-              aes(color = sitename)) +
-  scale_color_manual(values = cols_site) + # for jittered points
-  geom_boxplot(outlier.shape = NA,
-               alpha = 0.85,
-               aes(fill = sitename))+
-  scale_fill_manual(values = cols_site) + # for boxplot
-  ylab("Phenotype Plasticity") +
-  ggtitle("End of Experiment - Distance to Control") +
-  theme_classic() +
-  theme(axis.title.x = element_blank(), legend.position = "none")
-plast_boxplot_site
-
-ggsave(plast_boxplot_site, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/PCA_Plasticity/PCA_plasticity_sitename.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
-
-# pca plasticity - treatment
-cols_treat_noc = c("#FF9966", "#CC3300","#7f0000")
-plast_boxplot_treat <- ggplot(pca_plast_end, aes(x = treat, y = dist)) +
-  geom_jitter(size = 3,
-              position=position_jitter(0.2),
-              alpha=0.99,
-              aes(color = treat)) +
-  scale_color_manual(values = cols_treat_noc) + # for jittered points
-  geom_boxplot(outlier.shape = NA,
-               alpha = 0.85,
-               aes(fill = treat))+
-  scale_fill_manual(values = cols_treat_noc) + # for boxplot
-  ylab("Phenotype Plasticity") +
-  ggtitle("End of Experiment - Distance to Control") +
-  theme_classic() +
-  theme(axis.title.x = element_blank(), legend.position = "none")
-plast_boxplot_treat
-
-ggsave(plast_boxplot_treat, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/PCA_Plasticity/PCA_plasticity_treatment.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
-
-# Now try T0,
-str(t0_pca_lineage)
-t0_df <- prcomp(t0_pca_lineage[,5:11], scale. = TRUE)
 
 ##### PCA Adonis Tests #####
 #Use an Adonis test to get significance of factors on holobiont physiology
@@ -3476,56 +3287,38 @@ t0_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/t0_full.csv")
 end_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/end_full.csv")
 
 str(t0_full)
-str(end_full)
 
 t0_full$sitename <- as.factor(t0_full$sitename)
 t0_full$treat <- as.factor(t0_full$treat)
+t0_full$lineage <- as.factor(t0_full$lineage)
+
+str(end_full)
 
 end_full$sitename <- as.factor(end_full$sitename)
 end_full$treat <- as.factor(end_full$treat)
-
-# add in genet id and combine with lineage dataframe to include 2bRAD population data in our T0 PCAs
-t0_full$gen_site <- substr(t0_full$frag,1,3)
-end_full$gen_site <- substr(end_full$frag,1,3)
-
-lineages = read.csv("/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/tuftscustompipeline_denovo_nosyms/tve_lineages_noclones.csv")
-
-t0_full_lineage <- left_join(t0_full, lineages, by = "gen_site")
-end_full_lineage <- left_join(end_full, lineages, by = "gen_site")
-
-t0_full_lineage$lineage <- as.factor(t0_full_lineage$lineage)
-end_full_lineage$lineage <- as.factor(end_full_lineage$lineage)
-
-# all of the samples that have NA's for lineage are ones that didn't prep so we don't have lineage data for those genets
+end_full$lineage <- as.factor(end_full$lineage)
 
 # add in dominant symbiont type dataframe
 its2_types = read.csv("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ITS2.dominanttype.csv") %>%
-  select(frag,  dominant_type) %>%
-  #mutate(D1_1 = D1_sum+1) %>%
-  #select(-D1_sum) %>%
+  select(frag, dominant_type) %>%
   mutate(dominant_type = as.factor(dominant_type))
 
-end_full_lineage_its2 <- left_join(end_full_lineage, its2_types, by = "frag")
-str(end_full_lineage_its2)
-
-end_full_lineage_its2 = end_full_lineage_its2 %>%
-  unite(lin_sym, c(lineage,dominant_type), sep = "_", remove = FALSE) %>% # make new lineage_dominant type combined factor
-  mutate(lin_sym = as.factor(lin_sym))
+end_full_its2 <- left_join(end_full, its2_types, by = "frag")
+str(end_full_its2)
 
 # Dont want to use log transformed data here
 # but need to remove NAs
-t0_full_adonis = t0_full_lineage %>%
-  filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
-  filter(lineage != "L3") # remove L3 individuals since these aren't in our PCAs
+t0_full_adonis = t0_full %>%
+  dplyr::filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
+  dplyr::filter(lineage != "L3") # remove L3 individuals since these aren't in our PCAs
 
-end_full_adonis = end_full_lineage_its2 %>%
-  filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
-  mutate(T2_T0_perc_2 = T2_T0_perc + 2) %>%
-  select(-T2_T0_perc) %>% #get rid of the column with negative growth values before log transforming, just making sure to use the same data as we do in the PCAs
-  filter(lineage != "L3") # remove L3 individuals since these aren't in our PCAs
+end_full_adonis = end_full_its2 %>%
+  dplyr::filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
+  mutate(T3_T0_rgr_2 = T3_T0_rgr + 2) %>%
+  select(-T3_T0_rgr) %>% #get rid of the column with negative growth values before log transforming, just making sure to use the same data as we do in the PCAs
+  dplyr::filter(lineage != "L3") # remove L3 individuals since these aren't in our PCAs
 
-t0_full_adonis <- t0_full_adonis[, c(1,2,3,4,12,13,5,6,7,8,9,10,11)]
-end_full_adonis <- end_full_adonis[, c(1,2,3,4,11,12,13,14,5,6,7,8,9,10,15)]
+end_full_adonis <- end_full_adonis[, c(1,2,3,4,11,5,6,7,8,9,10,12)]
 
 end_full_adonis_L1 = end_full_adonis %>%
   filter(lineage == "L1")
@@ -3534,8 +3327,8 @@ end_full_adonis_L2 = end_full_adonis %>%
   filter(lineage == "L2")
 
 # Change dataframe here based on the comparison you are interested in
-nl=startedLog(data=end_full_adonis,count.columns=9:15, logstart=1)
-#nl=startedLog(data=t0_full_adonis,count.columns=7:13, logstart=1)
+#nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1)
+nl=startedLog(data=t0_full_adonis,count.columns=5:11, logstart=1)
 
 goods.dist=vegdist(nl, method="bray", na.rm = TRUE)
 goods.pcoa=pcoa(goods.dist)
@@ -3544,8 +3337,8 @@ goods.pcoa=pcoa(goods.dist)
 pcp=prcomp(nl, retx=TRUE, center=TRUE)
 scores=goods.pcoa$vectors
 summary(goods.pcoa)
-conditions=end_full_adonis[, c("frag","treat","sitename","gen_site","reef","lineage","lin_sym","dominant_type")] #make sure to change dataframe here
-#conditions=t0_full_adonis[, c("frag","treat","sitename","reef","lineage")] #make sure to change dataframe here
+#conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
+conditions=t0_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
 
 # PERMANOVA
 head(scores)
@@ -3560,70 +3353,42 @@ adonis_OmegaSq(end_model, partial = TRUE)
 # T0:
 #           Df SumsOfSqs   MeanSqs F.Model      R2 parOmegaSq    Pr(>F)
 # lineage    1  0.031258 0.0312576  20.837 0.33256    0.32080 9.999e-05 ***
-# sitename   5  0.010230 0.0020461   1.364 0.10884    0.04153    0.1904
+# sitename   5  0.010230 0.0020461   1.364 0.10884    0.04153    0.1923
 # Residuals 35  0.052503 0.0015001         0.55860
 # Total     41  0.093991                   1.00000
 
-# End - Prop D1 NOT Included
+# End:
 # Terms added sequentially (first to last)
 #
 #               Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq    Pr(>F)
-# lineage        1   0.03163 0.031630 10.6660 0.08761   0.090620 0.0002000 ***
-# dominant_type  3   0.00361 0.001203  0.4056 0.01000  -0.018728 0.9045095
-# treat          3   0.04063 0.013543  4.5669 0.11254   0.099356 0.0008999 ***
-# sitename       5   0.03604 0.007209  2.4308 0.09984   0.068688 0.0101990 *
-# Residuals     84   0.24910 0.002965         0.69001
-# Total         96   0.36101                  1.00000
+# lineage        1   0.04145 0.041446 14.5635 0.11268    0.12050 9.999e-05 ***
+# dominant_type  3   0.00253 0.000845  0.2969 0.00689   -0.02177    0.9735
+# treat          3   0.04381 0.014605  5.1319 0.11912    0.11128    0.0004 ***
+# sitename       5   0.03527 0.007055  2.4789 0.09590    0.06950    0.0128 *
+# Residuals     86   0.24475 0.002846         0.66541
+# Total         98   0.36781                  1.00000
 
-# End - Prop D1 NOT Included - doesn't make sense to include any interactions terms with the output below
+# End - Prop D1 NOT Included - justification for not including any interaction terms in the output below
 # adonis2(formula = scores ~ lineage * dominant_type * treat * sitename, data = conditions, permutations = 10000, method = "euclidean")
-#                                 Df SumOfSqs      R2      F Pr(>F)
-# lineage                         1  0.03163 0.08761 9.5342 0.0005 ***
-# dominant_type                   3  0.00361 0.01000 0.3626 0.9375
-# treat                           3  0.04063 0.11254 4.0823 0.0017 **
-# sitename                        5  0.03604 0.09984 2.1729 0.0313 *
-# lineage:dominant_type           1  0.00244 0.00675 0.7349 0.4503
-# lineage:treat                   3  0.01735 0.04807 1.7435 0.1128
-# dominant_type:treat             6  0.01265 0.03503 0.6354 0.8130
-# lineage:sitename                2  0.00567 0.01572 0.8552 0.4691
-# dominant_type:sitename          4  0.00666 0.01846 0.5022 0.8565
-# treat:sitename                 15  0.03481 0.09642 0.6995 0.8643
-# lineage:dominant_type:treat     2  0.00273 0.00756 0.4111 0.8328
-# lineage:dominant_type:sitename  1  0.00343 0.00950 1.0342 0.3310
-# lineage:treat:sitename          3  0.00586 0.01622 0.5883 0.7309
-# dominant_type:treat:sitename    1  0.00490 0.01356 1.4756 0.2039
-# Residual                       46  0.15260 0.42272
-# Total                          96  0.36101 1.00000
-
-# Terms added sequentially (first to last)
-#
 #                                 Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq    Pr(>F)
-# lineage                         1   0.03163 0.031630  9.5342 0.08761   0.080867 0.0006999 ***
-# dominant_type                   3   0.00361 0.001203  0.3626 0.01000  -0.020111 0.9369063
-# treat                           3   0.04063 0.013543  4.0823 0.11254   0.087031 0.0018998 **
-# sitename                        5   0.03604 0.007209  2.1729 0.09984   0.057011 0.0302970 *
-# lineage:dominant_type           1   0.00244 0.002438  0.7349 0.00675  -0.002740 0.4438556
-# lineage:treat                   3   0.01735 0.005784  1.7435 0.04807   0.022478 0.1128887
-# dominant_type:treat             6   0.01265 0.002108  0.6354 0.03503  -0.023076 0.7983202
-# lineage:sitename                2   0.00567 0.002837  0.8552 0.01572  -0.002995 0.4637536
-# dominant_type:sitename          4   0.00666 0.001666  0.5022 0.01846  -0.020957 0.8636136
-# treat:sitename                 15   0.03481 0.002321  0.6995 0.09642  -0.048734 0.8611139
-# lineage:dominant_type:treat     2   0.00273 0.001364  0.4111 0.00756  -0.012292 0.8239176
-# lineage:dominant_type:sitename  1   0.00343 0.003431  1.0342 0.00950   0.000352 0.3175682
-# lineage:treat:sitename          3   0.00586 0.001952  0.5883 0.01622  -0.012896 0.7314269
-# dominant_type:treat:sitename    1   0.00490 0.004895  1.4756 0.01356   0.004880 0.2067793
-# Residuals                      46   0.15260 0.003317         0.42272
-# Total                          96   0.36101                  1.00000
+# lineage                         1   0.04145 0.041446 12.9383 0.11268   0.107612 9.999e-05 ***
+# dominant_type                   3   0.00253 0.000845  0.2638 0.00689  -0.022819 0.9844016
+# treat                           3   0.04381 0.014605  4.5592 0.11912   0.097355 0.0008999 ***
+# sitename                        5   0.03527 0.007055  2.2023 0.09590   0.057244 0.0298970 *
+# lineage:dominant_type           1   0.00518 0.005185  1.6186 0.01410   0.006209 0.1792821
+# lineage:treat                   3   0.01632 0.005440  1.6981 0.04437   0.020716 0.1240876
+# dominant_type:treat             6   0.01241 0.002068  0.6457 0.03374  -0.021943 0.7858214
+# lineage:sitename                2   0.00338 0.001690  0.5277 0.00919  -0.009633 0.7169283
+# dominant_type:sitename          4   0.00805 0.002014  0.6286 0.02190  -0.015234 0.7232277
+# treat:sitename                 15   0.03039 0.002026  0.6325 0.08263  -0.058959 0.9148085
+# lineage:dominant_type:treat     2   0.00254 0.001269  0.3963 0.00690  -0.012347 0.8391161
+# lineage:dominant_type:sitename  1   0.00357 0.003574  1.1156 0.00972   0.001166 0.2891711
+# lineage:treat:sitename          3   0.00568 0.001894  0.5912 0.01545  -0.012542 0.7184282
+# dominant_type:treat:sitename    1   0.00345 0.003446  1.0757 0.00937   0.000764 0.2975702
+# Residuals                      48   0.15376 0.003203         0.41804
+# Total                          98   0.36781                  1.00000
 
-# End - L1 only
-#           Df SumsOfSqs   MeanSqs F.Model      R2    Pr(>F)
-# treat      3  0.045269 0.0150896  4.5941 0.22507 0.0009999 ***
-# sitename   4  0.017915 0.0044788  1.3636 0.08907 0.2153785
 
-# End - L2 only
-#           Df SumsOfSqs   MeanSqs F.Model      R2   Pr(>F)
-# treat      3  0.037627 0.0125424  3.3017 0.16561 0.010599 *
-# sitename   3  0.037625 0.0125417  3.3015 0.16560 0.009599 **
 
 #### Correlation Matrices ####
 # these data are not included in the manuscript #
