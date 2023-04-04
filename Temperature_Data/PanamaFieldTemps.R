@@ -645,10 +645,46 @@ aggregate(range ~ logger, data = daily.mmm, FUN = "max")
 # 3 Cristo.IR3.arr1 3.167222
 # 4   Cayo.OR3.arr3 2.411000
 
+aggregate(max ~ logger, data = daily.mmm, FUN = "max")
+# logger      max
+# 1   Cayo.OR3.arr3 32.43300
+# 2 Cristo.IR3.arr1 33.54778
+# 3       Drago.OR4 31.66300
+# 4       Punta.IR1 32.15000
+# 5        STRI.IR2 31.58600
+#
+
 summarySE(data = daily.mmm, groupvar = "logger", measurevar = "mean")
+#           logger   N     mean        sd         se         ci
+# 1   Cayo.OR3.arr3 431 29.45464 0.8544935 0.04115950 0.08089885
+# 2 Cristo.IR3.arr1 431 29.86366 0.8651804 0.04167428 0.08191063
+# 3       Drago.OR4 431 29.13398 0.7580872 0.03651578 0.07177162
+# 4       Punta.IR1 431 29.70487 0.7926824 0.03818217 0.07504691
+# 5        STRI.IR2 431 29.31704 0.7345028 0.03537976 0.06953877
+
 summarySE(data = daily.mmm, groupvar = "logger", measurevar = "min")
+# l           ogger   N      min        sd         se         ci
+# 1   Cayo.OR3.arr3 431 28.99176 0.8073225 0.03888736 0.07643295
+# 2 Cristo.IR3.arr1 431 29.36818 0.8242960 0.03970494 0.07803991
+# 3       Drago.OR4 431 28.74834 0.7582371 0.03652299 0.07178581
+# 4       Punta.IR1 431 29.36487 0.7945094 0.03827017 0.07521988
+# 5        STRI.IR2 431 29.07561 0.7385220 0.03557335 0.06991929
+
 summarySE(data = daily.mmm, groupvar = "logger", measurevar = "max")
+#           logger   N      max        sd         se         ci
+# 1   Cayo.OR3.arr3 431 29.97127 0.9456611 0.04555089 0.08953010
+# 2 Cristo.IR3.arr1 431 30.53672 1.0504055 0.05059625 0.09944674
+# 3       Drago.OR4 431 29.55024 0.8289872 0.03993091 0.07848405
+# 4       Punta.IR1 431 30.07412 0.8285195 0.03990838 0.07843977
+# 5        STRI.IR2 431 29.61811 0.7647277 0.03683564 0.07240031
+
 summarySE(data = daily.mmm, groupvar = "logger", measurevar = "range")
+#           logger   N     range        sd          se         ci
+# 1   Cayo.OR3.arr3 431 0.9795151 0.3901268 0.018791746 0.03693511
+# 2 Cristo.IR3.arr1 431 1.1685357 0.5583316 0.026893885 0.05285983
+# 3       Drago.OR4 431 0.8019002 0.3473025 0.016728973 0.03288073
+# 4       Punta.IR1 431 0.7092529 0.2357037 0.011353450 0.02231516
+# 5        STRI.IR2 431 0.5424988 0.1989076 0.009581041 0.01883150
 
 
 
@@ -684,6 +720,7 @@ weekly.mmm %>%
 # Drago.OR4            2.27
 
 #### Figure 1 Boxplots ####
+daily.mmm$logger = as.factor(daily.mmm$logger)
 
 daily.mmm.plot = daily.mmm %>%
   dplyr::filter(logger != "Drago.OR4")
@@ -692,7 +729,7 @@ daily.mmm.plot$logger = droplevels(daily.mmm.plot$logger)
 
 str(daily.mmm.plot)
 
-daily.mmm.plot$logger = as.factor(daily.mmm.plot$logger)
+daily.mmm.plot$logger = factor(daily.mmm.plot$logger, levels = c("Punta.IR1", "STRI.IR2", "Cristo.IR3.arr1", "Cayo.OR3.arr3"))
 levels(daily.mmm.plot$logger) <- c("PD", "SP", "CI", "CA") # double check this
 daily.mmm.plot$logger <- factor(daily.mmm.plot$logger, levels = c("PD", "SP", "CI", "CA"))
 
@@ -741,13 +778,13 @@ ggsave(dtv_boxplot, filename = "/Users/hannahaichelman/Documents/BU/TVE/Temperat
 # stats by logger for mean and dtv
 aov1 = aov(range ~ logger, data = daily.mmm.plot)
 summary(aov1)
-# Df Sum Sq Mean Sq F value Pr(>F)
+#               Df Sum Sq Mean Sq F value Pr(>F)
 # logger         3  100.2   33.42   239.1 <2e-16 ***
 # Residuals   1720  240.4    0.14
 
 TukeyHSD(aov1)
 # $logger
-# diff        lwr        upr p adj
+#               diff        lwr        upr p adj
 # SP-PD -0.1667541 -0.2322429 -0.1012652     0
 # CI-PD  0.4592828  0.3937940  0.5247716     0
 # CA-PD  0.2702622  0.2047734  0.3357510     0
@@ -763,7 +800,7 @@ summary(aov2)
 
 TukeyHSD(aov2)
 # $logger
-# diff          lwr        upr     p adj
+#             diff          lwr        upr     p adj
 # SP-PD -0.3878341 -0.530322481 -0.2453458 0.0000000
 # CI-PD  0.1587846  0.016296206  0.3012729 0.0218856
 # CA-PD -0.2502358 -0.392724163 -0.1077475 0.0000398

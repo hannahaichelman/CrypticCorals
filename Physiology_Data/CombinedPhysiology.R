@@ -3327,8 +3327,8 @@ end_full_adonis_L2 = end_full_adonis %>%
   filter(lineage == "L2")
 
 # Change dataframe here based on the comparison you are interested in
-#nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1)
-nl=startedLog(data=t0_full_adonis,count.columns=5:11, logstart=1)
+nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1)
+#nl=startedLog(data=t0_full_adonis,count.columns=5:11, logstart=1)
 
 goods.dist=vegdist(nl, method="bray", na.rm = TRUE)
 goods.pcoa=pcoa(goods.dist)
@@ -3337,8 +3337,8 @@ goods.pcoa=pcoa(goods.dist)
 pcp=prcomp(nl, retx=TRUE, center=TRUE)
 scores=goods.pcoa$vectors
 summary(goods.pcoa)
-#conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
-conditions=t0_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
+conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
+#conditions=t0_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
 
 # PERMANOVA
 head(scores)
@@ -3360,11 +3360,11 @@ adonis_OmegaSq(end_model, partial = TRUE)
 # End:
 # Terms added sequentially (first to last)
 #
-#               Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq    Pr(>F)
-# lineage        1   0.04145 0.041446 14.5635 0.11268    0.12050 9.999e-05 ***
-# dominant_type  3   0.00253 0.000845  0.2969 0.00689   -0.02177    0.9735
-# treat          3   0.04381 0.014605  5.1319 0.11912    0.11128    0.0004 ***
-# sitename       5   0.03527 0.007055  2.4789 0.09590    0.06950    0.0128 *
+#               Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq Pr(>F)
+# lineage        1   0.04145 0.041446 14.5635 0.11268    0.12050 0.0002 ***
+# dominant_type  3   0.00253 0.000845  0.2969 0.00689   -0.02177 0.9736
+# treat          3   0.04381 0.014605  5.1319 0.11912    0.11128 0.0002 ***
+# sitename       5   0.03527 0.007055  2.4789 0.09590    0.06950 0.0115 *
 # Residuals     86   0.24475 0.002846         0.66541
 # Total         98   0.36781                  1.00000
 

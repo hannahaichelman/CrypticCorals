@@ -41,7 +41,7 @@ apex$datetime_ct <- as.POSIXct(apex$datetime, format="%Y-%m-%dT%H:%M:%S")
 apex_long = apex %>%
   select(datetime_ct, HighVarTemp, ControlTemp, LowVarTemp, ModVarTemp, Control2Temp) %>%
   gather(treatment, Temp, HighVarTemp, ControlTemp, LowVarTemp, ModVarTemp, Control2Temp) %>%
-  filter(Temp > 10) # remove strange value near 0 in High Var treatment that seems to be when probe came out of water
+  dplyr::filter(Temp > 10) # remove strange value near 0 in High Var treatment that seems to be when probe came out of water
 
 apex_long$treatment <- factor(apex_long$treatment, levels = c("ControlTemp", "Control2Temp", "LowVarTemp", "ModVarTemp", "HighVarTemp"))
 apex_long$Day<-format(apex_long$datetime_ct,"%D")
@@ -52,10 +52,9 @@ str(apex_long)
 
 #### Plot Apex Temps ####
 cols_treat_reds <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
-cols_treat_old <- c("cornflowerblue","darkolivegreen3","darkgoldenrod1","coral2")
 
 apex_plot <- apex_long %>%
-  filter(treatment != "Control2Temp") %>% # ignore this, and add it back in to scale_color_manual with color blue to include this treatment
+  dplyr::filter(treatment != "Control2Temp") %>% # ignore this, and add it back in to scale_color_manual with color blue to include this treatment
   ggplot(aes(x = datetime_ct, y = Temp, color = treatment)) +
   geom_line() +
   scale_color_manual(name = "Treatment",
@@ -75,8 +74,8 @@ ggsave(file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/A
 
 # plot a subset of dates that look nice as an example of what we were going for
 apex_clipped <- apex_long %>%
-  filter(datetime_ct > "2016-10-30 00:00:00", datetime_ct < "2016-11-02 00:00:00") %>%
-  filter(treatment != "Control2Temp")
+  dplyr::filter(datetime_ct > "2016-10-30 00:00:00", datetime_ct < "2016-11-02 00:00:00") %>%
+  dplyr::filter(treatment != "Control2Temp")
 
 apex_clipped_plot <- ggplot(apex_clipped, aes(x = datetime_ct, y = Temp, color = treatment)) +
   geom_line() +
@@ -213,22 +212,22 @@ apex_dayavg <- apex_long %>%
 # Control: 2016-10-06 to 2016-12-11
 apex_dayavg_control <-  apex_dayavg %>%
   dplyr::filter(treatment == "ControlTemp") %>%
-  filter(Day <= "2016-11-15")
+  dplyr::filter(Day <= "2016-11-15")
 
 # Low Var: 2016-10-06 to 2016-12-11
 apex_dayavg_lowvar <-  apex_dayavg %>%
   dplyr::filter(treatment == "LowVarTemp") %>%
-  filter(Day <= "2016-11-15")
+  dplyr::filter(Day <= "2016-11-15")
 
 # Mod Var: 2016-10-06 to 2016-11-15
 apex_dayavg_modvar <-  apex_dayavg %>%
   dplyr::filter(treatment == "ModVarTemp") %>%
-  filter(Day <= "2016-11-15")
+  dplyr::filter(Day <= "2016-11-15")
 
 # High Var: 2016-10-06 to 2016-12-11
 apex_dayavg_highvar <-  apex_dayavg %>%
   dplyr::filter(treatment == "HighVarTemp") %>%
-  filter(Day <= "2016-11-15")
+  dplyr::filter(Day <= "2016-11-15")
 
 # Compare average temp difference of Hobo to Apex by treatment
 
@@ -580,7 +579,7 @@ all_var.plot = all_var %>%
 all_var.plot
 ggsave(all_var.plot,file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Lines_Combined.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
 
-# plot the whole time course
+# plot the whole time course - figure 1C
 all_temp$Treatment = factor(all_temp$Treatment, levels = c("High Var", "Mod Var", "Low Var", "Control"))
 
 all_temp.plot = all_temp %>%
@@ -815,7 +814,7 @@ TukeyHSD(aov.min)
 
 cols_treat_reds <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
 
-# plot boxplots of  treatments
+# plot boxplots of  treatments - supplemental fig
 tempPlot.dtv <- ggplot(var.dailystats.all, aes(x = treat, y = DayRange)) +
   geom_jitter(shape=16,
               position=position_jitter(0.2),
