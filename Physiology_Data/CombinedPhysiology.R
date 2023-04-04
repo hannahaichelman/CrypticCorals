@@ -1651,7 +1651,7 @@ calc_phys2 = calc_phys %>%
   #drop_na(T2_T0_perc) %>%
   #drop_na(T2_T0_g_cm2_day) %>%
   #drop_na(T2_T0_rgr) %>%
-  #drop_na(T3_T2_rgr) %>%
+  drop_na(T3_T2_rgr) %>%
   dplyr::filter(treat!="Control 2") %>%
   dplyr::filter(gen_site != "I4G") # clone with I4F, remove from dataset
 
@@ -1711,7 +1711,7 @@ summary(m1)
 #   lineageL2      -1.18362    0.30972  45.22985  -3.822 0.000403 ***
 
 # T2-T0 RGR:
-# Estimate Std. Error         df t value Pr(>|t|)
+#                   Estimate Std. Error         df t value Pr(>|t|)
 # (Intercept)    2.373e-04  4.102e-05  8.510e+01   5.786 1.17e-07 ***
 # treatLow Var   5.005e-05  3.764e-05  1.123e+02   1.329  0.18638
 # treatMod Var   9.971e-05  3.580e-05  1.115e+02   2.785  0.00629 **
@@ -1720,7 +1720,7 @@ summary(m1)
 
 # T3-T2 RGR:
 # Fixed effects:
-# Estimate Std. Error         df t value Pr(>|t|)
+#                 Estimate Std. Error         df t value Pr(>|t|)
 # (Intercept)    7.091e-04  7.355e-05  9.495e+01   9.642 9.67e-16 ***
 # treatLow Var   2.575e-05  7.622e-05  1.089e+02   0.338 0.736157
 # treatMod Var   8.626e-05  7.109e-05  1.073e+02   1.213 0.227660
