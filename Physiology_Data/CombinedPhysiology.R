@@ -23,6 +23,18 @@ library(patchwork)
 library(magrittr)
 library(SciViews)
 
+#for PCAs
+library(ggpubr)
+library(ggfortify)
+library(ggplot2)
+library(cluster)
+library(FactoMineR) # lots of options for pca visuals and summary stats
+library(factoextra)
+library(corrplot)
+library(dplyr)
+library(cowplot)
+library(vegan)
+
 ##### Read in and format data #####
 # set wd
 setwd("/Users/hannahaichelman/Documents/BU/TVE")
@@ -148,7 +160,7 @@ its2_cols_greens = c("C1" = "#edf8e9", "C3af" = "#238b45","C3" = "#a1d99b","D1" 
 #### Test for Lineage Distribution ####
 # Want to test whether distribution of lineages is significantly different across inshore and offshore sites.
 
-str(phys_metadata_all) # includes all 3 lineages
+str(phys_metadata) # includes all 3 lineages
 
 # first try logit regression: https://stats.oarc.ucla.edu/r/dae/logit-regression/
 library(aod)
@@ -157,7 +169,7 @@ mylogit = glm(formula = lineage ~ reef, data = phys_metadata_all, family = "bino
 summary(mylogit)
 
 # now try chi-square test:
-chisq_dat = phys_metadata_all %>%
+chisq_dat = phys_metadata %>%
   distinct(gen_site, .keep_all = TRUE)
 
 table(chisq_dat$lineage, chisq_dat$reef) # make contingency table
@@ -180,9 +192,9 @@ fisher.test
 # alternative hypothesis: two.sided
 
 # Or can remove low count L3 from dataset and still use Chi-Square test - THIS IS REPORTED IN MANUSCRIPT
-chisq_dat_noL3 = phys_metadata_all %>%
+chisq_dat_noL3 = phys_metadata %>%
   distinct(gen_site, .keep_all = TRUE) %>%
-  filter(lineage != "L3") %>%
+  dplyr::filter(lineage != "L3") %>%
   droplevels()
 
 test = chisq.test(table(chisq_dat_noL3$lineage, chisq_dat_noL3$reef))
@@ -1650,8 +1662,8 @@ calc_phys2 = calc_phys %>%
   #drop_na(T3_T2_perc) %>%
   #drop_na(T2_T0_perc) %>%
   #drop_na(T2_T0_g_cm2_day) %>%
-  #drop_na(T2_T0_rgr) %>%
-  drop_na(T3_T2_rgr) %>%
+  drop_na(T2_T0_rgr) %>%
+  #drop_na(T3_T2_rgr) %>%
   dplyr::filter(treat!="Control 2") %>%
   dplyr::filter(gen_site != "I4G") # clone with I4F, remove from dataset
 
@@ -1690,7 +1702,7 @@ ggplot(calc_phys, aes(treat, T2_T0_rgr, color = sitename))+
 ## Mixed Model
 # interested in the effects of dtv treatment and lineage
 
-m1 <- lmer(T3_T2_rgr ~ treat+lineage + (1|gen_site), data = calc_phys_2_lin, REML=TRUE)
+m1 <- lmer(T2_T0_rgr ~ treat+lineage + (1|gen_site), data = calc_phys_2_lin, REML=TRUE)
 summary(m1)
 # T2-T0 percent change:
 # Fixed effects:
@@ -2793,6 +2805,192 @@ corrsa_plot_lineage_CI
 
 ggsave(corrsa_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/Corallite_SA/corrsa_lineage_CIonly.pdf", width=3, height=3, units=c("in"), useDingbats=FALSE)
 
+#### Skeleton Morphometrics ####
+skel_phys = read.csv("/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/T0_morphology.csv")
+
+head(skel_phys)
+str(skel_phys)
+
+skel_phys2 = skel_phys %>%
+  mutate(treat = as.factor(treat), sitename = as.factor(sitename), reef = as.factor(reef), lineage = as.factor(lineage))
+head(skel_phys2)
+
+#create a new column of combined genotype and site for stats later
+skel_phys2$origsitecode <- substr(skel_phys2$frag, 1, 2)
+skel_phys2$genet <- substr(skel_phys2$frag,3,3)
+
+skel_phys3 = skel_phys2 %>%
+  unite(gen_site, c(origsitecode,genet), sep = "", remove = FALSE) %>%
+  mutate(gen_site = as.factor(gen_site)) %>%
+  dplyr::filter(gen_site != "I4G") # clone with I4F, remove from dataset
+
+# Stats by lineage
+str(skel_phys2)
+
+m1 <- lm(lef ~ lineage, data = skel_phys3)
+summary(m1)
+# Coefficients:
+#              Estimate Std. Error t value Pr(>|t|)
+# (Intercept)  1.33700    0.06263  21.348  < 2e-16 ***
+# lineageL2    0.80445    0.10480   7.676 1.59e-09 ***
+# lineageL3    0.93900    0.19805   4.741 2.45e-05 ***
+
+anova(m1)
+# Response: lef
+#           Df Sum Sq Mean Sq F value    Pr(>F)
+# lineage    2 7.4295  3.7148  35.077 1.102e-09 ***
+# Residuals 42 4.4479  0.1059
+
+lsmeans(m1, pairwise~lineage, adjust="tukey")
+# $contrasts
+# contrast estimate    SE df t.ratio p.value
+# L1 - L2    -0.804 0.105 42  -7.676  <.0001
+# L1 - L3    -0.939 0.198 42  -4.741  0.0001
+# L2 - L3    -0.135 0.206 42  -0.654  0.7913
+
+# subset data for plotting DLI and LEF
+skel_phys_nona = skel_phys3 %>%
+  drop_na(lef)
+
+skel_phys_CI = skel_phys_nona %>%
+  dplyr::filter(sitename == "CI")
+
+skel_phys_SP = skel_phys_nona %>%
+  dplyr::filter(sitename == "SP")
+
+skel_phys_nona_2lin = skel_phys_nona %>%
+  dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
+
+# summarize data for plotting
+lef_means <- summarySE(skel_phys_nona, measurevar="lef", groupvars=c("lineage"))
+lef_means_2lin <- summarySE(skel_phys_nona_2lin, measurevar="lef", groupvars=c("lineage"))
+lef_means_SP <- summarySE(skel_phys2_SP, measurevar="lef", groupvars=c("lineage"))
+lef_means_CI <- summarySE(skel_phys2_CI, measurevar="lef", groupvars=c("lineage"))
+
+
+# plot differences in daily light integral across lineages and site of origin
+dli_plot_lineage <- ggplot(skel_phys_nona_2lin, aes(x = lineage, y = dli_kd0.38, color = lineage, fill = lineage))+
+  theme_bw()+
+  geom_boxplot(alpha = 0.2, aes(fill = lineage))+
+  geom_jitter(aes(color = lineage),width = 0.3)+
+  scale_fill_manual(values = cols_lineage)+
+  scale_color_manual(values = cols_lineage)+
+  ylab(bquote("Daily Light Integral (mol quanta"~m^-2~~day^-1~')')) +
+  xlab("Lineage")
+dli_plot_lineage
+ggsave(dli_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/DLI_lineage.pdf", width=3.5, height=4, units=c("in"), useDingbats=FALSE)
+
+
+# light enhancement factor plots
+# plot, treatment x axis colored by lineage data figure
+lef_plot_lineage <- ggplot(skel_phys_nona_2lin, aes(x = lineage, y = lef))+
+  theme_bw()+
+  geom_jitter(aes(color = lineage, fill = lineage),
+              position=position_dodge(width=0.3),
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = lef_means_2lin, aes(x = lineage, ymax = lef+se, ymin = lef-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = lef_means_2lin, mapping = aes(x=lineage, y=lef, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Lineage",
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     values = cols_lineage)+
+  xlab("Lineage")+
+  ylab("Light Enhancement Factor (LEF)") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+lef_plot_lineage
+ggsave(lef_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/LEF_2_lin.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
+
+
+# Isolate sites for plotting
+# plot, treatment x axis colored by lineage data figure
+lef_plot_lineage_CI <- ggplot(skel_phys_CI,aes(x = lineage, y = lef))+
+  theme_bw()+
+  geom_jitter(aes(color = lineage, fill = lineage),
+              position=position_dodge(width=0.3),
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = lef_means_CI, aes(x = lineage, ymax = lef+se, ymin = lef-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = lef_means_CI, mapping = aes(x=lineage, y=lef, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Lineage",
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     values = cols_lineage)+
+  xlab("Treatment")+
+  ylab("Light Enhancement Factor (LEF)") +
+  ggtitle("Cristobal Island") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+lef_plot_lineage_CI
+ggsave(lef_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/LEF_2_lin_CI.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+
+#SP
+# plot, treatment x axis colored by lineage data figure
+lef_plot_lineage_SP <- ggplot(skel_phys_SP,aes(x = lineage, y = lef))+
+  theme_bw()+
+  geom_jitter(aes(color = lineage, fill = lineage),
+              position=position_dodge(width=0.3),
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = lef_means_SP, aes(x = lineage, ymax = lef+se, ymin = lef-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = lef_means_SP, mapping = aes(x=lineage, y=lef, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Lineage",
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     values = cols_lineage)+
+  xlab("Treatment")+
+  ylab("Light enhancement factor (LEF)") +
+  ggtitle("STRI Point") +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+lef_plot_lineage_SP
+ggsave(lef_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/LEF_2_lin_SP.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+
+## Skeleton morphology PCAs
+
+skel_phys_pca = skel_phys3 %>%
+  select(frag,treat,sitename,lineage,den_cor_cm2,diam_cal_cm,dist_cor_cm,s_length_cm,s_thick_cm,t_thick_cm,lef) %>%
+  dplyr::filter(lineage != "L3") %>%
+  dplyr::filter(complete.cases(.)) #drop any row that has an NA for any time point
+
+str(skel_phys_pca)
+#write.csv(skel_phys_pca, "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/skel_phys_full.csv",row.names=FALSE)
+
+skel_phys_pca_log = skel_phys_pca %>%
+  mutate(den_cor_cm2 = as.numeric(den_cor_cm2)) %>%
+  mutate_if(is.numeric, log)
+
+str(skel_phys_pca_log)
+#write.csv(skel_phys_pca_log, "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/skel_phys_full_log.csv",row.names=FALSE)
+
+colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="den_cor_cm2"] <-"cor_den" # corallite density
+colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="diam_cal_cm"] <-"cal_diam" # calyx diameter
+colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="dist_cor_cm"] <-"cor_dist" # distance between corallites
+colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="s_length_cm"] <-"septa_lenth" # septa length
+colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="s_thick_cm"] <-"septa_width" # septa thickness
+colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="t_thick_cm"] <-"theca_thick" # theca thickness
+
+facto_t0_skel <- PCA(skel_phys_pca_log[,5:11], scale.unit = TRUE, ncp = 10, graph = TRUE)
+
+# PCA for T0 Physiology - color = lineage, shape = sitename
+pca_t0_lineage_skel <- fviz_pca_biplot(facto_t0_skel,
+                                  label = "var",
+                                  col.var = "black", labelsize = 4,
+                                  alpha.ind = 0) + # makes individs transparent so they can be overwritten by geom_point()
+  theme_bw()+
+  geom_point(aes(colour=skel_phys_pca_log$lineage, shape = skel_phys_pca_log$sitename), size = 2, stroke = 1) +
+  scale_color_manual(values = cols_lineage, breaks=c("L1","L2"), name = "Lineage") +
+  scale_shape_manual(values = c(15,16,17,22,21,24),
+                     breaks=c("BN", "BS", "CA", "CI", "PD", "SP"),
+                     labels=c("BN", "BS", "CA", "CI", "PD", "SP"),
+                     name = "Site") +
+  stat_ellipse(aes(color=skel_phys_pca_log$lineage), type = "t", lwd = 1)+
+  labs(x = "PC1 (45.43% explained variance)",
+       y = "PC2 (15.69% explained variance)") +
+  theme(plot.title = element_blank(),
+        axis.title = element_text(face = "bold"),
+        legend.title.align =  0.5, legend.text.align = 0,
+        legend.title = element_text(face = "bold"))
+pca_t0_lineage_skel
+ggsave(pca_t0_lineage_skel, filename = "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/pca_t0_skeleton_lineage.pdf", width=5.5, height=4, units=c("in"), useDingbats=FALSE)
 
 #### Prep data for PCA ####
 
@@ -3285,6 +3483,7 @@ library(MicEco)
 
 t0_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/t0_full.csv")
 end_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/end_full.csv")
+skel_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/skel_phys_full.csv")
 
 str(t0_full)
 
@@ -3297,6 +3496,11 @@ str(end_full)
 end_full$sitename <- as.factor(end_full$sitename)
 end_full$treat <- as.factor(end_full$treat)
 end_full$lineage <- as.factor(end_full$lineage)
+
+str(skel_full)
+skel_full$sitename <- as.factor(skel_full$sitename)
+skel_full$treat <- as.factor(skel_full$treat)
+skel_full$lineage <- as.factor(skel_full$lineage)
 
 # add in dominant symbiont type dataframe
 its2_types = read.csv("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ITS2.dominanttype.csv") %>%
@@ -3318,6 +3522,10 @@ end_full_adonis = end_full_its2 %>%
   select(-T3_T0_rgr) %>% #get rid of the column with negative growth values before log transforming, just making sure to use the same data as we do in the PCAs
   dplyr::filter(lineage != "L3") # remove L3 individuals since these aren't in our PCAs
 
+skel_full_adonis = skel_full %>%
+  dplyr::filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
+  dplyr::filter(lineage != "L3") # remove L3 individuals since these aren't in our PCAs
+
 end_full_adonis <- end_full_adonis[, c(1,2,3,4,11,5,6,7,8,9,10,12)]
 
 end_full_adonis_L1 = end_full_adonis %>%
@@ -3327,8 +3535,9 @@ end_full_adonis_L2 = end_full_adonis %>%
   filter(lineage == "L2")
 
 # Change dataframe here based on the comparison you are interested in
-nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1)
+#nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1)
 #nl=startedLog(data=t0_full_adonis,count.columns=5:11, logstart=1)
+nl=startedLog(data=skel_full_adonis,count.columns=5:11, logstart=1)
 
 goods.dist=vegdist(nl, method="bray", na.rm = TRUE)
 goods.pcoa=pcoa(goods.dist)
@@ -3337,8 +3546,9 @@ goods.pcoa=pcoa(goods.dist)
 pcp=prcomp(nl, retx=TRUE, center=TRUE)
 scores=goods.pcoa$vectors
 summary(goods.pcoa)
-conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
+#conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
 #conditions=t0_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
+conditions=skel_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
 
 # PERMANOVA
 head(scores)
@@ -3346,9 +3556,11 @@ head(conditions)
 
 t0_model = adonis(scores~lineage+sitename, data=conditions, method="euclidean", permutations = 10000)
 end_model = adonis(scores~lineage+dominant_type+treat+sitename, data=conditions, method="euclidean", permutations = 10000)
+skel_model = adonis(scores~lineage+sitename, data=conditions, method="euclidean", permutations = 10000)
 
 adonis_OmegaSq(t0_model, partial = TRUE)
 adonis_OmegaSq(end_model, partial = TRUE)
+adonis_OmegaSq(skel_model, partial = TRUE)
 
 # T0:
 #           Df SumsOfSqs   MeanSqs F.Model      R2 parOmegaSq    Pr(>F)
@@ -3367,6 +3579,13 @@ adonis_OmegaSq(end_model, partial = TRUE)
 # sitename       5   0.03527 0.007055  2.4789 0.09590    0.06950 0.0115 *
 # Residuals     86   0.24475 0.002846         0.66541
 # Total         98   0.36781                  1.00000
+
+# Skeleton PCA:
+#           Df SumsOfSqs   MeanSqs F.Model      R2 parOmegaSq Pr(>F)
+# lineage    1  0.014760 0.0147604  9.7302 0.19275   0.172090 0.0005 ***
+# sitename   5  0.008722 0.0017444  1.1499 0.11390   0.017536 0.3416
+# Residuals 35  0.053094 0.0015170         0.69335
+# Total     41  0.076577                   1.00000
 
 # End - Prop D1 NOT Included - justification for not including any interaction terms in the output below
 # adonis2(formula = scores ~ lineage * dominant_type * treat * sitename, data = conditions, permutations = 10000, method = "euclidean")
