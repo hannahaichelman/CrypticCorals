@@ -541,12 +541,11 @@ permutest(bet.ps,pairwise=TRUE,permutations=999) # p=0.756
 plot(bet.ps)
 
 # adonis
-adonis2(formula = seq.ps ~ treat + sitename + lineage, data = samdf.ps, permutations = 999)
+adonis2(formula = seq.ps ~ treat + lineage, data = samdf.ps, permutations = 999)
 #           Df SumOfSqs      R2      F Pr(>F)
-# treat      3    1.496 0.02310 1.4312  0.073 .
-# sitename   5   11.616 0.17938 6.6691  0.001 ***
-# lineage    1    0.784 0.01211 2.2507  0.023 *
-# Residual 146   50.859 0.78541
+# treat      3    1.496 0.02310 1.2379  0.193
+# lineage    1    2.444 0.03774 6.0687  0.001 ***
+# Residual 151   60.814 0.93916
 # Total    155   64.754 1.00000
 
 ## Relative abundance
@@ -583,13 +582,12 @@ anova(bet.ps) #p=0.3339
 plot(bet.ps)
 
 # adonis
-head(adonis2(seq.ps ~ treat+sitename+lineage, data=samdf.ps, permutations=999))
-adonis2(formula = seq.ps ~ treat + sitename + lineage, data = samdf.ps, permutations = 999)
+head(adonis2(seq.ps ~ treat+lineage, data=samdf.ps, permutations=999))
+adonis2(formula = seq.ps ~ treat + lineage, data = samdf.ps, permutations = 999)
 #           Df SumOfSqs      R2      F Pr(>F)
-# treat      3    0.973 0.01574 1.0206  0.402
-# sitename   5   13.595 0.21989 8.5538  0.001 ***
-# lineage    1    0.849 0.01373 2.6712  0.025 *
-# Residual 146   46.411 0.75063
+# treat      3    0.973 0.01574 0.8457  0.589
+# lineage    1    2.925 0.04730 7.6229  0.001 ***
+# Residual 151   57.931 0.93696
 # Total    155   61.828 1.00000
 
 pairwise.adonis(seq.ps, factors=samdf.ps$lineage, permutations=999) #no significant comparisons

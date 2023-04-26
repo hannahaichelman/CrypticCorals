@@ -285,16 +285,21 @@ tiss_phys_2_lin = tiss_phys_all_lin %>%
 # can't combine with dominant sym type here because tissue thickness is from initial phys and sym types were from end of variability
 
 # STATS
-m1 <- lm(avgtiss ~ lineage+sitename, data = tiss_phys_all_lin)
+m1 <- lm(avgtiss ~ lineage, data = tiss_phys_all_lin)
 summary(m1)
-anova(m1)
-# Analysis of Variance Table
+# Coefficients:
+#             Estimate Std. Error t value Pr(>|t|)
+# (Intercept)   5.1923     0.1526  34.031  < 2e-16 ***
+# lineageL2    -0.6256     0.2583  -2.422 0.019739 *
+# lineageL3    -1.7534     0.4905  -3.575 0.000881 ***
+#
+Anova(m1)
+# Anova Table (Type II tests)
 #
 # Response: avgtiss
-#           Df  Sum Sq Mean Sq F value    Pr(>F)
-# lineage    2 10.4316  5.2158  9.2356 0.0005385 ***
-# sitename   5  6.5677  1.3135  2.3259 0.0614993 .
-# Residuals 38 21.4605  0.5647
+# Sum Sq Df F value   Pr(>F)
+# lineage   10.432  2  8.0019 0.001111 **
+# Residuals 28.028 43
 
 lsmeans(m1, pairwise~lineage, adjust="tukey")
 # $contrasts
@@ -544,26 +549,25 @@ post_hprot_phys_2_lin = post_hprot_phys_all_lin %>%
 # STATS
 ## NEED TO RUN STATS SEPARATELY FOR INITIAL AND FINAL TIME POINTS
 
-model.prot.initial = lm(prot_mgcm2 ~ lineage+sitename, data = initial_hprot_phys_2_lin)
+model.prot.initial = lm(prot_mgcm2 ~ lineage, data = initial_hprot_phys_2_lin)
 summary(model.prot.initial)
 anova(model.prot.initial)
-#           Df   Sum Sq  Mean Sq F value   Pr(>F)
-# lineage    1 0.078953 0.078953 12.6405 0.001105 **
-# sitename   5 0.044532 0.008906  1.4259 0.239232
-# Residuals 35 0.218611 0.006246
+# Response: prot_mgcm2
+#         Df   Sum Sq  Mean Sq F value   Pr(>F)
+# lineage    1 0.078953 0.078953  12.002 0.001282 **
+# Residuals 40 0.263142 0.006579
 
 check_model(model.prot.initial)
 
 
-model.prot.final <- lmer(prot_mgcm2 ~ treat+lineage+sitename+dominant_type + (1|gen_site), data = post_hprot_phys_2_lin)
+model.prot.final <- lmer(prot_mgcm2 ~ treat+lineage+dominant_type + (1|gen_site), data = post_hprot_phys_2_lin)
 summary(model.prot.final)
 anova(model.prot.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#                 Sum Sq   Mean Sq NumDF  DenDF F value Pr(>F)
-# treat         0.018050 0.0060165     3 90.664  0.6453 0.5879
-# lineage       0.028737 0.0287374     1 23.451  3.0824 0.0922 .
-# sitename      0.093492 0.0186985     5 24.719  2.0056 0.1130
-# dominant_type 0.020250 0.0067499     3 70.411  0.7240 0.5410
+#                 Sum Sq  Mean Sq NumDF  DenDF F value   Pr(>F)
+# treat         0.023727 0.007909     3 86.772   0.818 0.487377
+# lineage       0.169191 0.169191     1 28.611  17.498 0.000248 ***
+# dominant_type 0.002931 0.000977     3 60.506   0.101 0.959121
 
 check_model(model.prot.final)
 
@@ -802,30 +806,25 @@ post_hcarb_phys_2_lin = post_hcarb_phys_all_lin %>%
 # STATS
 ## NEED TO RUN STATS SEPARATELY FOR INITIAL AND FINAL TIME POINTS
 
-model.hcarb.initial = lm(hcarb_mgcm2 ~ lineage+sitename, data = initial_hcarb_phys_2_lin)
+model.hcarb.initial = lm(hcarb_mgcm2 ~ lineage, data = initial_hcarb_phys_2_lin)
 summary(model.hcarb.initial)
 anova(model.hcarb.initial)
-#           Df   Sum Sq  Mean Sq F value  Pr(>F)
-# lineage    1 0.052428 0.052428  6.9917 0.01206 *
-# sitename   5 0.031164 0.006233  0.8312 0.53612
-# Residuals 36 0.269951 0.007499
+# Response: hcarb_mgcm2
+#         Df   Sum Sq  Mean Sq F value  Pr(>F)
+# lineage    1 0.052428 0.052428  7.1386 0.01077 *
+# Residuals 41 0.301115 0.007344
 
 check_model(model.hcarb.initial)
 
 
-model.hcarb.final <- lmer(hcarb_mgcm2 ~ lineage+treat*sitename*dominant_type + (1|gen_site), data = post_hcarb_phys_2_lin)
+model.hcarb.final <- lmer(hcarb_mgcm2 ~ lineage+treat+dominant_type + (1|gen_site), data = post_hcarb_phys_2_lin)
 summary(model.hcarb.final)
 anova(model.hcarb.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#                               Sum Sq  Mean Sq NumDF  DenDF F value   Pr(>F)
-# lineage                      0.08113 0.081127     1 37.872  4.5590 0.039275 *
-# treat                        0.19583 0.065277     3 82.374  3.6683 0.015519 *
-# sitename                     0.32543 0.065085     5 51.873  3.6575 0.006559 **
-# dominant_type                0.06725 0.022418     3 66.851  1.2598 0.295288
-# treat:sitename               0.39150 0.026100    15 82.668  1.4667 0.137272
-# treat:dominant_type          0.10599 0.015141     7 84.463  0.8509 0.548717
-# sitename:dominant_type       0.27350 0.068375     4 72.972  3.8424 0.006878 **
-# treat:sitename:dominant_type 0.26459 0.037798     7 89.322  2.1241 0.048912 *
+#                Sum Sq  Mean Sq NumDF   DenDF F value    Pr(>F)
+# lineage       0.28287 0.282867     1  49.590 14.1664 0.0004437 ***
+# treat         0.48823 0.162744     3 111.350  8.1504 5.922e-05 ***
+# dominant_type 0.00723 0.002408     3  76.077  0.1206 0.9477028
 
 check_model(model.hcarb.final)
 
@@ -840,7 +839,6 @@ pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
 # Low Var  L1 - L2            0.0433 0.0509 154   0.851  0.3962
 # Mod Var  L1 - L2            0.0751 0.0455 154   1.652  0.1341
 # High Var L1 - L2            0.0901 0.0479 154   1.879  0.1244
-
 
 
 ## PLOTS
@@ -1040,26 +1038,25 @@ post_scarb_phys_2_lin = post_scarb_phys_all_lin %>%
 # STATS
 ## NEED TO RUN STATS SEPARATELY FOR INITIAL AND FINAL TIME POINTS
 # use lmer()
-model.scarb.initial = lm(scarb_mgcm2 ~ lineage+sitename, data = initial_scarb_phys_2_lin)
+model.scarb.initial = lm(scarb_mgcm2 ~ lineage, data = initial_scarb_phys_2_lin)
 summary(model.scarb.initial)
 anova(model.scarb.initial)
+# Response: scarb_mgcm2
 #           Df   Sum Sq   Mean Sq F value   Pr(>F)
-# lineage    1 0.021801 0.0218014  9.1326 0.004604 **
-# sitename   5 0.013268 0.0026536  1.1116 0.371517
-# Residuals 36 0.085940 0.0023872
+# lineage    1 0.021801 0.0218014    9.01 0.004556 **
+# Residuals 41 0.099208 0.0024197
 
 check_model(model.scarb.initial)
 
 
-model.scarb.final <- lmer(scarb_mgcm2 ~ lineage+treat+sitename+dominant_type + (1|gen_site), data = post_scarb_phys_2_lin)
+model.scarb.final <- lmer(scarb_mgcm2 ~ lineage+treat+dominant_type + (1|gen_site), data = post_scarb_phys_2_lin)
 summary(model.scarb.final)
 anova(model.scarb.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#                 Sum Sq  Mean Sq NumDF DenDF F value   Pr(>F)
-# lineage       0.034092 0.034092     1   131  7.4980 0.007036 **
-# treat         0.052405 0.017468     3   131  3.8419 0.011258 *
-# sitename      0.054374 0.010875     5   131  2.3918 0.041123 *
-# dominant_type 0.012618 0.004206     3   131  0.9250 0.430712
+#               Sum Sq  Mean Sq NumDF   DenDF F value    Pr(>F)
+# lineage       0.064197 0.064197     1  45.927 13.7494 0.0005613 ***
+# treat         0.058665 0.019555     3 109.955  4.1883 0.0075541 **
+# dominant_type 0.015825 0.005275     3  69.740  1.1298 0.3430772
 
 check_model(model.scarb.final)
 
@@ -1196,26 +1193,24 @@ post_sym_phys_2_lin = post_sym_phys_all_lin %>%
 # STATS
 ## NEED TO RUN STATS SEPARATELY FOR INITIAL AND FINAL TIME POINTS
 # use lmer()
-model.sym.initial = lm(sym_cm2 ~ lineage+sitename, data = initial_sym_phys_2_lin)
+model.sym.initial = lm(sym_cm2 ~ lineage, data = initial_sym_phys_2_lin)
 summary(model.sym.initial)
 anova(model.sym.initial)
 #           Df     Sum Sq    Mean Sq F value    Pr(>F)
-# lineage    1 9.3732e+12 9.3732e+12 19.0628 0.0001022 ***
-# sitename   5 3.2179e+12 6.4358e+11  1.3089 0.2820781
-# Residuals 36 1.7701e+13 4.9170e+11
+# lineage    1 9.3732e+12 9.3732e+12  18.371 0.0001074 ***
+# Residuals 41 2.0919e+13 5.1022e+11
 
 check_model(model.sym.initial)
 
 
-model.sym.final <- lmer(sym_cm2 ~ lineage+treat+sitename+dominant_type + (1|gen_site), data = post_sym_phys_2_lin)
+model.sym.final <- lmer(sym_cm2 ~ lineage+treat+dominant_type + (1|gen_site), data = post_sym_phys_2_lin)
 summary(model.sym.final)
 anova(model.sym.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
 #                   Sum Sq    Mean Sq NumDF  DenDF F value    Pr(>F)
-# lineage       8.3103e+11 8.3103e+11     1   35.8  4.6251   0.03833 *
-# treat         5.2411e+12 1.7470e+12     3 7942.4  9.7232 2.115e-06 ***
-# sitename      1.7616e+12 3.5232e+11     5   36.7  1.9608   0.10776
-# dominant_type 2.2922e+11 7.6407e+10     3   87.8  0.4252   0.73538
+# lineage       2.4889e+12 2.4889e+12     1   48.4 13.9548 0.0004944 ***
+# treat         5.3837e+12 1.7946e+12     3 9819.9 10.0617 1.289e-06 ***
+# dominant_type 1.2968e+11 4.3226e+10     3   93.6  0.2424 0.8665716
 
 check_model(model.sym.final)
 
@@ -1393,26 +1388,24 @@ post_chl_phys_2_lin = post_chl_phys_all_lin %>%
 # STATS
 ## NEED TO RUN STATS SEPARATELY FOR INITIAL AND FINAL TIME POINTS
 # use lmer()
-model.chl.initial = lm(chlA ~ lineage+sitename, data = initial_chl_phys_2_lin)
+model.chl.initial = lm(chlA ~ lineage, data = initial_chl_phys_2_lin)
 summary(model.chl.initial)
 anova(model.chl.initial)
 #           Df Sum Sq Mean Sq F value    Pr(>F)
-# lineage    1 297.51 297.505 23.5187 2.377e-05 ***
-# sitename   5 141.08  28.215  2.2305   0.07232 .
-# Residuals 36 455.39  12.650
+# lineage    1 297.51 297.505   20.45 5.138e-05 ***
+# Residuals 41 596.46  14.548
 
 check_model(model.chl.initial)
 
 
-model.chl.final <- lmer(chlA ~ treat+lineage+sitename+dominant_type + (1|gen_site), data = post_chl_phys_2_lin)
+model.chl.final <- lmer(chlA ~ treat+lineage+dominant_type + (1|gen_site), data = post_chl_phys_2_lin)
 summary(model.chl.final)
 anova(model.chl.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#               Sum Sq Mean Sq NumDF   DenDF F value  Pr(>F)
-# treat         25.757  8.5855     3 107.320  3.2167 0.02575 *
-# lineage        9.504  9.5043     1  33.741  3.5610 0.06778 .
-# sitename      40.302  8.0604     5  35.670  3.0200 0.02249 *
-# dominant_type 13.384  4.4614     3  97.284  1.6716 0.17816
+#               Sum Sq Mean Sq NumDF   DenDF F value   Pr(>F)
+# treat         24.296  8.0986     3 107.844  3.0766 0.030697 *
+# lineage       27.456 27.4565     1  46.965 10.4306 0.002265 **
+# dominant_type 11.187  3.7288     3 105.245  1.4166 0.242089
 
 check_model(model.chl.final)
 
@@ -1739,26 +1732,20 @@ summary(m1)
 # treatHigh Var  7.325e-05  7.258e-05  1.075e+02   1.009 0.315112
 # lineageL2     -3.620e-04  9.473e-05  4.520e+01  -3.821 0.000403 ***
 
-Anova(m1)
-# Response: T2_T0_perc
-#           Chisq Df Pr(>Chisq)
-# treat   10.3300  3    0.01596 *
-# lineage  4.4484  1    0.03493 *
+anova(m1)
 
 # Response: T2_T0_rgr
-# Chisq Df Pr(>Chisq)
-# treat   10.1798  3     0.0171 *
-# lineage  4.4067  1     0.0358 *
+# Type III Analysis of Variance Table with Satterthwaite's method
+#             Sum Sq    Mean Sq NumDF   DenDF F value  Pr(>F)
+# treat   2.5547e-07 8.5158e-08     3 111.873  3.3933 0.02048 *
+# lineage 1.1059e-07 1.1059e-07     1  45.275  4.4067 0.04140 *
 
 # Response: T3_T2_rgr
-# Chisq Df Pr(>Chisq)
-# treat    1.8694  3  0.5999525
-# lineage 14.6009  1  0.0001329 ***
+# Type III Analysis of Variance Table with Satterthwaite's method
+#             Sum Sq    Mean Sq NumDF  DenDF F value    Pr(>F)
+# treat   1.7756e-07 5.9190e-08     3 107.88  0.6231 0.6015535
+# lineage 1.3869e-06 1.3869e-06     1  45.20 14.6009 0.0004033 ***
 
-# Response: T3_T2_perc
-#           Chisq Df Pr(>Chisq)
-# treat    1.9426  3  0.5844053
-# lineage 14.6046  1  0.0001326 ***
 
 # now let's do some more looking into the model
 plot_model(m1, "eff", terms="treat")
@@ -1772,7 +1759,7 @@ check_model(m1) #check assumptions and model fit
 # Now look at custom contrasts with emmmeans
 
 #specify model (because we are interested in pairwise, have to include the interaction)
-m.emm<- lmer(T3_T2_rgr ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
+m.emm<- lmer(T2_T0_rgr ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
 
 emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
@@ -2065,7 +2052,7 @@ m.dtr <- lmer(T2_T0_perc ~ dtr_90 + treat + (1|gen_site), data = phys_calc_nona_
 summ(m.dtv)
 
 
-##### PAM #####
+##### PAM (Fv/Fm) #####
 # need to re-read in the data sheet for pam only until I can organize better
 post_phys_forpam <- read.csv('dtvmaster.csv')
 
@@ -2201,27 +2188,24 @@ phys_pam_lin2 = phys_pam_2_lin_plots %>%
 # Using the full model with interactions of all our parameters of interest
 m.full <- lmer(pam ~ time*lineage*dominant_type*treat + (1|gen_site), data = phys_pam_2_lin_plots, REML=TRUE)
 summary(m.full)
-Anova(m.full)
-# report chi square and p-values to designate significance of factors
-# Response: pam
-#                                     Chisq Df Pr(>Chisq)
-# time                             89.6885  6  < 2.2e-16 ***
-# lineage                           7.5172  1   0.006111 **
-# dominant_type                    39.0563  3  1.689e-08 ***
-# treat                             7.8660  3   0.048864 *
-# time:lineage                      8.1242  6   0.229142
-# time:dominant_type               52.1631 18  3.532e-05 ***
-# lineage:dominant_type             0.0432  1   0.835349
-# time:treat                       34.5186 18   0.010861 *
-# lineage:treat                     3.9443  3   0.267545
-# dominant_type:treat              64.9150  7  1.564e-11 ***
-# time:lineage:dominant_type       17.6541  6   0.007157 **
-# time:lineage:treat                8.7538 18   0.965175
-# time:dominant_type:treat         36.3252 42   0.717630
-# lineage:dominant_type:treat       2.7817  3   0.426519
-# time:lineage:dominant_type:treat 16.3648 18   0.567104
-# ---
-#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+anova(m.full)
+# Type III Analysis of Variance Table with Satterthwaite's method
+#                                    Sum Sq   Mean Sq NumDF  DenDF F value    Pr(>F)
+# time                             0.074476 0.0124127     6 593.89  9.1537 1.346e-09 ***
+# lineage                          0.010213 0.0102131     1  49.08  7.5316 0.0084450 **
+# dominant_type                    0.046102 0.0153672     3 611.41 11.3325 3.049e-07 ***
+# treat                            0.004655 0.0015516     3 625.72  1.1442 0.3304883
+# time:lineage                     0.011749 0.0019582     6 593.89  1.4441 0.1954345
+# time:dominant_type               0.060590 0.0033661    18 593.89  2.4823 0.0006459 ***
+# lineage:dominant_type            0.000285 0.0002850     1 543.71  0.2102 0.6468244
+# time:treat                       0.035348 0.0019638    18 593.89  1.4482 0.1031693
+# lineage:treat                    0.006233 0.0020778     3 624.35  1.5323 0.2049474
+# dominant_type:treat              0.087743 0.0125348     7 622.92  9.2437 6.574e-11 ***
+# time:lineage:dominant_type       0.021580 0.0035967     6 593.89  2.6524 0.0151172 *
+# time:lineage:treat               0.016268 0.0009038    18 593.89  0.6665 0.8453666
+# time:dominant_type:treat         0.048928 0.0011649    42 593.89  0.8591 0.7229152
+# lineage:dominant_type:treat      0.003772 0.0012574     3 626.38  0.9272 0.4271733
+# time:lineage:dominant_type:treat 0.022191 0.0012328    18 593.89  0.9092 0.5674556
 
 # check interactions
 m.emm<- lmer(pam ~ time*lineage + (1|gen_site), data = phys_pam_2_lin_plots, REML=FALSE)
@@ -2237,6 +2221,17 @@ pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
 # 74   L1 - L2            0.0281 0.0161 70.9   1.749  0.1185
 # 79   L1 - L2            0.0218 0.0161 70.9   1.357  0.2089
 
+m.emm2<- lmer(pam ~ time*treat + (1|gen_site), data = phys_pam_2_lin_plots, REML=FALSE)
+emms2<-emmeans(m.emm2, ~treat) #, adjust="Bonferoni"
+pairs(emms2, interaction = "pairwise") %>% rbind(adjust="fdr")
+# treat_pairwise     estimate      SE  df t.ratio p.value
+# Control - Low Var   0.00873 0.00434 841   2.010  0.1342
+# Control - Mod Var  -0.00192 0.00462 847  -0.417  0.6770
+# Control - High Var  0.00455 0.00429 836   1.060  0.3680
+# Low Var - Mod Var  -0.01065 0.00422 841  -2.522  0.0712
+# Low Var - High Var -0.00418 0.00408 836  -1.023  0.3680
+# Mod Var - High Var  0.00647 0.00430 841   1.504  0.2661
+
 
 #Check model fit
 r2(m.full) #get r2 and adjusted r2
@@ -2247,7 +2242,7 @@ check_model(m.full) #check assumptions and model fit
 #SummarySE to format data for plotting - dtv treatment
 pam_means_treat_all_lin <- summarySE(phys_pam_all_lin_plots, measurevar="pam", groupvars=c("treat","time"))
 pam_means_treat_all_lin$time <- as.numeric(as.character(pam_means_treat_all_lin$time))
-pam_means_treat_2_lin <- summarySE(phys_pam_2_lin_plots, measurevar="pam", groupvars=c("treat","time"))
+pam_means_treat_2_lin <- summarySE(phys_pam_2_lin_plots, measurevar="pam", groupvars=c("treat","time","sitename"))
 pam_means_treat_2_lin$time <- as.numeric(as.character(pam_means_treat_2_lin$time))
 
 pam_plot_treatment <- ggplot(pam_means_treat_2_lin,aes(x = time, y = pam, color = treat, fill = treat))+
@@ -2264,11 +2259,12 @@ pam_plot_treatment <- ggplot(pam_means_treat_2_lin,aes(x = time, y = pam, color 
                      labels = c("Control","Low Var","Mod Var","High Var"),
                      values = cols_treat)+
   ylab("Fv/Fm")+
-  scale_x_continuous(name = "Time Point", breaks = c(45,54,61,65,70,74,79))
+  scale_x_continuous(name = "Time Point", breaks = c(45,54,61,65,70,74,79)) +
+  facet_wrap(~sitename)
 #ylim(0.4,0.7) +
 pam_plot_treatment
 
-ggsave(pam_plot_treatment, file="/Users/hannahaichelman/Documents/BU/TVE/PAM/PAM_treat_2_lin.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(pam_plot_treatment, file="/Users/hannahaichelman/Documents/BU/TVE/PAM/PAM_treat_2_lin_sitefacet.pdf", width=8, height=5, units=c("in"), useDingbats=FALSE)
 
 #SummarySE to format data for plotting - dtv treatment faceted by lineage
 pam_means_treat_all_lin <- summarySE(phys_pam_all_lin_plots, measurevar="pam", groupvars=c("treat","time","lineage"))
@@ -2666,28 +2662,21 @@ corrsa_phys_2_lin = corrsa_phys_all_lin %>%
   filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
 
 # Stats by lineage
-str(corrsa_phys_all_lin)
-corrsa_phys_all_lin$gen_site = as.factor(corrsa_phys_all_lin$gen_site)
+str(corrsa_phys_2_lin)
+corrsa_phys_2_lin$gen_site = as.factor(corrsa_phys_2_lin$gen_site)
 #m1 <- lmer(corallite.avg.poly.mm2 ~ lineage + (1|gen_site), data = corrsa_phys_all_lin, REML=TRUE)
-m1 <- lm(corallite.avg.poly.mm2 ~ lineage, data = corrsa_phys_all_lin)
+m1 <- lm(corallite.avg.poly.mm2 ~ lineage, data = corrsa_phys_2_lin)
 summary(m1)
 #               Estimate Std. Error t value Pr(>|t|)
-# (Intercept)   8.8205     0.3466  25.448  < 2e-16 ***
-# lineageL2     5.0749     0.5813   8.730 3.06e-11 ***
-# lineageL3     8.4245     1.1320   7.442 2.26e-09 ***
+# (Intercept)   8.8205     0.3375  26.134  < 2e-16 ***
+# lineageL2     5.0749     0.5660   8.966 2.13e-11 ***
 
 anova(m1)
 # Response: corallite.avg.poly.mm2
 #           Df Sum Sq Mean Sq F value    Pr(>F)
-# lineage    2 388.82 194.410  55.799 6.525e-13 ***
-# Residuals 45 156.78   3.484
+# lineage    1 265.56 265.558  80.386 2.129e-11 ***
+# Residuals 43 142.05   3.304
 
-lsmeans(m1, pairwise~lineage, adjust="tukey")
-# $contrasts
-# contrast estimate    SE df t.ratio p.value
-# L1 - L2     -5.07 0.581 45  -8.730  <.0001
-# L1 - L3     -8.42 1.132 45  -7.442  <.0001
-# L2 - L3     -3.35 1.174 45  -2.852  0.0176
 
 #SummarySE to format data for plotting site name
 corrsa_means_site_all_lin <- summarySE(corrsa_phys_all_lin, measurevar="corallite.avg.poly.mm2", groupvars=c("sitename"))
@@ -2749,26 +2738,24 @@ corrsa_means_all_lin <- summarySE(corrsa_phys_all_lin_nona, measurevar="corallit
 corrsa_means_2_lin <- summarySE(corrsa_phys_2_lin_nona, measurevar="corallite.avg.poly.mm2", groupvars=c("lineage"))
 
 # plot, lineage x axis
-corrsa_plot_lineage <- ggplot(corrsa_means_all_lin,aes(x = lineage, y = corallite.avg.poly.mm2, color = lineage, fill = lineage))+
+corrsa_plot_lineage <- ggplot(corrsa_means_2_lin,aes(x = lineage, y = corallite.avg.poly.mm2, color = lineage, fill = lineage))+
   theme_bw()+
   geom_errorbar(aes(x = lineage, ymax = corallite.avg.poly.mm2+se, ymin = corallite.avg.poly.mm2-se, color = lineage), width = .2, position = position_dodge(width=0.3)) +
   geom_point(size = 3, position = position_dodge(width=0.3), shape = 21, color = "black")+
   scale_color_manual(name = "Lineage",
-                     #breaks = c("L1","L2"),
-                     breaks = c("L1","L2","L3"),
+                     breaks = c("L1","L2"),
                      values = cols_lineage)+
   scale_fill_manual(name = "Lineage",
-                    #breaks = c("L1","L2"),
-                    breaks = c("L1","L2","L3"),
+                    breaks = c("L1","L2"),
                     values=cols_lineage)+
   xlab("Lineage")+
   ylab(bquote("Corallite Area (mm" ^2~')'))+
-  scale_y_continuous(limits = c(6,19), breaks = seq(6,19, by = 3))+
+  scale_y_continuous(limits = c(6,15), breaks = seq(6,15, by = 3))+
   #geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
   theme(legend.position = "none")
 corrsa_plot_lineage
-ggsave(corrsa_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/Corallite_SA/corrsa_lineage_all.pdf", width=3, height=3, units=c("in"), useDingbats=FALSE)
+ggsave(corrsa_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/Corallite_SA/corrsa_lineage_2lin.pdf", width=3, height=3, units=c("in"), useDingbats=FALSE)
 
 # plot just CI corals to see if lineage difference holds
 corrsa_phys_lineage_CI = corrsa_phys_2_lin_nona %>%
@@ -2807,14 +2794,14 @@ corrsa_plot_lineage_CI <- ggplot(corrsa_means_lineage_CI,aes(x = lineage, y = co
                     values=cols_lineage)+
   xlab("Lineage")+
   ylab(bquote("Corallite Area (mm" ^2~')'))+
-  scale_y_continuous(limits = c(6,19), breaks = seq(6,19, by = 3))+
+  scale_y_continuous(limits = c(6,15), breaks = seq(6,15, by = 3))+
   #geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
   theme(legend.position = "none")
 corrsa_plot_lineage_CI
 ggsave(corrsa_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/Corallite_SA/corrsa_lineage_CIonly.pdf", width=3, height=3, units=c("in"), useDingbats=FALSE)
 
-#### Skeleton Morphometrics ####
+#### Skeleton Morphometrics and DLI ####
 skel_phys = read.csv("/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/T0_morphology.csv")
 
 head(skel_phys)
@@ -2849,16 +2836,15 @@ skel_phys_nona_2lin = skel_phys_nona %>%
 # Stats of light enhancement factor by lineage
 str(skel_phys2)
 
-#m1 <- lm(lef ~ lineage, data = skel_phys3)
-m1 <- lm(lef ~ lineage, data = skel_phys_CI)
+m1 <- lm(lef ~ lineage, data = skel_phys_nona_2lin)
+#m1 <- lm(lef ~ lineage, data = skel_phys_CI)
 
 summary(m1)
 # ALL SITES:
 # Coefficients:
-#              Estimate Std. Error t value Pr(>|t|)
-# (Intercept)  1.33700    0.06263  21.348  < 2e-16 ***
-# lineageL2    0.80445    0.10480   7.676 1.59e-09 ***
-# lineageL3    0.93900    0.19805   4.741 2.45e-05 ***
+#             Estimate Std. Error t value Pr(>|t|)
+# (Intercept)  1.33700    0.06241  21.423  < 2e-16 ***
+# lineageL2    0.80445    0.10443   7.703 2.01e-09 ***
 
 # CI ONLY:
 #             Estimate Std. Error t value Pr(>|t|)
@@ -2869,67 +2855,52 @@ anova(m1)
 # ALL SITES
 # Response: lef
 #           Df Sum Sq Mean Sq F value    Pr(>F)
-# lineage    2 7.4295  3.7148  35.077 1.102e-09 ***
-# Residuals 42 4.4479  0.1059
+# lineage    1 6.2404  6.2404  59.337 2.006e-09 ***
+# Residuals 40 4.2067  0.1052
 
 # CI ONLY
 #           Df  Sum Sq Mean Sq F value  Pr(>F)
 # lineage    1 0.78809 0.78809  7.5903 0.04007 *
 # Residuals  5 0.51914 0.10383
 
-lsmeans(m1, pairwise~lineage, adjust="tukey")
-# ALL SITES
-# $contrasts
-# contrast estimate    SE df t.ratio p.value
-# L1 - L2    -0.804 0.105 42  -7.676  <.0001
-# L1 - L3    -0.939 0.198 42  -4.741  0.0001
-# L2 - L3    -0.135 0.206 42  -0.654  0.7913
-
-# CI ONLY
-# $contrasts
-# contrast estimate    SE df t.ratio p.value
-# L1 - L2    -0.678 0.246  5  -2.755  0.0401
 
 # Stats of daily light integral by lineage
-str(skel_phys3)
+str(skel_phys_nona_2lin)
 
-m2 <- lm(dli_kd0.38 ~ lineage, data = skel_phys3)
+m2 <- lm(dli_kd0.38 ~ lineage, data = skel_phys_nona_2lin)
 summary(m2)
-#               Estimate Std. Error t value Pr(>|t|)
-# (Intercept)   19.185      1.017  18.866  < 2e-16 ***
-# lineageL2     -4.879      1.702  -2.867  0.00645 **
-# lineageL3    -14.485      3.216  -4.504 5.23e-05 ***
+# Coefficients:
+#             Estimate Std. Error t value Pr(>|t|)
+# (Intercept)   19.185      1.042  18.412  < 2e-16 ***
+# lineageL2     -4.879      1.744  -2.798  0.00787 **
 
 anova(m2)
 # Response: dli_kd0.38
-#           Df  Sum Sq Mean Sq F value    Pr(>F)
-# lineage    2  684.16  342.08  12.252 6.433e-05 ***
-# Residuals 42 1172.66   27.92
+#         Df Sum Sq Mean Sq F value   Pr(>F)
+# lineage    1  229.5 229.499  7.8283 0.007873 **
+# Residuals 40 1172.7  29.317
 
-lsmeans(m2, pairwise~lineage, adjust="tukey")
-# $contrasts
-# contrast estimate   SE df t.ratio p.value
-# L1 - L2      4.88 1.70 42   2.867  0.0174
-# L1 - L3     14.49 3.22 42   4.504  0.0002
-# L2 - L3      9.61 3.34 42   2.875  0.0170
 
 # PLOTS
 # plot differences in daily light integral across lineages and site of origin
 dli_site_avg = summarySE(skel_phys_nona_2lin, measurevar="dli_kd0.38", groupvars=c("lineage","sitename"))
 
-dli_plot_lineage <- ggplot(dli_site_avg, aes(x = sitename, y = dli_kd0.38, fill = lineage))+
+dli_plot_lineage <- ggplot(skel_phys_nona_2lin, aes(x = lineage, y = dli_kd0.38))+
   theme_bw()+
-  #geom_point(alpha = 0.2, aes(fill = lineage))+
-  geom_jitter(aes(color = lineage), shape = 21, color = "black", size = 2.5, width = 0.3)+
+  geom_boxplot(aes(group = lineage), fill = c("#3f007d", "#807dba"), alpha = 0.5, outlier.shape=NA) +
   scale_fill_manual(values = cols_lineage)+
-  #scale_color_manual(values = cols_lineage)+
+  geom_jitter(aes(shape = sitename), color = "black", size = 2, width = 0.3)+
+  scale_shape_manual(values = c(15,16,17,22,21,24),
+                     breaks=c("BN", "BS", "CA", "CI", "PD", "SP"),
+                     labels=c("BN", "BS", "CA", "CI", "PD", "SP"),
+                     name = "Site") +
   ylab(bquote("Daily Light Integral (mol quanta"~m^-2~~day^-1~')')) +
-  xlab("Site of Origin")
+  xlab("Lineage")
 dli_plot_lineage
-ggsave(dli_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/DLI_lineage.pdf", width=3.5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(dli_plot_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/DLI_lineage.pdf", width=3, height=3, units=c("in"), useDingbats=FALSE)
 
 
-# light enhancement factor plots
+ # light enhancement factor plots
 # summarize data for plotting
 lef_means <- summarySE(skel_phys_nona, measurevar="lef", groupvars=c("lineage"))
 lef_means_2lin <- summarySE(skel_phys_nona_2lin, measurevar="lef", groupvars=c("lineage"))
@@ -3530,6 +3501,7 @@ autoplot(end_df, data = end_pca_2_lin,
 library(vegan)
 library(MCMC.OTU)
 library(MicEco)
+library(funfuns)
 
 t0_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/t0_full.csv")
 end_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/end_full.csv")
@@ -3605,59 +3577,34 @@ conditions=t0_full_adonis[, c("frag","treat","sitename","lineage")] #make sure t
 head(scores)
 head(conditions)
 
-t0_model = adonis(scores~lineage+sitename, data=conditions, method="euclidean", permutations = 10000)
-end_model = adonis(scores~lineage+dominant_type+treat+sitename, data=conditions, method="euclidean", permutations = 10000)
-skel_model = adonis(scores~lineage+sitename, data=conditions, method="euclidean", permutations = 10000)
+t0_model = adonis(scores~lineage, data=conditions, method="euclidean", permutations = 10000)
+end_model = adonis(scores~lineage+dominant_type+treat, data=conditions, method="euclidean", permutations = 10000)
+skel_model = adonis(scores~lineage, data=conditions, method="euclidean", permutations = 10000)
 
-adonis_OmegaSq(t0_model, partial = TRUE)
-adonis_OmegaSq(end_model, partial = TRUE)
-adonis_OmegaSq(skel_model, partial = TRUE)
-
-# T0:
-#           Df SumsOfSqs   MeanSqs F.Model      R2 parOmegaSq Pr(>F)
-# lineage    1  0.008026 0.0080262  7.9700 0.16047    0.14233 0.0003 ***
-# sitename   5  0.006743 0.0013486  1.3392 0.13482    0.03881 0.1901
-# Residuals 35  0.035247 0.0010071         0.70471
+t0_output = adonis_OmegaSq(t0_model, partial = TRUE)
+t0_output$aov.tab
+#         Df SumsOfSqs   MeanSqs F.Model      R2 parOmegaSq Pr(>F)
+# lineage    1  0.008026 0.0080262  7.6458 0.16047    0.13662  2e-04 ***
+# Residuals 40  0.041990 0.0010497         0.83953
 # Total     41  0.050016                   1.00000
 
-# End:
-# Terms added sequentially (first to last)
-#
-#               Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq Pr(>F)
-# lineage        1   0.04145 0.041446 14.5635 0.11268    0.12050 0.0002 ***
-# dominant_type  3   0.00253 0.000845  0.2969 0.00689   -0.02177 0.9736
-# treat          3   0.04381 0.014605  5.1319 0.11912    0.11128 0.0002 ***
-# sitename       5   0.03527 0.007055  2.4789 0.09590    0.06950 0.0115 *
-# Residuals     86   0.24475 0.002846         0.66541
+end_output = adonis_OmegaSq(end_model, partial = TRUE)
+end_output$aov.tab
+#             Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq    Pr(>F)
+# lineage        1   0.04145 0.041446 13.4691 0.11268   0.111861 9.999e-05 ***
+# dominant_type  3   0.00253 0.000845  0.2746 0.00689  -0.022476 0.9814019
+# treat          3   0.04381 0.014605  4.7463 0.11912   0.101950 0.0005999 ***
+# Residuals     91   0.28002 0.003077         0.76130
 # Total         98   0.36781                  1.00000
+
+skel_output = adonis_OmegaSq(skel_model, partial = TRUE)
+skel_output$aov.tab
 
 # Skeleton PCA:
 #           Df SumsOfSqs   MeanSqs F.Model      R2 parOmegaSq    Pr(>F)
-# lineage    1  0.017035 0.0170348 10.2557 0.20125   0.180578 0.0009999 ***
-# sitename   5  0.009474 0.0018947  1.1407 0.11192   0.016475 0.3451655
-# Residuals 35  0.058136 0.0016610         0.68682
+# lineage    1  0.017035 0.0170348  10.078 0.20125    0.17773 0.0006999 ***
+# Residuals 40  0.067609 0.0016902         0.79875
 # Total     41  0.084644                   1.00000
-
-# End - Prop D1 NOT Included - justification for not including any interaction terms in the output below
-# adonis2(formula = scores ~ lineage * dominant_type * treat * sitename, data = conditions, permutations = 10000, method = "euclidean")
-#                                 Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq    Pr(>F)
-# lineage                         1   0.04145 0.041446 12.9383 0.11268   0.107612 9.999e-05 ***
-# dominant_type                   3   0.00253 0.000845  0.2638 0.00689  -0.022819 0.9844016
-# treat                           3   0.04381 0.014605  4.5592 0.11912   0.097355 0.0008999 ***
-# sitename                        5   0.03527 0.007055  2.2023 0.09590   0.057244 0.0298970 *
-# lineage:dominant_type           1   0.00518 0.005185  1.6186 0.01410   0.006209 0.1792821
-# lineage:treat                   3   0.01632 0.005440  1.6981 0.04437   0.020716 0.1240876
-# dominant_type:treat             6   0.01241 0.002068  0.6457 0.03374  -0.021943 0.7858214
-# lineage:sitename                2   0.00338 0.001690  0.5277 0.00919  -0.009633 0.7169283
-# dominant_type:sitename          4   0.00805 0.002014  0.6286 0.02190  -0.015234 0.7232277
-# treat:sitename                 15   0.03039 0.002026  0.6325 0.08263  -0.058959 0.9148085
-# lineage:dominant_type:treat     2   0.00254 0.001269  0.3963 0.00690  -0.012347 0.8391161
-# lineage:dominant_type:sitename  1   0.00357 0.003574  1.1156 0.00972   0.001166 0.2891711
-# lineage:treat:sitename          3   0.00568 0.001894  0.5912 0.01545  -0.012542 0.7184282
-# dominant_type:treat:sitename    1   0.00345 0.003446  1.0757 0.00937   0.000764 0.2975702
-# Residuals                      48   0.15376 0.003203         0.41804
-# Total                          98   0.36781                  1.00000
-
 
 
 #### Correlation Matrices ####
