@@ -1761,7 +1761,7 @@ check_model(m1) #check assumptions and model fit
 #specify model (because we are interested in pairwise, have to include the interaction)
 m.emm<- lmer(T2_T0_rgr ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
 
-emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
+emms<-emmeans(m.emm, ~treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
 # for T2_T0_perc
 # treat    lineage_pairwise estimate    SE  df t.ratio p.value
@@ -1776,6 +1776,14 @@ pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
 # Low Var  L1 - L2          0.000143 7.45e-05 122   1.926  0.1130
 # Mod Var  L1 - L2          0.000135 6.96e-05 106   1.942  0.1130
 # High Var L1 - L2          0.000105 7.17e-05 113   1.461  0.1958
+
+# treat_pairwise      estimate       SE  df t.ratio p.value
+# Control - Low Var  -4.32e-05 3.90e-05 120  -1.108  0.3240
+# Control - Mod Var  -9.44e-05 3.68e-05 120  -2.562  0.0366
+# Control - High Var -9.63e-05 3.78e-05 120  -2.545  0.0366
+# Low Var - Mod Var  -5.12e-05 3.78e-05 120  -1.352  0.2683
+# Low Var - High Var -5.30e-05 3.87e-05 121  -1.371  0.2683
+# Mod Var - High Var -1.89e-06 3.62e-05 118  -0.052  0.9586
 
 # for T3_T2_perc:
 # treat    lineage_pairwise estimate    SE  df t.ratio p.value
