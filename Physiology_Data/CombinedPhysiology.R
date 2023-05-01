@@ -3509,7 +3509,7 @@ autoplot(end_df, data = end_pca_2_lin,
 library(vegan)
 library(MCMC.OTU)
 library(MicEco)
-library(funfuns)
+library(pairwiseAdonis)
 
 t0_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/t0_full.csv")
 end_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/end_full.csv")
@@ -3566,8 +3566,8 @@ end_full_adonis_L2 = end_full_adonis %>%
   filter(lineage == "L2")
 
 # Change dataframe here based on the comparison you are interested in
-#nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1)
-nl=startedLog(data=t0_full_adonis,count.columns=5:10, logstart=1)
+nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1)
+#nl=startedLog(data=t0_full_adonis,count.columns=5:10, logstart=1)
 #nl=startedLog(data=skel_full_adonis,count.columns=5:12, logstart=1)
 
 goods.dist=vegdist(nl, method="bray", na.rm = TRUE)
@@ -3577,8 +3577,8 @@ goods.pcoa=pcoa(goods.dist)
 pcp=prcomp(nl, retx=TRUE, center=TRUE)
 scores=goods.pcoa$vectors
 summary(goods.pcoa)
-#conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
-conditions=t0_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
+conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
+#conditions=t0_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
 #conditions=skel_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
 
 # PERMANOVA
@@ -3604,6 +3604,19 @@ end_output$aov.tab
 # treat          3   0.04381 0.014605  4.7463 0.11912   0.101950 0.0005999 ***
 # Residuals     91   0.28002 0.003077         0.76130
 # Total         98   0.36781                  1.00000
+
+pairwise.adonis(end_full_adonis[,6:12], end_full_adonis$treat)
+#                 pairs Df  SumsOfSqs    F.Model         R2 p.value p.adjusted sig
+# Control vs Low Var  1 0.16378358  1.2985891 0.02531432   0.284      1.000
+# Control vs Mod Var  1 0.58638159  4.6754774 0.09605406   0.019      0.114
+# Control vs High Var  1 0.10756046  0.9724029 0.02027005   0.369      1.000
+# Low Var vs Mod Var  1 1.35898216 11.7796173 0.19705073   0.001      0.006   *
+# Low Var vs High Var  1 0.07999826  0.7818738 0.01509937   0.441      1.000
+# Mod Var vs High Var  1 1.03218043 10.4843593 0.18896063   0.003      0.018   .
+
+pairwise.adonis(end_full_adonis[,6:12], end_full_adonis$lineage)
+#   pairs Df SumsOfSqs  F.Model        R2 p.value p.adjusted sig
+# L2 vs L1  1  1.877907 17.36571 0.1518437   0.001      0.001  **
 
 skel_output = adonis_OmegaSq(skel_model, partial = TRUE)
 skel_output$aov.tab
