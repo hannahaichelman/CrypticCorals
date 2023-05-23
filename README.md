@@ -9,3 +9,5 @@ This repository is organized such that each folder contains the data (or details
 All raw sequencing files have been uploaded to NCBI's SRA (2bRAD BioProject ID=PRJNA973074, 16S/ITS2 BioProject ID= PRJNA973086).
 
 For any questions, please contact Hannah Aichelman (hannahaichelman @ gmail.com) or Sarah Davies (daviessw @ gmail.com).
+
+<a href="https://zenodo.org/badge/latestdoi/557513860"><img src="https://zenodo.org/badge/557513860.svg" alt="DOI"></a>
