@@ -10,11 +10,11 @@ library(psych)
 library(tidyverse)
 library(ggpubr)
 
-setwd("/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/")
+setwd("/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/")
 
 #### Apex Temperature Data ####
 # using the master doc that doesn't have the first few days of data, the probes were mis-labeled and didn't match later measurements
-apex <- read.csv("/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Apex/Apex_Master_Doc.csv")
+apex <- read.csv("/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Apex/Apex_Master_Doc.csv")
 
 head(apex)
 tail(apex)
@@ -70,7 +70,7 @@ apex_plot <- apex_long %>%
   theme_classic()
 apex_plot
 
-ggsave(file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Apex/TankTempApex_nocontrol2.pdf", apex_plot, width=10, height=5, units=c("in"), useDingbats=FALSE)
+ggsave(file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Apex/TankTempApex_nocontrol2.pdf", apex_plot, width=10, height=5, units=c("in"), useDingbats=FALSE)
 
 # plot a subset of dates that look nice as an example of what we were going for
 apex_clipped <- apex_long %>%
@@ -93,7 +93,7 @@ apex_clipped_plot <- ggplot(apex_clipped, aes(x = datetime_ct, y = Temp, color =
   theme_classic()
 apex_clipped_plot
 
-ggsave(file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Apex/TankTempApex_clipped_nocontrol2_oldcols.pdf", apex_clipped_plot, width=6, height=5, units=c("in"), useDingbats=FALSE)
+ggsave(file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Apex/TankTempApex_clipped_nocontrol2_oldcols.pdf", apex_clipped_plot, width=6, height=5, units=c("in"), useDingbats=FALSE)
 
 # When originally plotting after combining individual files into the master doc, something was off -
 # even after double checking and removing the first few days worth of data, the High Var and Control 2
@@ -527,19 +527,19 @@ p5_var
 
 # ignore control 2, all data
 hobo_plot <- grid.arrange(p1, p2, p3, p4, nrow = 2)
-ggsave(file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo.pdf", hobo_plot, width=12, height=6, units=c("in"), useDingbats=FALSE)
+ggsave(file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo.pdf", hobo_plot, width=12, height=6, units=c("in"), useDingbats=FALSE)
 
 # ignore control 2, only variability data
 hobo_plot_var <- grid.arrange(p1_var, p2_var, p3_var, p4_var, nrow = 2)
-ggsave(file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_var.pdf", hobo_plot_var, width=8, height=5, units=c("in"), useDingbats=FALSE)
+ggsave(file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_var.pdf", hobo_plot_var, width=8, height=5, units=c("in"), useDingbats=FALSE)
 
 # include control 2, all data
 hobo_plot_ctrl2 <- grid.arrange(p1, p2, p3, p4, p5, nrow = 3)
-ggsave(file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_ctrl2.pdf", hobo_plot_ctrl2, width=10, height=6, units=c("in"), useDingbats=FALSE)
+ggsave(file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_ctrl2.pdf", hobo_plot_ctrl2, width=10, height=6, units=c("in"), useDingbats=FALSE)
 
 # include control 2, only variability data
 hobo_plot_ctrl2_var <- grid.arrange(p1_var, p2_var, p3_var, p4_var, p5_var, nrow = 3)
-ggsave(file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_ctrl2_var.pdf", hobo_plot_ctrl2_var, width=8, height=6, units=c("in"), useDingbats=FALSE)
+ggsave(file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_ctrl2_var.pdf", hobo_plot_ctrl2_var, width=8, height=6, units=c("in"), useDingbats=FALSE)
 
 #### Combine all hobo variability objects to plot ####
 all_temp = rbind(Tank1.1_all, Tank2.1_all, Tank3.1_all, Tank4.2_all)
@@ -577,7 +577,7 @@ all_var.plot = all_var %>%
   theme_bw() +
   theme(axis.text.x = element_text(angle = 25, hjust = 1, vjust = 1))
 all_var.plot
-ggsave(all_var.plot,file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Lines_Combined.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(all_var.plot,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Lines_Combined.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
 
 # plot the whole time course - figure 1C
 all_temp$Treatment = factor(all_temp$Treatment, levels = c("High Var", "Mod Var", "Low Var", "Control"))
@@ -600,7 +600,7 @@ all_temp.plot = all_temp %>%
   #theme(axis.text.x = element_blank())
   theme(axis.text.x = element_text(angle = 25, hjust = 1, vjust = 1))
 all_temp.plot
-ggsave(all_temp.plot,file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_AllData_Combined.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(all_temp.plot,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_AllData_Combined.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
 
 # plot a subset of days to zoom in and illustrate what the profiles looked like
 all_temp.plot.subset = all_temp %>%
@@ -615,7 +615,7 @@ all_temp.plot.subset = all_temp %>%
   theme(axis.text.x = element_blank())
 #theme(axis.text.x = element_text(angle = 25, hjust = 1, vjust = 1))
 all_temp.plot.subset
-ggsave(all_temp.plot.subset,file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Subset_Combined.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(all_temp.plot.subset,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Subset_Combined.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 # plot all stress + recovery periods
 all_stress.plot = all_stress %>%
@@ -631,7 +631,7 @@ all_stress.plot = all_stress %>%
   theme_bw() +
   theme(axis.text.x = element_text(angle = 25, hjust = 1, vjust = 1))
 all_stress.plot
-ggsave(all_stress.plot,file="/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Lines_Combined_stress+recovery.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(all_stress.plot,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Lines_Combined_stress+recovery.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
 
 #### Hobo Summary Stats ####
 # Some summary stats for hogo logger temp data
