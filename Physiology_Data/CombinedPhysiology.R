@@ -3866,7 +3866,6 @@ dev.off()
 #### Coring Data ####
 # these data are not included in the manuscript #
 cores = read.csv("Physiology_Data/data_files/Growth_allRegions_JPcoringdata.csv")
-
 head(cores)
 
 pan_cores = cores %>%
@@ -3889,7 +3888,576 @@ pan_cores$site <- dplyr::recode(pan_cores$site,
                          worbs = 'BS',
                          worca = 'CA',
                          wordm = 'DM')
+# Re-name core IDs
+pan_cores$coreID <- dplyr::recode(pan_cores$coreID,
+                           wordm37s='W_OR_DM_37_S',
+                           worbn15s='W_OR_BN_15_S',
+                           worbs17s='W_OR_BS_17_S',
+                           worca35s='W_OR_CA_35_S',
+                           wirsp05s='W_IR_SP_5_S',
+                           worbn09s='W_OR_BN_9_S',
+                           wirsp02s='W_IR_SP_2_S',
+                           worca27s='W_OR_CA_27_S',
+                           wirpd59s='W_IR_PD_59_S',
+                           worbn14s='W_OR_BN_14_S',
+                           wordm42s='W_OR_DM_42_S',
+                           worbn16s='W_OR_BN_16_S',
+                           worbs23s='W_OR_BS_23_S',
+                           worbs22s='W_OR_BS_22_S',
+                           wirsp03s='W_IR_SP_3_S',
+                           worca30s='W_OR_CA_30_S',
+                           worbs25s='W_OR_BS_25_S',
+                           wordm40s='W_OR_DM_40_S',
+                           worbn07s='W_OR_BN_7_S',
+                           wordm41s='W_OR_DM_41_S',
+                           wirpd63s='W_IR_PD_63_S',
+                           wirci57s='W_IR_CI_57_S',
+                           wirpl51s='W_IR_PL_51_S',
+                           wirpd60s='W_IR_PD_60_S',
+                           wirpd61s='W_IR_PD_61_S',
+                           wirpl47s='W_IR_PL_47_S',
+                           wirsp04s='W_IR_SP_4_S',
+                           worbs20s='W_OR_BS_20_S',
+                           wordm38s='W_OR_DM_38_S',
+                           wirpl48s='W_IR_PL_48_S')
 
+# W_IR_PL_47_S and W_IR_PD_63_S don't have growth chronologies (bad data) even though we have lineage assignments
+# W_OR_BS_17_S had low coverage, no lineage assignment
+# W_OR_BS_20_S, W_OR_DM_38_S, W_IR_PL_48_S all didn't sequence, no lineage assignment
+# N=24 total cores with lineage assignment and growth chronology
+
+# take a look at the metadata that Annabel gave us
+#loading in RAD data with core ID and bam file name
+rad_meta <- read.csv("Physiology_Data/data_files/all_SSID_updated.csv")
+rad_meta <- filter(rad_meta, Project=="cores")
+head(rad_meta)
+dim(rad_meta)
+#[1] 28 12
+
+# loading in and cleaning up lineage assignment data to only include core info
+lineages <- read.csv("Physiology_Data/data_files/samples_on_plate_somelineages.csv")
+colnames(lineages)[1] ="SampleID"
+colnames(lineages)[3] ="lineage"
+lineages <- dplyr::filter(lineages, PROJECT=="Panama cores")
+head(lineages)
+dim(lineages)
+#[1] 30  4
+
+
+lineages$SampleID %in% rad_meta$SampleID
+# the 3 samples that didn't sequence aren't included in the rad_meta file because they didn't demultiplex
+
+# looks like there isn't a reason to use the rad_meta info, so will move forward with just lineage info
+
+# loading in and cleaning up lineage assignment data to only include core info
+lineages <- read.csv("Physiology_Data/data_files/samples_on_plate_somelineages.csv")
+lineages2 = lineages %>%
+  dplyr::rename(coreID = SAMPLE_ID) %>%
+  dplyr::rename(lineage = X) %>%
+  dplyr::filter(PROJECT=="Panama cores") %>%
+  select(coreID, lineage)
+head(lineages2)
+dim(lineages2)
+
+#combining JP metadata with lineage associations
+lineages_meta <- left_join(pan_cores, lineages2, by="coreID")
+head(lineages_meta)
+
+## Data Analysis
+# Subset to only include recent years (more confident in these core data) as in JP's analysis
+pan_cores_recent = lineages_meta %>%
+  dplyr::filter(Year >= "2005" & Year <= "2014") %>%
+  drop_na(lineage) %>%
+  dplyr::filter(lineage != "3")
+head(pan_cores_recent)
+count(unique(pan_cores_recent$coreID)) # lines up with 24 cores with lineage and growth data - phew.
+
+pan_cores_allyears = lineages_meta %>%
+  drop_na(lineage) %>%
+  dplyr::filter(lineage != "3")
+count(unique(pan_cores_allyears$coreID)) # lines up with 24 cores with lineage and growth data - phew.
+
+# Average density, calcification, and linear extension by site, lineage, and sample ID
+
+sitemeans_linext = summarySE(data = pan_cores_recent, measurevar = c("linext"), groupvars = c("coreID","lineage","site"))
+sitemeans_den = summarySE(data = pan_cores_recent, measurevar = c("density"), groupvars = c("coreID","lineage","site"))
+sitemeans_calc = summarySE(data = pan_cores_recent, measurevar = c("calc"), groupvars = c("coreID","lineage","site"))
+
+# plot linear extension, skeletal density, and calcification, visualizing all cores from both lineages faceted by site
+p.linext <- ggplot(sitemeans_linext,aes(x = lineage, y = linext, color = lineage, shape = lineage))+
+  theme_bw()+
+  geom_point(size = 2, position = position_dodge(width=0.1))+
+  geom_errorbar(aes(x = lineage, ymax = linext+se, ymin = linext-se), width = .2, position = position_dodge(width=0.1)) +
+  xlab("Lineage")+
+  ylab("Linear Extension (2005-2014)")+
+  facet_wrap(~site)+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
+p.linext
+
+p.den <- ggplot(sitemeans_den,aes(x = lineage, y = density, color = lineage, shape = lineage))+
+  theme_bw()+
+  geom_point(position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = lineage, ymax = density+se, ymin = density-se), width = .2, position = position_dodge(width=0.3)) +
+  xlab("Lineage")+
+  ylab("Density (2005-2014)")+
+  facet_wrap(~site)+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
+p.den
+
+p.calc <- ggplot(sitemeans_calc,aes(x = lineage, y = calc, color = lineage, shape = lineage))+
+  theme_bw()+
+  geom_point(position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = lineage, ymax = calc+se, ymin = calc-se), width = .2, position = position_dodge(width=0.3)) +
+  xlab("Lineage")+
+  ylab("Calcification (2005-2014)")+
+  facet_wrap(~site)+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "bottom")
+p.calc
+
+core.plots = ggarrange(p.linext, p.den, p.calc,
+                       labels = c("A", "B", "C"),
+                       ncol = 3, nrow = 1)
+core.plots
+
+# Average density, calcification, and linear extension by site and lineage
+
+sitemeans_linext2 = summarySE(data = pan_cores_recent, measurevar = c("linext"), groupvars = c("lineage","site"))
+sitemeans_den2 = summarySE(data = pan_cores_recent, measurevar = c("density"), groupvars = c("lineage", "site"))
+sitemeans_calc2 = summarySE(data = pan_cores_recent, measurevar = c("calc"), groupvars = c("lineage", "site"))
+
+# plot linear extension, skeletal density, and calcification averaging across all cores from lineages at each site (one point per facet)
+p.linext2 <- ggplot(sitemeans_linext2,aes(x = lineage, y = linext, color = lineage))+
+  theme_bw()+
+  geom_point(position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = lineage, ymax = linext+se, ymin = linext-se), width = .2, position = position_dodge(width=0.3)) +
+  xlab("Lineage")+
+  ylab("Linear Extension")+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
+  facet_wrap(~site)
+p.linext2
+
+p.den2 <- ggplot(sitemeans_den2,aes(x = lineage, y = density, color = lineage))+
+  theme_bw()+
+  geom_point(position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = lineage, ymax = density+se, ymin = density-se), width = .2, position = position_dodge(width=0.3)) +
+  xlab("Lineage")+
+  ylab("Density")+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
+  facet_wrap(~site)
+p.den2
+
+p.calc2 <- ggplot(sitemeans_calc2,aes(x = lineage, y = calc, color = lineage))+
+  theme_bw()+
+  geom_point(position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = lineage, ymax = calc+se, ymin = calc-se), width = .2, position = position_dodge(width=0.3)) +
+  xlab("Lineage")+
+  ylab("Calcification")+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
+  facet_wrap(~site)
+p.calc2
+
+core.plots2 = ggarrange(p.linext2, p.den2, p.calc2,
+                        labels = c("A", "B", "C"),
+                        ncol = 3, nrow = 1)
+core.plots2
+
+# Average density, calcification, and linear extension by lineage only
+
+sitemeans_linext3 = summarySE(data = pan_cores_recent, measurevar = c("linext"), groupvars = c("lineage"))
+sitemeans_den3 = summarySE(data = pan_cores_recent, measurevar = c("density"), groupvars = c("lineage"))
+sitemeans_calc3 = summarySE(data = pan_cores_recent, measurevar = c("calc"), groupvars = c("lineage"))
+
+# plot linear extension, skeletal density, and calcification without weirdo L1
+p.linext3 <- ggplot(sitemeans_linext3,aes(x = lineage, y = linext, color = lineage))+
+  theme_bw()+
+  geom_point(position = position_dodge(width=0.3), size = 2)+
+  geom_errorbar(aes(x = lineage, ymax = linext+se, ymin = linext-se), width = .2, position = position_dodge(width=0.3)) +
+  xlab("Lineage")+
+  ylab("Linear Extension")+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
+p.linext3
+
+p.den3 <- ggplot(sitemeans_den3,aes(x = lineage, y = density, color = lineage))+
+  theme_bw()+
+  geom_point(position = position_dodge(width=0.3), size = 2)+
+  geom_errorbar(aes(x = lineage, ymax = density+se, ymin = density-se), width = .2, position = position_dodge(width=0.3)) +
+  xlab("Lineage")+
+  ylab("Density")+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
+p.den3
+
+p.calc3 <- ggplot(sitemeans_calc3,aes(x = lineage, y = calc, color = lineage))+
+  theme_bw()+
+  geom_point(position = position_dodge(width=0.3), size = 2)+
+  geom_errorbar(aes(x = lineage, ymax = calc+se, ymin = calc-se), width = .2, position = position_dodge(width=0.3)) +
+  xlab("Lineage")+
+  ylab("Calcification")+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
+p.calc3
+
+core.plots3 = ggarrange(p.linext3, p.den3, p.calc3,
+                        labels = c("A", "B", "C"),
+                        ncol = 3, nrow = 1)
+core.plots3
+ggsave(core.plots3, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_plots_2005-2014.pdf", width=8, height=3, units=c("in"), useDingbats=FALSE)
+
+## Visualizing growth trends across lineages - all years
+
+linext_trends = summarySE(data = pan_cores_allyears, measurevar = c("linext"), groupvars = c("lineage","Year"))
+den_trends = summarySE(data = pan_cores_allyears, measurevar = c("density"), groupvars = c("lineage","Year"))
+calc_trends = summarySE(data = pan_cores_allyears, measurevar = c("calc"), groupvars = c("lineage","Year"))
+
+cols_lineage <- c("#3f007d","#807dba")
+
+# Linear extension
+linext = ggplot(data=linext_trends, aes(x=Year, y=linext, color=lineage)) +
+  theme_bw()+
+  geom_point() +
+  geom_smooth(aes(fill=lineage)) +
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  scale_fill_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  ylab("Linear Extension")+
+  theme(legend.position="none")
+linext
+
+# Skeletal density
+den = ggplot(data=den_trends, aes(x=Year, y=density, color=lineage)) +
+  theme_bw()+
+  geom_point() +
+  geom_smooth(aes(fill=lineage)) +
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  ylab("Density") +
+  theme(legend.position="none")
+den
+
+# Calcification
+calc = ggplot(data=calc_trends, aes(x=Year, y=calc, color=lineage)) +
+  theme_bw()+
+  geom_point() +
+  geom_smooth(aes(fill=lineage)) +
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage) +
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  ylab("Calcification") +
+  theme(legend.position="none")
+calc
+
+trends = ggarrange(linext, den, calc,
+                   labels = c("A", "B", "C"),
+                   ncol = 3, nrow = 1)
+trends
+
+ggsave(trends, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_trends_alltime.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+
+# now looking at growth trends only recent years (2005-2014)
+linext_recent = summarySE(data = pan_cores_recent, measurevar = c("linext"), groupvars = c("lineage","Year"))
+den_recent = summarySE(data = pan_cores_recent, measurevar = c("density"), groupvars = c("lineage","Year"))
+calc_recent = summarySE(data = pan_cores_recent, measurevar = c("calc"), groupvars = c("lineage","Year"))
+
+# Linear extension
+linext = ggplot(data=linext_recent, aes(x=Year, y=linext, color=lineage)) +
+  theme_bw()+
+  geom_point() +
+  geom_smooth(aes(fill=lineage)) +
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  ylab("Linear Extension")+
+  scale_x_continuous(name="Year",breaks = seq(2005,2014,by=3))+
+  theme(legend.position="none")
+linext
+
+# Skeletal density
+den = ggplot(data=den_recent, aes(x=Year, y=density, color=lineage)) +
+  theme_bw()+
+  geom_point() +
+  geom_smooth(aes(fill=lineage)) +
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  ylab("Density") +
+  scale_x_continuous(name="Year",breaks = seq(2005,2014,by=3))+
+  theme(legend.position="none")
+den
+
+# Calcification
+calc = ggplot(data=calc_recent, aes(x=Year, y=calc, color=lineage)) +
+  theme_bw()+
+  geom_point() +
+  geom_smooth(aes(fill=lineage)) +
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage) +
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  ylab("Calcification") +
+  scale_x_continuous(name="Year",breaks = seq(2005,2014,by=3))+
+  theme(legend.position="none")
+calc
+
+trends_recent = ggarrange(linext, den, calc,
+                   labels = c("A", "B", "C"),
+                   ncol = 3, nrow = 1)
+trends_recent
+
+ggsave(trends_recent, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_trends_2005_2014.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+
+## Creating data overview figure panels A-F
+
+cols_lineage <- c("#3f007d","#807dba")
+
+# Panel A - linear extension by site with jitter points by lineage
+
+linext_allyears = summarySE(data = pan_cores_allyears, measurevar = c("linext"), groupvars = c("lineage","site","coreID"))
+str(linext_allyears)
+
+linext_plot_lineage <- ggplot(linext_allyears, aes(x = site, y = linext, group=coreID))+
+  theme_bw()+
+  geom_jitter(aes(color = lineage, fill = lineage),
+              position=position_dodge(width=0.3),
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = linext_allyears, aes(x = site, ymax = linext+se, ymin = linext-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = linext_allyears, mapping = aes(x=site, y=linext, color = lineage, fill = lineage, group=coreID), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  xlab("Site")+
+  ylab("Linear Extension")+
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))+
+  theme(legend.position = "blank")
+linext_plot_lineage
+
+# Panel B - skeletal density by site with jitter points by lineage
+
+den_allyears = summarySE(data = pan_cores_allyears, measurevar = c("density"), groupvars = c("lineage","site","coreID"))
+
+den_plot_lineage <- ggplot(den_allyears,aes(x = site, y = density, group=coreID))+
+  theme_bw()+
+  geom_jitter(aes(color = lineage, fill = lineage),
+              position=position_dodge(width=0.3),
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = den_allyears, aes(x = site, ymax = density+se, ymin = density-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = den_allyears, mapping = aes(x=site, y=density, color = lineage, fill = lineage, group=coreID), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  xlab("Site")+
+  ylab("Skeletal Density")+
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(legend.position = "blank")
+
+den_plot_lineage
+
+# Panel C - calcification by site with jitter points by lineage
+
+calc_allyears = summarySE(data = pan_cores_allyears, measurevar = c("calc"), groupvars = c("lineage","site","coreID"))
+
+calc_plot_lineage <- ggplot(calc_allyears,aes(x = site, y = calc, group=coreID))+
+  theme_bw()+
+  geom_jitter(aes(color = lineage, fill = lineage),
+              position=position_dodge(width=0.3),
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = calc_allyears, aes(x = site, ymax = calc+se, ymin = calc-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = calc_allyears, mapping = aes(x=site, y=calc, color = lineage, fill = lineage, group=coreID), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  xlab("Site")+
+  ylab("Calcification")+
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))+
+  theme(legend.position = "blank")
+calc_plot_lineage
+
+plots_allyears = ggarrange(linext_plot_lineage, den_plot_lineage, calc_plot_lineage,
+                          labels = c("A", "B", "C"),
+                          ncol = 3, nrow = 1)
+plots_allyears
+
+ggsave(plots_allyears, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_plots_individualcores_alltime.pdf", width=9, height=4, units=c("in"), useDingbats=FALSE)
+
+
+# same 3 panels, but now with only recent data
+# Panel A - linear extension by site with jitter points by lineage
+
+linext_recent = summarySE(data = pan_cores_recent, measurevar = c("linext"), groupvars = c("lineage","site","coreID"))
+str(linext_recent)
+
+linext_plot_lineage <- ggplot(linext_recent, aes(x = site, y = linext, group=coreID))+
+  theme_bw()+
+  geom_jitter(aes(color = lineage, fill = lineage),
+              position=position_dodge(width=0.3),
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = linext_recent, aes(x = site, ymax = linext+se, ymin = linext-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = linext_recent, mapping = aes(x=site, y=linext, color = lineage, fill = lineage, group=coreID), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  xlab("Site")+
+  ylab("Linear Extension")+
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))+
+  theme(legend.position = "blank")
+linext_plot_lineage
+
+# Panel B - skeletal density by site with jitter points by lineage
+
+den_recent = summarySE(data = pan_cores_recent, measurevar = c("density"), groupvars = c("lineage","site","coreID"))
+
+den_plot_lineage <- ggplot(den_recent,aes(x = site, y = density, group=coreID))+
+  theme_bw()+
+  geom_jitter(aes(color = lineage, fill = lineage),
+              position=position_dodge(width=0.3),
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = den_recent, aes(x = site, ymax = density+se, ymin = density-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = den_recent, mapping = aes(x=site, y=density, color = lineage, fill = lineage, group=coreID), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  xlab("Site")+
+  ylab("Skeletal Density")+
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(legend.position = "blank")
+den_plot_lineage
+
+# Panel C - calcification by site with jitter points by lineage
+
+calc_recent = summarySE(data = pan_cores_recent, measurevar = c("calc"), groupvars = c("lineage","site","coreID"))
+
+calc_plot_lineage <- ggplot(calc_recent,aes(x = site, y = calc, group=coreID))+
+  theme_bw()+
+  geom_jitter(aes(color = lineage, fill = lineage),
+              position=position_dodge(width=0.3),
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = calc_recent, aes(x = site, ymax = calc+se, ymin = calc-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = calc_recent, mapping = aes(x=site, y=calc, color = lineage, fill = lineage, group=coreID), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("1","2"),
+                     values = cols_lineage)+
+  xlab("Site")+
+  ylab("Calcification")+
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))+
+  theme(legend.position = "blank")
+calc_plot_lineage
+
+plots_recent = ggarrange(linext_plot_lineage, den_plot_lineage, calc_plot_lineage,
+                           labels = c("A", "B", "C"),
+                           ncol = 3, nrow = 1)
+plots_recent
+
+ggsave(plots_recent, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_plots_individualcores_2005_2014.pdf", width=9, height=4, units=c("in"), useDingbats=FALSE)
+
+# Panel D - linear extension by site over all years
+
+linext_trends_bysite = summarySE(data = cores_allyears, measurevar = c("linext"), groupvars = c("site","Year"))
+
+linext_bysite = ggplot(data=linext_trends_bysite, aes(x=Year, y=linext, color=site)) +
+  geom_point() +
+  geom_smooth()
+linext_bysite
+
+# Panel E - skeletal density by site over all years
+den_trends_bysite = summarySE(data = cores_allyears, measurevar = c("density"), groupvars = c("site","Year"))
+
+den_bysite = ggplot(data=den_trends_bysite, aes(x=Year, y=density, color=site)) +
+  geom_point() +
+  geom_smooth()
+den_bysite
+
+# Panel F - calcification by site over all years
+calc_trends_bysite = summarySE(data = cores_allyears, measurevar = c("calc"), groupvars = c("site","Year"))
+
+calc_bysite = ggplot(data=calc_trends_bysite, aes(x=Year, y=calc, color=site)) +
+  geom_point() +
+  geom_smooth()
+calc_bysite
+
+
+
+fig_sites = ggarrange(linext_plot_lineage, den_plot_lineage, calc_plot_lineage, linext_bysite, den_bysite, calc_bysite,
+                      labels = c("A", "B", "C", "D", "E", "F"),
+                      ncol = 3, nrow = 2)
+fig_sites
+
+fig_lineage = ggarrange(linext_plot_lineage, den_plot_lineage, calc_plot_lineage, linext, den, calc,
+                        labels = c("A", "B", "C", "D", "E", "F"),
+                        ncol = 3, nrow = 2)
+fig_lineage
+
+
+
+# hannah's old analysis
 # Remove sites that we don't have corals from for this experiment
 pan_cores_tve = pan_cores %>%
   subset(site != "PL") %>%

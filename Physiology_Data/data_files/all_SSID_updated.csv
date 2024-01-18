@@ -1,0 +1,176 @@
+bam,SampleID,Species,Project,TechReps,Clones,alignment_rate,file_size,techrep_to_remove,clone_to_remove,Site,Actual_depth
+G05_BC__S9_L002_R1_001_AGAC.nosymbio.fastq.bam,W_OR_DM_37_S,SSID,cores,,,82.21,419572855,,,,NA
+G05_BC__S9_L002_R1_001_CATC.nosymbio.fastq.bam,W_OR_BN_15_S,SSID,cores,,,89.65,247175273,,,,NA
+G05_BC__S9_L002_R1_001_CTAC.nosymbio.fastq.bam,36,SSID,Panama 2022,3,,90.76,273284263,,,STRI point,13
+G05_BC__S9_L002_R1_001_GACT.nosymbio.fastq.bam,149,SSID,Panama 2022,,,79.49,110176006,,,Hospital Point,5
+G05_BC__S9_L002_R1_001_GTGA.nosymbio.fastq.bam,71,SSID,Panama 2022,,,81.99,145263302,,,Cristobal Island,3
+G05_BC__S9_L002_R1_001_TCAC.nosymbio.fastq.bam,66,SSID,Panama 2022,,,88.46,143561277,,,Cristobal Island,3
+G05_BC__S9_L002_R1_001_TCAG.nosymbio.fastq.bam,W_OR_BS_17_S,SSID,cores,,,85.29,267063641,,,,NA
+G06_BC__S10_L002_R1_001_AGAC.nosymbio.fastq.bam,165,SSID,Panama 2022,,5,85.40,117196161,,y,Hospital Point,3
+G06_BC__S10_L002_R1_001_GACT.nosymbio.fastq.bam,77,SSID,Panama 2022,,,89.03,150124667,,,Cristobal Island,3
+G06_BC__S10_L002_R1_001_GCTT.nosymbio.fastq.bam,137,SSID,Panama 2022,2,,90.90,107025674,,,Hospital Point,7
+G06_BC__S10_L002_R1_001_TCAC.nosymbio.fastq.bam,54,SSID,Panama 2022,,,90.20,127282300,,,STRI point,23
+G06_BC__S10_L002_R1_001_TGGT.nosymbio.fastq.bam,W_IR_SP_5_S,SSID,cores,,,85.87,241077624,,,,NA
+G07_BC__S11_L002_R1_001_AGTG.nosymbio.fastq.bam,154,SSID,Panama 2022,,,90.52,111345413,,,Hospital Point,5
+G07_BC__S11_L002_R1_001_CTAC.nosymbio.fastq.bam,102,SSID,Panama 2022,,6,91.14,86086807,,,Cristobal Island,36
+G07_BC__S11_L002_R1_001_GACT.nosymbio.fastq.bam,W_OR_CA_35_S,SSID,cores,,,90.38,387864652,,,,NA
+G07_BC__S11_L002_R1_001_GCTT.nosymbio.fastq.bam,137,SSID,Panama 2022,2,,86.30,106633179,y,,Hospital Point,7
+G07_BC__S11_L002_R1_001_GTGA.nosymbio.fastq.bam,157,SSID,Panama 2022,,,90.26,111911032,,,Hospital Point,7
+G07_BC__S11_L002_R1_001_TGGT.nosymbio.fastq.bam,W_IR_SP_5_S,SSID,cores,,,89.62,235176522,,,,NA
+G08_BC__S12_L002_R1_001_AGAC.nosymbio.fastq.bam,118,SSID,Panama 2022,,,86.87,103791469,,,Hospital Point,30
+G08_BC__S12_L002_R1_001_CATC.nosymbio.fastq.bam,145,SSID,Panama 2022,,3,91.60,107369792,,,Hospital Point,4
+G08_BC__S12_L002_R1_001_GACT.nosymbio.fastq.bam,55,SSID,Panama 2022,,,74.05,129272232,,,STRI point,23
+G08_BC__S12_L002_R1_001_GTGA.nosymbio.fastq.bam,152,SSID,Panama 2022,,,90.43,110831648,,,Hospital Point,6
+G08_BC__S12_L002_R1_001_TCAC.nosymbio.fastq.bam,114,SSID,Panama 2022,,,48.66,101095580,,,Cristobal Island,21
+G08_BC__S12_L002_R1_001_TCAG.nosymbio.fastq.bam,158,SSID,Panama 2022,,,91.21,114235828,,,Hospital Point,6
+G08_BC__S12_L002_R1_001_TGGT.nosymbio.fastq.bam,106,SSID,Panama 2022,,,89.45,92502320,,,Cristobal Island,32
+G08_BC__S12_L002_R1_001_TGTC.nosymbio.fastq.bam,101,SSID,Panama 2022,,,90.16,85779982,,,Cristobal Island,33
+G14_BC__S16_L002_R1_001_AGAC.nosymbio.fastq.bam,125,SSID,Panama 2022,,8,90.31,103856664,,y,Hospital Point,30
+G14_BC__S16_L002_R1_001_AGTG.nosymbio.fastq.bam,116,SSID,Panama 2022,,,88.84,101487845,,,Hospital Point,34
+G14_BC__S16_L002_R1_001_CATC.nosymbio.fastq.bam,51,SSID,Panama 2022,,,89.57,127240363,,,STRI point,26
+G14_BC__S16_L002_R1_001_CTAC.nosymbio.fastq.bam,A88,SSID,Noelle,,,88.99,153972039,,,,NA
+G14_BC__S16_L002_R1_001_GACT.nosymbio.fastq.bam,67,SSID,Panama 2022,,,91.46,143578506,,,Cristobal Island,3
+G14_BC__S16_L002_R1_001_GCTT.nosymbio.fastq.bam,163,SSID,Panama 2022,,5,89.98,115141293,,,Hospital Point,2
+G14_BC__S16_L002_R1_001_GTGA.nosymbio.fastq.bam,174,SSID,Panama 2022,,,91.16,118692405,,,Punta Donato,8
+G14_BC__S16_L002_R1_001_TCAG.nosymbio.fastq.bam,110,SSID,Panama 2022,,,90.21,100297288,,,Cristobal Island,27
+G14_BC__S16_L002_R1_001_TGGT.nosymbio.fastq.bam,62,SSID,Panama 2022,,4,13.31,135673815,,y,Cristobal Island,3
+G14_BC__S16_L002_R1_001_TGTC.nosymbio.fastq.bam,105,SSID,Panama 2022,,,91.83,90643840,,,Cristobal Island,36
+G15_BC__S17_L002_R1_001_ACCA.nosymbio.fastq.bam,M124,SSID,Noelle,,,88.77,188575810,,,,NA
+G15_BC__S17_L002_R1_001_AGAC.nosymbio.fastq.bam,130,SSID,Panama 2022,,,90.79,104667652,,,Hospital Point,26
+G15_BC__S17_L002_R1_001_CATC.nosymbio.fastq.bam,217,SSID,Panama 2022,,,89.14,123819178,,,Punta Donato,9
+G15_BC__S17_L002_R1_001_CTAC.nosymbio.fastq.bam,132,SSID,Panama 2022,,,90.77,105019978,,,Hospital Point,24
+G15_BC__S17_L002_R1_001_GACT.nosymbio.fastq.bam,93,SSID,Panama 2022,,,89.63,151191245,,,Cristobal Island,27
+G15_BC__S17_L002_R1_001_GCTT.nosymbio.fastq.bam,31,SSID,Panama 2022,,,79.71,125539105,,,STRI point,12
+G15_BC__S17_L002_R1_001_TCAG.nosymbio.fastq.bam,56,SSID,Panama 2022,,,91.36,132759487,,,STRI point,18
+G15_BC__S17_L002_R1_001_TGGT.nosymbio.fastq.bam,141,SSID,Panama 2022,,,90.98,107324741,,,Hospital Point,6
+G16_BC__S18_L002_R1_001_ACCA.nosymbio.fastq.bam,188,SSID,Panama 2022,,,88.41,122305727,,,Punta Donato,8
+G16_BC__S18_L002_R1_001_AGTG.nosymbio.fastq.bam,146,SSID,Panama 2022,,,91.34,108295265,,,Hospital Point,5
+G16_BC__S18_L002_R1_001_CTAC.nosymbio.fastq.bam,184,SSID,Panama 2022,,7,91.18,120206940,,,Punta Donato,9
+G16_BC__S18_L002_R1_001_GACT.nosymbio.fastq.bam,176,SSID,Panama 2022,,,90.54,120046680,,,Punta Donato,8
+G16_BC__S18_L002_R1_001_GTGA.nosymbio.fastq.bam,P74,SSID,Noelle,,,90.67,200918147,,,,NA
+G16_BC__S18_L002_R1_001_TCAG.nosymbio.fastq.bam,41,SSID,Panama 2022,,,90.23,125949159,,,STRI point,11
+G16_BC__S18_L002_R1_001_TGGT.nosymbio.fastq.bam,79,SSID,Panama 2022,,,91.16,150867331,,,Cristobal Island,3
+G16_BC__S18_L002_R1_001_TGTC.nosymbio.fastq.bam,151,SSID,Panama 2022,,,91.19,110638158,,,Hospital Point,6
+ILL-BC24_S21_L002_R1_001_ACCA.nosymbio.fastq.bam,187,SSID,Panama 2022,,,90.40,121843671,,,Punta Donato,8
+ILL-BC24_S21_L002_R1_001_AGTG.nosymbio.fastq.bam,193,SSID,Panama 2022,,,90.87,122365561,,,Punta Donato,10
+ILL-BC24_S21_L002_R1_001_CTAC.nosymbio.fastq.bam,42,SSID,Panama 2022,,,89.91,127161357,,,STRI point,12
+ILL-BC24_S21_L002_R1_001_GACT.nosymbio.fastq.bam,131,SSID,Panama 2022,,,89.74,104930475,,,Hospital Point,32
+ILL-BC24_S21_L002_R1_001_GTGA.nosymbio.fastq.bam,104,SSID,Panama 2022,,,90.58,90065745,,,Cristobal Island,35
+ILL-BC24_S21_L002_R1_001_TCAG.nosymbio.fastq.bam,103,SSID,Panama 2022,,6,90.98,86270126,,y,Cristobal Island,34
+ILL-BC24_S21_L002_R1_001_TGTC.nosymbio.fastq.bam,196,SSID,Panama 2022,,,91.52,123166314,,,Punta Donato,9
+ILL-BC25_S2_L002_R1_001_ACCA.nosymbio.fastq.bam,W_OR_BN_9_S,SSID,cores,,,89.00,263022747,,,,NA
+ILL-BC25_S2_L002_R1_001_AGAC.nosymbio.fastq.bam,W_IR_SP_2_S,SSID,cores,,,91.31,223283991,,,,NA
+ILL-BC25_S2_L002_R1_001_AGTG.nosymbio.fastq.bam,68,SSID,Panama 2022,1,,90.59,144447737,,,Cristobal Island,3
+ILL-BC25_S2_L002_R1_001_CTAC.nosymbio.fastq.bam,75,SSID,Panama 2022,,,89.09,147922518,,,Cristobal Island,3
+ILL-BC25_S2_L002_R1_001_GCTT.nosymbio.fastq.bam,128,SSID,Panama 2022,,,91.63,104243347,,,Hospital Point,31
+ILL-BC25_S2_L002_R1_001_TGGT.nosymbio.fastq.bam,W_OR_CA_27_S,SSID,cores,,,90.40,348920618,,,,NA
+ILL-BC26_S3_L002_R1_001_ACCA.nosymbio.fastq.bam,W_IR_PD_59_S,SSID,cores,,,89.11,211576732,,,,NA
+ILL-BC26_S3_L002_R1_001_AGTG.nosymbio.fastq.bam,W_OR_BN_14_S,SSID,cores,,,89.80,244385347,,,,NA
+ILL-BC26_S3_L002_R1_001_CATC.nosymbio.fastq.bam,W_OR_DM_42_S,SSID,cores,,,88.84,878405529,,,,NA
+ILL-BC26_S3_L002_R1_001_GTGA.nosymbio.fastq.bam,W_OR_BN_16_S,SSID,cores,,,89.41,258512256,,,,NA
+ILL-BC26_S3_L002_R1_001_TCAG.nosymbio.fastq.bam,74,SSID,Panama 2022,,,90.08,145364644,,,Cristobal Island,3
+ILL-BC26_S3_L002_R1_001_TGGT.nosymbio.fastq.bam,169,SSID,Panama 2022,,,89.52,118359925,,,Hospital Point,2
+ILL-BC26_S3_L002_R1_001_TGTC.nosymbio.fastq.bam,W_OR_BS_23_S,SSID,cores,,,89.25,314340676,,,,NA
+ILL-BC27_S22_L002_R1_001_AGAC.nosymbio.fastq.bam,185,SSID,Panama 2022,,7,90.18,121840219,,y,Punta Donato,9
+ILL-BC27_S22_L002_R1_001_AGTG.nosymbio.fastq.bam,W_OR_BS_22_S,SSID,cores,,,89.25,276787965,,,,NA
+ILL-BC27_S22_L002_R1_001_CATC.nosymbio.fastq.bam,109,SSID,Panama 2022,,,56.93,94608125,,,Cristobal Island,31
+ILL-BC27_S22_L002_R1_001_GACT.nosymbio.fastq.bam,97,SSID,Panama 2022,,1,90.62,47874266,,,Cristobal Island,29
+ILL-BC27_S22_L002_R1_001_GTGA.nosymbio.fastq.bam,124,SSID,Panama 2022,,,88.79,56243104,,,Hospital Point,29
+ILL-BC27_S22_L002_R1_001_TGGT.nosymbio.fastq.bam,181,SSID,Panama 2022,,,91.72,73266167,,,Punta Donato,9
+ILL-BC27_S22_L002_R1_001_TGTC.nosymbio.fastq.bam,C25,SSID,Noelle,,,91.34,160431179,,,,NA
+ILL-BC29_S4_L002_R1_001_AGAC.nosymbio.fastq.bam,O4F,SSID,Hannah known lineages,,,90.43,194495482,,,,NA
+ILL-BC29_S4_L002_R1_001_CATC.nosymbio.fastq.bam,I2D,SSID,Hannah known lineages,,,87.74,167795306,,,,NA
+ILL-BC29_S4_L002_R1_001_CTAC.nosymbio.fastq.bam,I3I,SSID,Hannah known lineages,,,90.01,175607162,,,,NA
+ILL-BC29_S4_L002_R1_001_GACT.nosymbio.fastq.bam,50,SSID,Panama 2022,,,77.20,35520712,,,STRI point,25
+ILL-BC29_S4_L002_R1_001_TCAC.nosymbio.fastq.bam,48,SSID,Panama 2022,,,84.91,33299551,,,STRI point,25
+ILL-BC29_S4_L002_R1_001_TGGT.nosymbio.fastq.bam,I3D,SSID,Hannah known lineages,,,89.75,174483160,,,,NA
+ILL-BC29_S4_L002_R1_001_TGTC.nosymbio.fastq.bam,I3C,SSID,Hannah known lineages,,,90.42,174445687,,,,NA
+ILL-BC30_S23_L002_R1_001_AGAC.nosymbio.fastq.bam,209,SSID,Panama 2022,,,91.57,81049509,,,Punta Donato,10
+ILL-BC30_S23_L002_R1_001_AGTG.nosymbio.fastq.bam,W_IR_SP_3_S,SSID,cores,,,87.53,227103209,,,,NA
+ILL-BC30_S23_L002_R1_001_CATC.nosymbio.fastq.bam,190,SSID,Panama 2022,,,88.71,74095652,,,Punta Donato,9
+ILL-BC30_S23_L002_R1_001_CTAC.nosymbio.fastq.bam,199,SSID,Panama 2022,,,91.01,77364747,,,Punta Donato,9
+ILL-BC30_S23_L002_R1_001_GTGA.nosymbio.fastq.bam,173,SSID,Panama 2022,,,91.69,72482415,,,Punta Donato,8
+ILL-BC30_S23_L002_R1_001_TCAC.nosymbio.fastq.bam,213,SSID,Panama 2022,,,81.80,81452440,,,Punta Donato,9
+ILL-BC30_S23_L002_R1_001_TCAG.nosymbio.fastq.bam,J59,SSID,Noelle,,,67.59,184214006,,,,NA
+ILL-BC30_S23_L002_R1_001_TGGT.nosymbio.fastq.bam,220,SSID,Panama 2022,,,91.03,82253207,,,Punta Donato,9
+ILL-BC32_S20_L002_R1_001_AGAC.nosymbio.fastq.bam,201,SSID,Panama 2022,,,91.34,77766878,,,Punta Donato,9
+ILL-BC32_S20_L002_R1_001_AGTG.nosymbio.fastq.bam,94,SSID,Panama 2022,,1,90.48,47527259,,y,Cristobal Island,27
+ILL-BC32_S20_L002_R1_001_CATC.nosymbio.fastq.bam,W_OR_CA_30_S,SSID,cores,,,89.62,380406932,,,,NA
+ILL-BC32_S20_L002_R1_001_GTGA.nosymbio.fastq.bam,G32,SSID,Noelle,,,87.31,164766416,,,,NA
+ILL-BC32_S20_L002_R1_001_TGGT.nosymbio.fastq.bam,108,SSID,Panama 2022,,,90.21,50097816,,,Cristobal Island,35
+ILL-BC32_S20_L002_R1_001_TGTC.nosymbio.fastq.bam,225,SSID,Panama 2022,,,91.79,84627536,,,Punta Donato,11
+ILL-BC33_S1_L002_R1_001_ACCA.nosymbio.fastq.bam,126,SSID,Panama 2022,,8,91.56,56748820,,,Hospital Point,28
+ILL-BC33_S1_L002_R1_001_AGAC.nosymbio.fastq.bam,142,SSID,Panama 2022,,,91.42,60944798,,,Hospital Point,6
+ILL-BC33_S1_L002_R1_001_AGTG.nosymbio.fastq.bam,68,SSID,Panama 2022,1,,90.23,41891077,y,,Cristobal Island,3
+ILL-BC33_S1_L002_R1_001_CATC.nosymbio.fastq.bam,90,SSID,Panama 2022,,,91.12,47428058,,,Cristobal Island,3
+ILL-BC33_S1_L002_R1_001_CTAC.nosymbio.fastq.bam,89,SSID,Panama 2022,,,91.24,46907242,,,Cristobal Island,3
+ILL-BC33_S1_L002_R1_001_GTGA.nosymbio.fastq.bam,52,SSID,Panama 2022,,,89.06,37800432,,,STRI point,28
+ILL-BC33_S1_L002_R1_001_TCAC.nosymbio.fastq.bam,W_OR_BS_25_S,SSID,cores,,,89.00,322171811,,,,NA
+ILL-BC33_S1_L002_R1_001_TGTC.nosymbio.fastq.bam,120,SSID,Panama 2022,,,90.96,51901469,,,Hospital Point,32
+ILL-BC34_S6_L002_R1_001_ACCA.nosymbio.fastq.bam,W_OR_DM_40_S,SSID,cores,,,89.46,547996411,,,,NA
+ILL-BC34_S6_L002_R1_001_AGAC.nosymbio.fastq.bam,W_OR_BN_7_S,SSID,cores,,,89.91,260216155,,,,NA
+ILL-BC34_S6_L002_R1_001_AGTG.nosymbio.fastq.bam,W_OR_DM_41_S,SSID,cores,,,86.02,625544794,,,,NA
+ILL-BC34_S6_L002_R1_001_CATC.nosymbio.fastq.bam,O2A,SSID,Hannah known lineages,,,90.50,193039916,,,,NA
+ILL-BC34_S6_L002_R1_001_CTAC.nosymbio.fastq.bam,I2E,SSID,Hannah known lineages,,,89.50,168087084,,,,NA
+ILL-BC34_S6_L002_R1_001_GTGA.nosymbio.fastq.bam,W_IR_PD_63_S,SSID,cores,,,91.09,221837819,,,,NA
+ILL-BC34_S6_L002_R1_001_TCAC.nosymbio.fastq.bam,I4F,SSID,Hannah known lineages,,,90.60,176597340,,,,NA
+ILL-BC34_S6_L002_R1_001_TGGT.nosymbio.fastq.bam,W_IR_CI_57_S,SSID,cores,,,89.93,204701745,,,,NA
+ILL-BC34_S6_L002_R1_001_TGTC.nosymbio.fastq.bam,W_IR_PL_51_S,SSID,cores,,,77.69,223244258,,,,NA
+ILL-BC35_S19_L002_R1_001_ACCA.nosymbio.fastq.bam,M124,SSID,Noelle,,,87.50,188816918,,,,NA
+ILL-BC35_S19_L002_R1_001_AGAC.nosymbio.fastq.bam,K39,SSID,Noelle,,,76.53,186484731,,,,NA
+ILL-BC35_S19_L002_R1_001_CATC.nosymbio.fastq.bam,139,SSID,Panama 2022,,,89.96,58181279,,,Hospital Point,7
+ILL-BC35_S19_L002_R1_001_CTAC.nosymbio.fastq.bam,203,SSID,Panama 2022,,,91.62,77779630,,,Punta Donato,9
+ILL-BC35_S19_L002_R1_001_GCTT.nosymbio.fastq.bam,AH27,SSID,Noelle,,,88.27,156302884,,,,NA
+ILL-BC35_S19_L002_R1_001_TCAG.nosymbio.fastq.bam,B4,SSID,Noelle,,,91.14,156624164,,,,NA
+ILL-BC35_S19_L002_R1_001_TGGT.nosymbio.fastq.bam,221,SSID,Panama 2022,,,89.04,83027202,,,Punta Donato,9
+ILL-BC37_S14_L002_R1_001_ACCA.nosymbio.fastq.bam,45,SSID,Panama 2022,,,89.18,26688658,,,STRI point,10
+ILL-BC37_S14_L002_R1_001_AGAC.nosymbio.fastq.bam,115,SSID,Panama 2022,,,90.50,50777248,,,Cristobal Island,21
+ILL-BC37_S14_L002_R1_001_AGTG.nosymbio.fastq.bam,153,SSID,Panama 2022,,,92.03,66307423,,,Hospital Point,6
+ILL-BC37_S14_L002_R1_001_CATC.nosymbio.fastq.bam,64,SSID,Panama 2022,,,90.26,41284807,,,Cristobal Island,3
+ILL-BC37_S14_L002_R1_001_CTAC.nosymbio.fastq.bam,A88,SSID,Noelle,,,89.53,154265565,,,,NA
+ILL-BC37_S14_L002_R1_001_GACT.nosymbio.fastq.bam,65,SSID,Panama 2022,,,91.18,41460826,,,Cristobal Island,3
+ILL-BC37_S14_L002_R1_001_GCTT.nosymbio.fastq.bam,32,SSID,Panama 2022,,,1.27,1588114,,,STRI point,15
+ILL-BC37_S14_L002_R1_001_GTGA.nosymbio.fastq.bam,144,SSID,Panama 2022,,3,54.91,61022643,,y,Hospital Point,4
+ILL-BC37_S14_L002_R1_001_TCAC.nosymbio.fastq.bam,78,SSID,Panama 2022,,,91.98,46148978,,,Cristobal Island,3
+ILL-BC37_S14_L002_R1_001_TCAG.nosymbio.fastq.bam,156,SSID,Panama 2022,,2,90.24,70869494,,y,Hospital Point,6
+ILL-BC37_S14_L002_R1_001_TGTC.nosymbio.fastq.bam,47,SSID,Panama 2022,,,90.76,29221530,,,STRI point,25
+ILL-BC38_S15_L002_R1_001_ACCA.nosymbio.fastq.bam,39,SSID,Panama 2022,,,81.51,14903670,,,STRI point,8
+ILL-BC38_S15_L002_R1_001_CTAC.nosymbio.fastq.bam,138,SSID,Panama 2022,,,90.28,56858334,,,Hospital Point,7
+ILL-BC38_S15_L002_R1_001_GACT.nosymbio.fastq.bam,43,SSID,Panama 2022,,,18.14,18283672,,,STRI point,12
+ILL-BC38_S15_L002_R1_001_GCTT.nosymbio.fastq.bam,44,SSID,Panama 2022,,,3.16,23940619,,,STRI point,11
+ILL-BC38_S15_L002_R1_001_TCAC.nosymbio.fastq.bam,61,SSID,Panama 2022,,4,91.39,38361086,,,Cristobal Island,3
+ILL-BC38_S15_L002_R1_001_TCAG.nosymbio.fastq.bam,121,SSID,Panama 2022,,,85.87,52366070,,,Hospital Point,32
+ILL-BC38_S15_L002_R1_001_TGTC.nosymbio.fastq.bam,129,SSID,Panama 2022,,,90.71,56828415,,,Hospital Point,30
+ILL-BC80_S5_L002_R1_001_AGAC.nosymbio.fastq.bam,I2I,SSID,Hannah known lineages,,,89.45,172654832,,,,NA
+ILL-BC80_S5_L002_R1_001_AGTG.nosymbio.fastq.bam,W_IR_PD_60_S,SSID,cores,,,89.20,215306662,,,,NA
+ILL-BC80_S5_L002_R1_001_CATC.nosymbio.fastq.bam,W_IR_PD_61_S,SSID,cores,,,90.37,219834228,,,,NA
+ILL-BC80_S5_L002_R1_001_CTAC.nosymbio.fastq.bam,I3I,SSID,Hannah known lineages,,,91.22,176296162,,,,NA
+ILL-BC80_S5_L002_R1_001_GCTT.nosymbio.fastq.bam,37,SSID,Panama 2022,,,15.77,11205629,,,STRI point,11
+ILL-BC80_S5_L002_R1_001_GTGA.nosymbio.fastq.bam,W_IR_PL_47_S,SSID,cores,,,91.18,222261561,,,,NA
+ILL-BC80_S5_L002_R1_001_TGGT.nosymbio.fastq.bam,I2H,SSID,Hannah known lineages,,,88.25,168587489,,,,NA
+ILL-BC80_S5_L002_R1_001_TGTC.nosymbio.fastq.bam,O2C,SSID,Hannah known lineages,,,63.86,194378765,,,,NA
+ILL-BC84_S24_L002_R1_001_AGTG.nosymbio.fastq.bam,98,SSID,Panama 2022,,,90.91,48609673,,,Cristobal Island,31
+ILL-BC84_S24_L002_R1_001_CATC.nosymbio.fastq.bam,194,SSID,Panama 2022,,,88.17,77016120,,,Punta Donato,9
+ILL-BC84_S24_L002_R1_001_GCTT.nosymbio.fastq.bam,229,SSID,Panama 2022,,,91.08,85423405,,,Punta Donato,14
+ILL-BC84_S24_L002_R1_001_GTGA.nosymbio.fastq.bam,215,SSID,Panama 2022,,,90.78,82087219,,,Punta Donato,8
+ILL-BC84_S24_L002_R1_001_TCAG.nosymbio.fastq.bam,D63,SSID,Noelle,,,89.50,160777820,,,,NA
+ILL-BC84_S24_L002_R1_001_TGGT.nosymbio.fastq.bam,E14,SSID,Noelle,,,90.17,162443680,,,,NA
+ILL-BC90_S13_L002_R1_001_ACCA.nosymbio.fastq.bam,40,SSID,Panama 2022,,,7.24,16375671,,,STRI point,7
+ILL-BC90_S13_L002_R1_001_AGAC.nosymbio.fastq.bam,33,SSID,Panama 2022,,,0.62,1612296,,,STRI point,10
+ILL-BC90_S13_L002_R1_001_AGTG.nosymbio.fastq.bam,70,SSID,Panama 2022,,,87.87,45786518,,,Cristobal Island,3
+ILL-BC90_S13_L002_R1_001_CATC.nosymbio.fastq.bam,159,SSID,Panama 2022,,2,90.69,71747470,,,Hospital Point,6
+ILL-BC90_S13_L002_R1_001_CTAC.nosymbio.fastq.bam,155,SSID,Panama 2022,,,88.95,69204458,,,Hospital Point,6
+ILL-BC90_S13_L002_R1_001_GCTT.nosymbio.fastq.bam,34,SSID,Panama 2022,,,1.24,3585975,,,STRI point,9
+ILL-BC90_S13_L002_R1_001_GTGA.nosymbio.fastq.bam,88,SSID,Panama 2022,,,82.50,46166297,,,Cristobal Island,3
+ILL-BC90_S13_L002_R1_001_TCAC.nosymbio.fastq.bam,46,SSID,Panama 2022,,,89.17,28009354,,,STRI point,26
+ILL-BC90_S13_L002_R1_001_TCAG.nosymbio.fastq.bam,147,SSID,Panama 2022,,3,74.42,61364498,,,Hospital Point,5
+ILL-BC90_S13_L002_R1_001_TGGT.nosymbio.fastq.bam,69,SSID,Panama 2022,,,91.48,42989042,,,Cristobal Island,3
+ILL-BC90_S13_L002_R1_001_TGTC.nosymbio.fastq.bam,117,SSID,Panama 2022,,,89.86,51645242,,,Hospital Point,35
+ILL-BC91_S7_L002_R1_001_AGTG.nosymbio.fastq.bam,W_IR_SP_4_S,SSID,cores,,,90.44,231109341,,,,NA
+ILL-BC91_S7_L002_R1_001_CATC.nosymbio.fastq.bam,140,SSID,Panama 2022,,,91.16,58550801,,,Hospital Point,6
+ILL-BC91_S7_L002_R1_001_CTAC.nosymbio.fastq.bam,36,SSID,Panama 2022,3,,2.35,5338475,y,,STRI point,13
+ILL-BC91_S7_L002_R1_001_GCTT.nosymbio.fastq.bam,122,SSID,Panama 2022,,,90.81,55885837,,,Hospital Point,30
+ILL-BC91_S7_L002_R1_001_TGTC.nosymbio.fastq.bam,148,SSID,Panama 2022,,,91.79,63829258,,,Hospital Point,5
+ILL-BC94_S8_L002_R1_001_TCAC.nosymbio.fastq.bam,38,SSID,Panama 2022,,,14.27,14776308,,,STRI point,10
+ILL-BC94_S8_L002_R1_001_TGGT.nosymbio.fastq.bam,35,SSID,Panama 2022,,,4.06,4739979,,,STRI point,12
+ILL-BC94_S8_L002_R1_001_TGTC.nosymbio.fastq.bam,53,SSID,Panama 2022,,,89.17,38012317,,,STRI point,25
