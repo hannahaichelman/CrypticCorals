@@ -3966,7 +3966,7 @@ head(lineages_meta)
 ## Data Analysis
 # Subset to only include recent years (more confident in these core data) as in JP's analysis
 pan_cores_recent = lineages_meta %>%
-  dplyr::filter(Year >= "2005" & Year <= "2014") %>%
+  dplyr::filter(Year >= "1980" & Year <= "2014") %>%
   drop_na(lineage) %>%
   dplyr::filter(lineage != "3")
 head(pan_cores_recent)
@@ -3976,6 +3976,27 @@ pan_cores_allyears = lineages_meta %>%
   drop_na(lineage) %>%
   dplyr::filter(lineage != "3")
 count(unique(pan_cores_allyears$coreID)) # lines up with 24 cores with lineage and growth data - phew.
+
+# make a histogram of how many cores we have through time
+cols_lineage <- c("#3f007d","#807dba")
+
+str(pan_cores_allyears)
+yearmeans = summarySE(data = pan_cores_allyears, measurevar = c("calc"), groupvars = c("Year","lineage"))
+yearmeans = yearmeans %>%
+  select(Year, lineage, N)
+
+samplesize_hist =
+  ggplot(yearmeans) +
+  theme_bw()+
+  geom_bar(aes(x=Year, y=N, fill = lineage), stat="identity") +
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("1","2"),
+                    values = cols_lineage)+
+  scale_x_continuous(name="Year",breaks = seq(1880,2014,by=10))+
+  facet_wrap(~lineage)
+samplesize_hist
+ggsave(samplesize_hist, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_samplesize.pdf", width=10, height=3, units=c("in"), useDingbats=FALSE)
+
 
 # Average density, calcification, and linear extension by site, lineage, and sample ID
 
@@ -4129,15 +4150,13 @@ core.plots3 = ggarrange(p.linext3, p.den3, p.calc3,
                         labels = c("A", "B", "C"),
                         ncol = 3, nrow = 1)
 core.plots3
-ggsave(core.plots3, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_plots_2005-2014.pdf", width=8, height=3, units=c("in"), useDingbats=FALSE)
+ggsave(core.plots3, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_plots_1980-2014.pdf", width=8, height=3, units=c("in"), useDingbats=FALSE)
 
 ## Visualizing growth trends across lineages - all years
 
 linext_trends = summarySE(data = pan_cores_allyears, measurevar = c("linext"), groupvars = c("lineage","Year"))
 den_trends = summarySE(data = pan_cores_allyears, measurevar = c("density"), groupvars = c("lineage","Year"))
 calc_trends = summarySE(data = pan_cores_allyears, measurevar = c("calc"), groupvars = c("lineage","Year"))
-
-cols_lineage <- c("#3f007d","#807dba")
 
 # Linear extension
 linext = ggplot(data=linext_trends, aes(x=Year, y=linext, color=lineage)) +
@@ -4208,7 +4227,7 @@ linext = ggplot(data=linext_recent, aes(x=Year, y=linext, color=lineage)) +
                     breaks = c("1","2"),
                     values = cols_lineage)+
   ylab("Linear Extension")+
-  scale_x_continuous(name="Year",breaks = seq(2005,2014,by=3))+
+  scale_x_continuous(name="Year",breaks = seq(1980,2014,by=10))+
   theme(legend.position="none")
 linext
 
@@ -4224,7 +4243,7 @@ den = ggplot(data=den_recent, aes(x=Year, y=density, color=lineage)) +
                     breaks = c("1","2"),
                     values = cols_lineage)+
   ylab("Density") +
-  scale_x_continuous(name="Year",breaks = seq(2005,2014,by=3))+
+  scale_x_continuous(name="Year",breaks = seq(1980,2014,by=10))+
   theme(legend.position="none")
 den
 
@@ -4240,7 +4259,7 @@ calc = ggplot(data=calc_recent, aes(x=Year, y=calc, color=lineage)) +
                     breaks = c("1","2"),
                     values = cols_lineage)+
   ylab("Calcification") +
-  scale_x_continuous(name="Year",breaks = seq(2005,2014,by=3))+
+  scale_x_continuous(name="Year",breaks = seq(1980,2014,by=10))+
   theme(legend.position="none")
 calc
 
@@ -4249,7 +4268,7 @@ trends_recent = ggarrange(linext, den, calc,
                    ncol = 3, nrow = 1)
 trends_recent
 
-ggsave(trends_recent, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_trends_2005_2014.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(trends_recent, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_trends_1980_2014.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
 
 ## Creating data overview figure panels A-F
 
