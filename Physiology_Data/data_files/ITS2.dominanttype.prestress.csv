@@ -1,0 +1,85 @@
+"frag","A4z_sum","A4_sum","B19_sum","B5_sum","B5a_sum","C1_sum","C3_sum","C3af_sum","C15_sum","D1_sum","timepoint","Sample_or_Control","treat","gen_site","sitename","reef","lineage","dominant_type","minor_type"
+"O2F1",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O2F","BS","Outer Reef","L1","D1",NA
+"O2F3",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","O2F","BS","Outer Reef","L1","D1",NA
+"I3D3",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","I3D","CI","Inner Reef","L2","D1",NA
+"O4C1",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O4C","BN","Outer Reef","L1","D1",NA
+"O4G7",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","O4G","BN","Outer Reef","L1","D1",NA
+"O3F3",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","O3F","CA","Outer Reef","L1","D1",NA
+"O3C1",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O3C","CA","Outer Reef","L1","D1",NA
+"O2G7",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","O2G","BS","Outer Reef","L2","D1",NA
+"O2G1",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O2G","BS","Outer Reef","L2","D1",NA
+"O4G1",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O4G","BN","Outer Reef","L1","D1",NA
+"O4A17",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","O4A","BN","Outer Reef","L1","D1",NA
+"O3I11",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","O3I","CA","Outer Reef","L1","D1",NA
+"O3C10",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","O3C","CA","Outer Reef","L1","D1",NA
+"O4E1",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O4E","BN","Outer Reef","L1","D1",NA
+"O4H3",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","O4H","BN","Outer Reef","L1","D1",NA
+"O4E10",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","O4E","BN","Outer Reef","L1","D1",NA
+"O2H8",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Mod Var","O2H","BS","Outer Reef","L1","D1",NA
+"O3D1",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O3D","CA","Outer Reef","L1","D1",NA
+"O3E10",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O3E","CA","Outer Reef","L1","D1",NA
+"O2H2",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O2H","BS","Outer Reef","L1","D1",NA
+"O3F13",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O3F","CA","Outer Reef","L1","D1",NA
+"O4F1",0,0,0,0,0,0,0,0,0,1,"pre_stress","Sample","Control","O4F","BN","Outer Reef","L1","D1",NA
+"O4C3",0,0,0,0,0,0.0496391221092944,0,0,0,0.950360877890706,"pre_stress","Sample","Mod Var","O4C","BN","Outer Reef","L1","D1","C1"
+"I3E8",0,0,0,0,0,0.0632301577742984,0,0,0,0.936769842225702,"pre_stress","Sample","Control","I3E","CI","Inner Reef","L2","D1","C1"
+"O4D1",0,0,0,0,0,0.0452127659574468,0,0,0,0.954787234042553,"pre_stress","Sample","Control","O4D","BN","Outer Reef","L1","D1","C1"
+"O4D12",0,0,0,0,0,0.0766716943187531,0,0,0,0.923328305681247,"pre_stress","Sample","Mod Var","O4D","BN","Outer Reef","L1","D1","C1"
+"O3I8",0,0,0,0,0,0.135943966889526,0,0,0,0.864056033110474,"pre_stress","Sample","Control","O3I","CA","Outer Reef","L1","D1","C1"
+"O3D9",0,0,0,0,0,0.121394101876676,0,0.00407506702412869,0,0.874530831099196,"pre_stress","Sample","Mod Var","O3D","CA","Outer Reef","L1","D1","C1"
+"O4A1",0,0,0,0,0,0.168253683075817,0,0,0,0.831746316924183,"pre_stress","Sample","Control","O4A","BN","Outer Reef","L1","D1","C1"
+"O3B9",0,0,0,0,0,0.364871501064004,0,0,0,0.635128498935996,"pre_stress","Sample","Mod Var","O3B","CA","Outer Reef","L1","D1","C1"
+"I4D5",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I4D","PD","Inner Reef","L2","C1",NA
+"O2B5",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","O2B","BS","Outer Reef","L1","C1",NA
+"I4A5",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I4A","PD","Inner Reef","L1","C1",NA
+"I4A3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I4A","PD","Inner Reef","L1","C1",NA
+"I4H1",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I4H","PD","Inner Reef","L2","C1",NA
+"I4E3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I4E","PD","Inner Reef","L2","C1",NA
+"I4C3",0,0,0,0,0,0.950025893319524,0,0,0,0.0499741066804764,"pre_stress","Sample","Mod Var","I4C","PD","Inner Reef","L2","C1","D1"
+"I2B3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I2B","SP","Inner Reef","L2","C1",NA
+"O2B10",0,0,0,0,0,0.948390529396116,0,0,0,0.051609470603884,"pre_stress","Sample","Mod Var","O2B","BS","Outer Reef","L1","C1","D1"
+"O4B3",0,0,0,0,0,0.913873568095036,0,0,0,0.0861264319049639,"pre_stress","Sample","Mod Var","O4B","BN","Outer Reef","L1","C1","D1"
+"I3F1",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I3F","CI","Inner Reef","L1","C1",NA
+"I3C3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I3C","CI","Inner Reef","L2","C1",NA
+"I3G1",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I3G","CI","Inner Reef","L2","C1",NA
+"I3C5",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I3C","CI","Inner Reef","L2","C1",NA
+"O2I3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","O2I","BS","Outer Reef","L1","C1",NA
+"I3I3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I3I","CI","Inner Reef","L1","C1",NA
+"I3H3",0,0,0,0,0,0.848027842227378,0,0,0,0.151972157772622,"pre_stress","Sample","Mod Var","I3H","CI","Inner Reef","L1","C1","D1"
+"I3A1",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I3A","CI","Inner Reef","L1","C1",NA
+"I3A7",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I3A","CI","Inner Reef","L1","C1",NA
+"O2I1",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","O2I","BS","Outer Reef","L1","C1",NA
+"I2F10",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I2F","SP","Inner Reef","L2","C1",NA
+"O2D3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","O2D","BS","Outer Reef","L1","C1",NA
+"I3H5",0,0,0,0,0,0.754416961130742,0,0,0,0.245583038869258,"pre_stress","Sample","Control","I3H","CI","Inner Reef","L1","C1","D1"
+"O3B1",0,0,0,0,0,0.682190179267342,0,0,0,0.317809820732658,"pre_stress","Sample","Control","O3B","CA","Outer Reef","L1","C1","D1"
+"I3E3",0,0,0,0,0,0.619623655913978,0,0,0,0.380376344086022,"pre_stress","Sample","Mod Var","I3E","CI","Inner Reef","L2","C1","D1"
+"I2A1",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I2A","SP","Inner Reef","L2","C1",NA
+"I4B3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I4B","PD","Inner Reef","L2","C1",NA
+"I4I1",0,0,0,0,0,0.959306305621054,0,0,0,0.0406936943789458,"pre_stress","Sample","Control","I4I","PD","Inner Reef","L2","C1","D1"
+"O4F3",0,0,0,0,0,0.739236393176279,0,0,0,0.260763606823721,"pre_stress","Sample","Mod Var","O4F","BN","Outer Reef","L1","C1","D1"
+"I2A3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I2A","SP","Inner Reef","L2","C1",NA
+"I4I7",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I4I","PD","Inner Reef","L2","C1",NA
+"I4D9",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I4D","PD","Inner Reef","L2","C1",NA
+"I4H3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I4H","PD","Inner Reef","L2","C1",NA
+"O2C1",0,0,0,0,0,0.530703458997279,0,0,0,0.469296541002721,"pre_stress","Sample","Control","O2C","BS","Outer Reef","L1","C1","D1"
+"I2G11",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I2G","SP","Inner Reef","L2","C1",NA
+"I2B8",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I2B","SP","Inner Reef","L2","C1",NA
+"I2F1",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I2F","SP","Inner Reef","L2","C1",NA
+"O2A9",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","O2A","BS","Outer Reef","L1","C1",NA
+"I2G5",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I2G","SP","Inner Reef","L2","C1",NA
+"O3G1",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","O3G","CA","Outer Reef","L1","C1",NA
+"O3H3",0,0,0.0166770379589297,0,0,0.960858742999378,0,0,0,0.0224642190416926,"pre_stress","Sample","Mod Var","O3H","CA","Outer Reef","L1","C1","B19"
+"I2E3",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Mod Var","I2E","SP","Inner Reef","L2","C1",NA
+"O3G8",0,0,0,0,0,0.914137234782033,0,0,0,0.085862765217967,"pre_stress","Sample","Mod Var","O3G","CA","Outer Reef","L1","C1","D1"
+"O3H1",0,0,0,0,0,0.920114942528736,0,0,0,0.0798850574712644,"pre_stress","Sample","Control","O3H","CA","Outer Reef","L1","C1","D1"
+"I3F3",0,0,0,0,0,0.776879831342235,0,0,0,0.223120168657765,"pre_stress","Sample","Mod Var","I3F","CI","Inner Reef","L1","C1","D1"
+"I4B1",0,0,0,0,0,0,1,0,0,0,"pre_stress","Sample","Control","I4B","PD","Inner Reef","L2","C3",NA
+"I2C1",0,0,0,0,0,0,1,0,0,0,"pre_stress","Sample","Control","I2C","SP","Inner Reef","L2","C3",NA
+"I2C3",0,0,0,0,0,0,1,0,0,0,"pre_stress","Sample","Mod Var","I2C","SP","Inner Reef","L2","C3",NA
+"O2A11",0,0,0,0,0,0.828104249667995,0,0,0,0.171895750332005,"pre_stress","Sample","Control","O2A","BS","Outer Reef","L1","C1","D1"
+"O2E3",0,0,0,0,0,0,0,1,0,0,"pre_stress","Sample","Mod Var","O2E","BS","Outer Reef","L1","C3af",NA
+"O2E8",0,0,0,0,0,0,0,1,0,0,"pre_stress","Sample","Control","O2E","BS","Outer Reef","L1","C3af",NA
+"I2E7",0,0,0,0,0,1,0,0,0,0,"pre_stress","Sample","Control","I2E","SP","Inner Reef","L2","C1",NA
+"O3E3",0,0,0,0,0,0.923918846769888,0,0,0,0.0760811532301121,"pre_stress","Sample","Mod Var","O3E","CA","Outer Reef","L1","C1","D1"
+"I3G3",0,0,0,0,0,0.767024128686327,0,0,0,0.232975871313673,"pre_stress","Sample","Mod Var","I3G","CI","Inner Reef","L2","C1","D1"

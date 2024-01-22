@@ -48,23 +48,23 @@ str(post_phys)
 
 # not reading in calcification or fv/fm data here because we don't have that information for the initial physiology.
 # so i am only reading in the data that matches across the initial and final physiology data frames so we can combine them effectively
-post_phys = post_phys %>%
+post_phys2 = post_phys %>%
   dplyr::select(frag, survivedtoend, treat, t3sastan1, t3sastan2, t3sastan3, t3sarec1, t3sarec2, t3sarec3, blastvol, blaster,
                 hprotplate, hprot1, hprot2, hprot3, chl630_1, chl630_2, chl630_3, chl663_1, chl663_2, chl663_3, symcount1, symcount2, symcount3) %>%
   dplyr::rename(sastan1 = t3sastan1, sastan2 = t3sastan2, sastan3 = t3sastan3, sarec1 = t3sarec1, sarec2 = t3sarec2, sarec3 = t3sarec3) %>%
   mutate(treat = as.factor(treat), sarec3 = as.numeric(sarec3), blastvol = as.numeric(blastvol)) %>%
   dplyr::filter(frag!="I2A12", frag!="I2A7", frag!="O4D8", frag!="I3E10", frag!="I3I10") #these frags are being removed because they were duplicate genotypes within treatment and had the least complete information of the two
 
-init_phys = init_phys %>%
+init_phys2 = init_phys %>%
   dplyr::select(frag, survivedtoend, treat, pasastan1, pasastan2, pasastan3, pasarec1, pasarec2, pasarec3, blastvol, blaster,
                 hprotplate, hprot1, hprot2, hprot3, chl630_1, chl630_2, chl630_3, chl663_1, chl663_2, chl663_3, symcount1, symcount2, symcount3) %>%
   dplyr::rename(sastan1 = pasastan1, sastan2 = pasastan2, sastan3 = pasastan3, sarec1 = pasarec1, sarec2 = pasarec2, sarec3 = pasarec3) %>%
   mutate(treat = as.factor(treat), survivedtoend = as.character(survivedtoend))
 
-dim(post_phys)
-dim(init_phys)
+dim(post_phys2)
+dim(init_phys2)
 
-combined_phys <- dplyr::bind_rows(post_phys,init_phys)
+combined_phys <- dplyr::bind_rows(post_phys2,init_phys2)
 dim(combined_phys)
 head(combined_phys)
 
@@ -113,29 +113,7 @@ phys$treat <- as.factor(phys$treat)
 
 str(phys)
 
-## combine physiology data with dominant symbiont type data - skipping for now because
-## updated analyses don't consider the prestress symbionts as much as we did initially
-head(phys)
-
-its2_types = read.csv("Physiology_Data/data_files/ITS2.dominanttype.csv")
-head(its2_types)
-
-its2_types = its2_types %>%
-  select(-Sample_or_Control, -treat, -gen_site, -sitename, -reef, -lineage)
-
-phys <- left_join(phys, its2_types, by = "frag")
-str(phys)
-phys$dominant_type = as.factor(phys$dominant_type)
-phys$minor_type = as.factor(phys$minor_type)
-head(phys)
-
-# merge with its2 divs
-its2_divs = read.csv("Physiology_Data/data_files/ITS2.dominantDIVs.csv") %>%
-  select(frag, dominant_div)
-
-phys <- left_join(phys, its2_divs, by = "frag")
-
-# merge with lineage
+## merge physiology data with lineage
 # this includes data frame without duplicated preps and with no clones (I4G removed because it was smaller bam file)
 lineages = read.csv("Physiology_Data/data_files/tve_lineages_noclones.csv")
 head(lineages)
@@ -144,20 +122,66 @@ phys <- left_join(phys, lineages, by = "gen_site")
 phys$lineage = as.factor(phys$lineage)
 head(phys)
 
+## combine physiology data with dominant symbiont type data
+head(phys)
+# need to separate phys data frame, add its2 types, then re-combine
+# first add its2 data to T0 phys dataframe
+phys_t0 = phys %>%
+  dplyr::filter(treat == "Initial")
+
+its2_types_t0 = read.csv("Physiology_Data/data_files/ITS2.dominanttype.T0.csv")
+head(its2_types_t0)
+
+its2_types_t0 = its2_types_t0 %>%
+  select(-Sample_or_Control, -treat, -sitename, -reef, -lineage)
+
+phys_its_t0 = left_join(phys_t0, its2_types_t0, by = "gen_site")
+head(phys_its_t0)
+
+phys_its_t0 = phys_its_t0 %>%
+  dplyr::select(-frag.y) %>%
+  dplyr::rename(frag = frag.x)
+head(phys_its_t0)
+
+# now do the same for the prestress data frame
+phys_ps = phys %>%
+  dplyr::filter(treat != "Initial")
+
+its2_types_ps = read.csv("Physiology_Data/data_files/ITS2.dominanttype.prestress.csv")
+head(its2_types_ps)
+
+its2_types_ps = its2_types_ps %>%
+  select(-Sample_or_Control, -treat, -gen_site, -sitename, -reef, -lineage)
+
+phys_its_ps = left_join(phys_ps, its2_types_ps, by = "frag")
+head(phys_its_ps)
+
+dim(phys_its_ps)
+dim(phys_its_t0)
+colnames(phys_its_ps) == colnames(phys_its_t0)
+# same dimensions and column names - ready to recombine
+
+phys = rbind(phys_its_t0, phys_its_ps)
+str(phys)
+phys$dominant_type = as.factor(phys$dominant_type)
+phys$minor_type = as.factor(phys$minor_type)
+head(phys)
+
+
 ## make metadata to use throughout the code
 
 phys_metadata = phys %>%
-  select(frag, treat, gen_site, sitename, reef, dominant_div, dominant_type, lineage)
+  select(frag, treat, gen_site, sitename, reef, dominant_type, lineage)
 
 head(phys_metadata)
-#write.csv(phys_metadata_all, "/Users/hannahaichelman/Documents/BU/TVE/phys_metadata_updatedDIVs.csv",row.names=FALSE)
+#write.csv(phys_metadata, "Physiology_Data/data_files/phys_metadata.csv",row.names=FALSE)
 
 # set color palettes used throughout
 cols_site <- c("CI" = "#543005", "PD"= "#bf812d",  "SP"= "#dfc27d",  "BN" = "#003c30", "BS"= "#35978f", "CA"= "#80cdc1")
 #cols_treat <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
 cols_treat <- c("darkgrey","#CC3300")
 cols_lineage <- c("L1" = "#3f007d", "L2" = "#807dba", "L3" = "#bcbddc")
-its2_cols_greens = c("C1" = "#edf8e9", "C3af" = "#238b45","C3" = "#a1d99b","D1" = "#00441b")
+its2_cols_greens = c("A4" = "#ffeda0", "C1" = "#edf8e9", "C3af" = "#238b45","C3" = "#a1d99b","D1" = "#00441b")
 
 #### Test for Lineage Distribution ####
 # Want to test whether distribution of lineages is significantly different across inshore and offshore sites.
@@ -531,10 +555,7 @@ hprot_phys_all_lin = hprot_phys %>%
 
 hprot_phys_2_lin = hprot_phys_all_lin %>%
   dplyr::filter(is.na(lineage) | lineage!="L3") %>%
-  drop_na(sitename, lineage) # doing this for plotting
-
-hprot_phys_2_lin_symtype = hprot_phys_2_lin %>%
-  drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
+  drop_na(sitename, lineage, treat, dominant_type) # doing this for plotting
 
 initial_hprot_phys_all_lin = hprot_phys_all_lin %>%
   dplyr::filter(treat=="Initial")
@@ -569,9 +590,9 @@ summary(model.prot.final)
 anova(model.prot.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
 #                 Sum Sq  Mean Sq NumDF  DenDF F value   Pr(>F)
-# treat         0.023727 0.007909     3 86.772   0.818 0.487377
-# lineage       0.169191 0.169191     1 28.611  17.498 0.000248 ***
-# dominant_type 0.002931 0.000977     3 60.506   0.101 0.959121
+# treat         0.001871 0.001871     1 24.744  0.2244 0.639851
+# lineage       0.092738 0.092738     1 34.767 11.1244 0.002036 **
+# dominant_type 0.009024 0.003008     3 41.718  0.3608 0.781577
 
 check_model(model.prot.final)
 
@@ -581,11 +602,9 @@ m.emm<- lmer(prot_mgcm2 ~ treat*lineage + (1|gen_site), data = post_hprot_phys_2
 
 emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
-# treat    lineage_pairwise estimate     SE  df t.ratio p.value
-# Control  L1 - L2            0.1277 0.0364 151   3.510  0.0024
-# Low Var  L1 - L2            0.0678 0.0380 152   1.785  0.0762
-# Mod Var  L1 - L2            0.0978 0.0341 149   2.873  0.0093
-# High Var L1 - L2            0.0932 0.0359 151   2.600  0.0137
+# treat   lineage_pairwise estimate     SE   df t.ratio p.value
+# Control L1 - L2             0.128 0.0420 79.9   3.045  0.0063
+# Mod Var L1 - L2             0.102 0.0394 77.1   2.579  0.0118
 
 
 # PLOTS
@@ -644,7 +663,7 @@ ggsave(prot_plot_lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Prot
 
 # plot, treatment x axis and symtype color
 #SummarySE to format data for plotting
-prot_means_sym <- summarySE(hprot_phys_2_lin_symtype, measurevar="prot_mgcm2", groupvars=c("treat","dominant_type"))
+prot_means_sym <- summarySE(hprot_phys_2_lin, measurevar="prot_mgcm2", groupvars=c("treat","dominant_type"))
 
 # plot, treatment x axis colored by site data figure
 prot_plot_sym <- ggplot(prot_means_sym,aes(x = treat, y = prot_mgcm2, fill = dominant_type))+
@@ -656,7 +675,7 @@ prot_plot_sym <- ggplot(prot_means_sym,aes(x = treat, y = prot_mgcm2, fill = dom
   xlab("Treatment")+
   ylab(bquote("Total Protein (mg" ~cm^-2~')'))+
   ylim(0,0.4) +
-  #geom_vline(xintercept = 1.5) +
+  geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
         legend.position = c(.95, .99),
         legend.justification = c("right", "top"),
@@ -700,7 +719,7 @@ prot_plot_lineage_CI <- ggplot(hprot_means_lineage_CI,aes(x = treat, y = prot_mg
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
 prot_plot_lineage_CI
 
-ggsave(prot_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/Protein/plots/protein_lineage_CIonly.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(prot_plot_lineage_CI, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Protein/plots/protein_lineage_CIonly.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 ##### Host Carbohydrate Concentrations #####
 # first, subset physiology data add in standard curve data needed to correct for separate carbohydrate plates
@@ -791,10 +810,7 @@ hcarb_phys_all_lin = hcarb_phys %>%
 
 hcarb_phys_2_lin = hcarb_phys_all_lin %>%
   dplyr::filter(is.na(lineage) | lineage!="L3") %>%
-  drop_na(sitename, lineage) # doing this for plotting
-
-hcarb_phys_2_lin_symtype = hcarb_phys_2_lin %>%
-  drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
+  drop_na(sitename, lineage, treat, dominant_type) # doing this for plotting
 
 initial_hcarb_phys_all_lin = hcarb_phys_all_lin %>%
   dplyr::filter(treat=="Initial")
@@ -827,10 +843,10 @@ model.hcarb.final <- lmer(hcarb_mgcm2 ~ lineage+treat+dominant_type + (1|gen_sit
 summary(model.hcarb.final)
 anova(model.hcarb.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#                Sum Sq  Mean Sq NumDF   DenDF F value    Pr(>F)
-# lineage       0.28287 0.282867     1  49.590 14.1664 0.0004437 ***
-# treat         0.48823 0.162744     3 111.350  8.1504 5.922e-05 ***
-# dominant_type 0.00723 0.002408     3  76.077  0.1206 0.9477028
+#                Sum Sq Mean Sq NumDF  DenDF F value    Pr(>F)
+# lineage       0.17919 0.17919     1 48.667  9.7312  0.003042 **
+# treat         0.33958 0.33958     1 43.460 18.4420 9.662e-05 ***
+# dominant_type 0.02979 0.00993     3 52.594  0.5394  0.657428
 
 check_model(model.hcarb.final)
 
@@ -840,11 +856,9 @@ m.emm<- lmer(hcarb_mgcm2 ~ treat*lineage + (1|gen_site), data = post_hcarb_phys_
 
 emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
-# treat    lineage_pairwise estimate     SE  df t.ratio p.value
-# Control  L1 - L2            0.2079 0.0487 154   4.271  0.0001
-# Low Var  L1 - L2            0.0433 0.0509 154   0.851  0.3962
-# Mod Var  L1 - L2            0.0751 0.0455 154   1.652  0.1341
-# High Var L1 - L2            0.0901 0.0479 154   1.879  0.1244
+# treat   lineage_pairwise estimate     SE   df t.ratio p.value
+# Control L1 - L2            0.2076 0.0473 83.0   4.393  0.0001
+# Mod Var L1 - L2            0.0752 0.0441 82.8   1.706  0.0917
 
 
 ## PLOTS
@@ -893,7 +907,7 @@ ggsave(hcarb_plot_lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Car
 
 # plot, treatment x axis and symtype color
 #SummarySE to format data for plotting
-hcarb_means_sym <- summarySE(hcarb_phys_2_lin_symtype, measurevar="hcarb_mgcm2", groupvars=c("treat","dominant_type"))
+hcarb_means_sym <- summarySE(hcarb_phys_2_lin, measurevar="hcarb_mgcm2", groupvars=c("treat","dominant_type"))
 
 # plot, treatment x axis colored by site data figure
 hcarb_plot_sym <- ggplot(hcarb_means_sym,aes(x = treat, y = hcarb_mgcm2, fill = dominant_type))+
@@ -905,7 +919,7 @@ hcarb_plot_sym <- ggplot(hcarb_means_sym,aes(x = treat, y = hcarb_mgcm2, fill = 
   xlab("Treatment")+
   ylab(bquote("Total Host Carbohydrate (mg" ~cm^-2~')'))+
   ylim(0,0.8) +
-  #geom_vline(xintercept = 1.5) +
+  geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
         legend.position = "none"
 )
@@ -922,10 +936,10 @@ ggsave(hcarb_plots_all, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Carboh
 
 
 # plot just CI corals to see if lineage difference holds
-hcarb_phys_2_lin_nona_CI = hcarb_phys_2_lin_nona %>%
+hcarb_phys_2_lin_CI = hcarb_phys_2_lin %>%
   subset(sitename == "CI")
 
-hcarb_means_lineage_CI <- summarySE(hcarb_phys_2_lin_nona_CI, measurevar="hcarb_mgcm2", groupvars=c("treat","lineage"))
+hcarb_means_lineage_CI <- summarySE(hcarb_phys_2_lin_CI, measurevar="hcarb_mgcm2", groupvars=c("treat","lineage"))
 
 hcarb_plot_lineage_CI <- ggplot(hcarb_means_lineage_CI,aes(x = treat, y = hcarb_mgcm2, color = lineage, pch = lineage))+
   theme_bw()+
@@ -944,7 +958,7 @@ hcarb_plot_lineage_CI <- ggplot(hcarb_means_lineage_CI,aes(x = treat, y = hcarb_
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
 hcarb_plot_lineage_CI
 
-ggsave(hcarb_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/Carbohydrates/Plots/hcarb_lineage_CIonly.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(hcarb_plot_lineage_CI, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Carbohydrates/Plots/hcarb_lineage_CIonly.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 
 ##### Sym Carb Concentrations #####
@@ -1024,10 +1038,7 @@ scarb_phys_all_lin = scarb_phys %>%
 
 scarb_phys_2_lin = scarb_phys_all_lin %>%
   dplyr::filter(is.na(lineage) | lineage!="L3") %>%
-  drop_na(sitename, lineage) # doing this for plotting
-
-scarb_phys_2_lin_symtype = scarb_phys_2_lin %>%
-  drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
+  drop_na(sitename, lineage, treat, dominant_type) # doing this for plotting
 
 initial_scarb_phys_all_lin = scarb_phys_all_lin %>%
   dplyr::filter(treat=="Initial")
@@ -1060,10 +1071,10 @@ model.scarb.final <- lmer(scarb_mgcm2 ~ lineage+treat+dominant_type + (1|gen_sit
 summary(model.scarb.final)
 anova(model.scarb.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#               Sum Sq  Mean Sq NumDF   DenDF F value    Pr(>F)
-# lineage       0.064197 0.064197     1  45.927 13.7494 0.0005613 ***
-# treat         0.058665 0.019555     3 109.955  4.1883 0.0075541 **
-# dominant_type 0.015825 0.005275     3  69.740  1.1298 0.3430772
+#                 Sum Sq  Mean Sq NumDF  DenDF F value   Pr(>F)
+# lineage       0.013316 0.013316     1 50.127  3.4142 0.070543 .
+# treat         0.042956 0.042956     1 44.759 11.0133 0.001804 **
+# dominant_type 0.004003 0.001334     3 53.137  0.3421 0.794962
 
 check_model(model.scarb.final)
 
@@ -1073,12 +1084,9 @@ m.emm<- lmer(scarb_mgcm2 ~ treat*lineage + (1|gen_site), data = post_scarb_phys_
 
 emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
-# treat    lineage_pairwise estimate     SE  df t.ratio p.value
-# Control  L1 - L2           0.04923 0.0237 154   2.080  0.0784
-# Low Var  L1 - L2           0.04359 0.0248 154   1.760  0.1071
-# Mod Var  L1 - L2           0.00979 0.0221 154   0.442  0.6588
-# High Var L1 - L2           0.07896 0.0233 154   3.386  0.0036
-
+# treat   lineage_pairwise estimate     SE   df t.ratio p.value
+# Control L1 - L2           0.05020 0.0223 83.0   2.252  0.0540
+# Mod Var L1 - L2           0.00884 0.0208 82.8   0.425  0.6718
 
 # PLOTS
 #SummarySE to format data for plotting
@@ -1127,7 +1135,7 @@ ggsave(scarb_plot_lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Car
 
 # plot, treatment x axis and symtype color
 #SummarySE to format data for plotting
-scarb_means_sym <- summarySE(scarb_phys_2_lin_symtype, measurevar="scarb_mgcm2", groupvars=c("treat","dominant_type"))
+scarb_means_sym <- summarySE(scarb_phys_2_lin, measurevar="scarb_mgcm2", groupvars=c("treat","dominant_type"))
 
 # plot, treatment x axis colored by site data figure
 scarb_plot_sym <- ggplot(scarb_means_sym,aes(x = treat, y = scarb_mgcm2, fill = dominant_type))+
@@ -1139,7 +1147,7 @@ scarb_plot_sym <- ggplot(scarb_means_sym,aes(x = treat, y = scarb_mgcm2, fill = 
   xlab("Treatment")+
   ylab(bquote("Total Symbiont Carbohydrate (mg" ~cm^-2~')'))+
   ylim(0,0.35) +
-  #geom_vline(xintercept = 1.5) +
+  geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
         legend.position = "none"
 )
@@ -1180,10 +1188,7 @@ sym_phys_all_lin = sym_phys %>%
 
 sym_phys_2_lin = sym_phys_all_lin %>%
   dplyr::filter(is.na(lineage) | lineage!="L3") %>%
-  drop_na(sitename, lineage) # doing this for plotting
-
-sym_phys_2_lin_symtype = sym_phys_2_lin %>%
-  drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
+  drop_na(sitename, lineage, treat, dominant_type) # doing this for plotting
 
 initial_sym_phys_all_lin = sym_phys_all_lin %>%
   dplyr::filter(treat=="Initial")
@@ -1215,10 +1220,10 @@ model.sym.final <- lmer(sym_cm2 ~ lineage+treat+dominant_type + (1|gen_site), da
 summary(model.sym.final)
 anova(model.sym.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#                   Sum Sq    Mean Sq NumDF  DenDF F value    Pr(>F)
-# lineage       2.4889e+12 2.4889e+12     1   48.4 13.9548 0.0004944 ***
-# treat         5.3837e+12 1.7946e+12     3 9819.9 10.0617 1.289e-06 ***
-# dominant_type 1.2968e+11 4.3226e+10     3   93.6  0.2424 0.8665716
+#                   Sum Sq    Mean Sq NumDF  DenDF F value   Pr(>F)
+# lineage       2.4936e+12 2.4936e+12     1   45.5  9.3460 0.003734 **
+# treat         1.5494e+12 1.5494e+12     1 4176.2  5.8073 0.016003 *
+# dominant_type 2.7764e+11 9.2546e+10     3   54.2  0.3469 0.791542
 
 check_model(model.sym.final)
 
@@ -1228,11 +1233,9 @@ m.emm<- lmer(sym_cm2 ~ treat*lineage + (1|gen_site), data = post_sym_phys_2_lin,
 
 emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
-# treat    lineage_pairwise estimate     SE  df t.ratio p.value
-# Control  L1 - L2            492769 152557 151   3.230  0.0061
-# Low Var  L1 - L2            188787 159361 152   1.185  0.2380
-# Mod Var  L1 - L2            429179 142727 150   3.007  0.0062
-# High Var L1 - L2            243636 152229 151   1.600  0.1488
+# treat   lineage_pairwise estimate     SE   df t.ratio p.value
+# Control L1 - L2            495566 188601 83.0   2.628  0.0198
+# Mod Var L1 - L2            417690 175851 82.8   2.375  0.0198
 
 
 # PLOTS
@@ -1281,7 +1284,7 @@ ggsave(sym_plot_lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Symbi
 
 # plot, treatment x axis and symtype color
 #SummarySE to format data for plotting
-sym_means_sym <- summarySE(sym_phys_2_lin_symtype, measurevar="sym_cm2_div", groupvars=c("treat","dominant_type"))
+sym_means_sym <- summarySE(sym_phys_2_lin, measurevar="sym_cm2_div", groupvars=c("treat","dominant_type"))
 
 # plot, treatment x axis colored by site data figure
 sym_plot_sym <- ggplot(sym_means_sym,aes(x = treat, y = sym_cm2_div, fill = dominant_type))+
@@ -1293,7 +1296,7 @@ sym_plot_sym <- ggplot(sym_means_sym,aes(x = treat, y = sym_cm2_div, fill = domi
   xlab("Treatment")+
   ylab(bquote("Symbiont Density ("~x10^6~ 'cells' ~cm^-2~')'))+
   ylim(0,2.55) +
-  #geom_vline(xintercept = 1.5) +
+  geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
         legend.position = "none"
   )
@@ -1375,10 +1378,7 @@ chl_phys_all_lin = chl_phys %>%
 
 chl_phys_2_lin = chl_phys_all_lin %>%
   dplyr::filter(is.na(lineage) | lineage!="L3") %>%
-  drop_na(sitename, lineage) # doing this for plotting
-
-chl_phys_2_lin_symtype = chl_phys_2_lin %>%
-  drop_na(treat, dominant_type)  # we only have symbiont types from the end of the experiment, so do separate filtering for those plots
+  drop_na(sitename, lineage, treat, dominant_type) # doing this for plotting
 
 initial_chl_phys_all_lin = chl_phys_all_lin %>%
   dplyr::filter(treat=="Initial")
@@ -1410,10 +1410,10 @@ model.chl.final <- lmer(chlA ~ treat+lineage+dominant_type + (1|gen_site), data 
 summary(model.chl.final)
 anova(model.chl.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#               Sum Sq Mean Sq NumDF   DenDF F value   Pr(>F)
-# treat         24.296  8.0986     3 107.844  3.0766 0.030697 *
-# lineage       27.456 27.4565     1  46.965 10.4306 0.002265 **
-# dominant_type 11.187  3.7288     3 105.245  1.4166 0.242089
+#               Sum Sq Mean Sq NumDF DenDF F value   Pr(>F)
+# treat          0.041   0.041     1    75  0.0138 0.906781
+# lineage       32.913  32.913     1    75 11.0195 0.001394 **
+# dominant_type  9.250   3.083     3    75  1.0323 0.383255
 
 check_model(model.chl.final)
 
@@ -1423,11 +1423,9 @@ m.emm<- lmer(chlA ~ treat*lineage + (1|gen_site), data = post_chl_phys_2_lin, RE
 
 emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
-# treat    lineage_pairwise estimate    SE  df t.ratio p.value
-# Control  L1 - L2             1.687 0.658 151   2.561  0.0373
-# Low Var  L1 - L2             0.624 0.669 152   0.932  0.3527
-# Mod Var  L1 - L2             0.972 0.598 141   1.627  0.1414
-# High Var L1 - L2             1.497 0.629 146   2.380  0.0373
+# treat   lineage_pairwise estimate    SE   df t.ratio p.value
+# Control L1 - L2             1.561 0.601 85.2   2.597  0.0222
+# Mod Var L1 - L2             0.983 0.537 85.2   1.829  0.0709
 
 # PLOTS
 #SummarySE to format data for plotting
@@ -1472,7 +1470,7 @@ ggsave(chla_plot_lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Chlo
 
 # plot, treatment x axis and symtype color
 #SummarySE to format data for plotting
-chla_means_sym <- summarySE(chl_phys_2_lin_symtype, measurevar="chlA", groupvars=c("treat","dominant_type"))
+chla_means_sym <- summarySE(chl_phys_2_lin, measurevar="chlA", groupvars=c("treat","dominant_type"))
 
 # plot, treatment x axis colored by site data figure
 chla_plot_sym <- ggplot(chla_means_sym,aes(x = treat, y = chlA, fill = dominant_type))+
@@ -1484,7 +1482,7 @@ chla_plot_sym <- ggplot(chla_means_sym,aes(x = treat, y = chlA, fill = dominant_
   xlab("Treatment")+
   ylab(bquote("Chl a ("*mu*"g" ~cm^-2~')'))+
   ylim(0,15) +
-  #geom_vline(xintercept = 1.5) +
+  geom_vline(xintercept = 1.5) +
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1),
         legend.position = "none")
 chla_plot_sym
@@ -1501,10 +1499,10 @@ ggsave(chla_plots_all, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Chlorop
 
 
 # plot just CI corals to see if lineage difference holds
-chl_phys_lineage_nona_CI = chl_phys_2_lin_nona %>%
+chl_phys_lineage_CI = chl_phys_2_lin %>%
   subset(sitename == "CI")
 
-chla_means_lineage_CI <- summarySE(chl_phys_lineage_nona_CI, measurevar="chlA", groupvars=c("treat","lineage"))
+chla_means_lineage_CI <- summarySE(chl_phys_lineage_CI, measurevar="chlA", groupvars=c("treat","lineage"))
 
 chla_plot_lineage_CI <- ggplot(chla_means_lineage_CI,aes(x = treat, y = chlA, color = lineage, pch = lineage))+
   theme_bw()+
@@ -1659,11 +1657,8 @@ str(calc_phys)
 
 # un-comment the drop_na() corresponding to the time point of data you want to look at.
 calc_phys2 = calc_phys %>%
-  drop_na(T3_T2_perc) %>%
-  #drop_na(T2_T0_perc) %>%
-  #drop_na(T2_T0_g_cm2_day) %>%
   #drop_na(T2_T0_rgr) %>%
-  #drop_na(T3_T2_rgr) %>%
+  drop_na(T3_T2_rgr) %>%
   dplyr::filter(treat!="Control 2") %>%
   dplyr::filter(treat!="Low Var") %>%
   dplyr::filter(treat!="High Var") %>%
@@ -1676,19 +1671,13 @@ calc_phys_all_lin <- left_join(calc_phys2, lineages, by = "gen_site")
 calc_phys_all_lin$lineage = as.factor(calc_phys_all_lin$lineage)
 
 ## combine with dominant symbiont type info
-# merge with its2 divs
-its2_divs = read.csv("Physiology_Data/data_files/ITS2.dominantDIVs.csv") %>%
-  select(frag, dominant_div)
-
-calc_phys_all_lin <- left_join(calc_phys_all_lin, its2_divs, by = "frag")
-
 # merge with majority its type info
-its2_types = read.csv("Physiology_Data/data_files/ITS2.dominanttype.csv") %>%
-  select(frag, dominant_type)
-
-calc_phys_all_lin <- left_join(calc_phys_all_lin, its2_types, by = "frag")
-head(calc_phys_all_lin)
-calc_phys_all_lin$dominant_type = as.factor(calc_phys_all_lin$dominant_type)
+# its2_types = read.csv("Physiology_Data/data_files/ITS2.dominanttype.csv") %>%
+#   select(frag, dominant_type)
+#
+# calc_phys_all_lin <- left_join(calc_phys_all_lin, its2_types, by = "frag")
+# head(calc_phys_all_lin)
+# calc_phys_all_lin$dominant_type = as.factor(calc_phys_all_lin$dominant_type)
 
 calc_phys_2_lin = calc_phys_all_lin %>%
   dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
@@ -1704,52 +1693,34 @@ ggplot(calc_phys, aes(treat, T2_T0_perc, color = sitename))+
 ## Mixed Model
 # interested in the effects of dtv treatment and lineage
 
-m1 <- lmer(T3_T2_perc ~ treat+lineage + (1|gen_site), data = calc_phys_2_lin, REML=TRUE)
+m1 <- lmer(T3_T2_rgr ~ treat+lineage + (1|gen_site), data = calc_phys_2_lin, REML=TRUE)
 summary(m1)
-# T2-T0 percent change:
+# T2_T0_rgr:
 # Fixed effects:
-#                 Estimate Std. Error      df t value Pr(>|t|)
-#   (Intercept)    1.4032     0.2443 64.8723   5.744 2.67e-07 ***
-#   treatMod Var   0.5115     0.2134 41.0624   2.397   0.0212 *
-#   lineageL2     -0.6345     0.3488 45.4581  -1.819   0.0754 .
--
-# T3-T2 percent change:
-#   Fixed effects:
-#                 Estimate Std. Error      df t value Pr(>|t|)
-# (Intercept)    2.2929     0.2256 67.5499  10.163 3.03e-15 ***
-# treatMod Var   0.2561     0.2253 42.7492   1.137 0.261965
-# lineageL2     -1.1328     0.3165 46.0254  -3.579 0.000827 ***
-
-# T2-T0 RGR:
 #                   Estimate Std. Error         df t value Pr(>|t|)
-# (Intercept)    2.373e-04  4.102e-05  8.510e+01   5.786 1.17e-07 ***
-# treatLow Var   5.005e-05  3.764e-05  1.123e+02   1.329  0.18638
-# treatMod Var   9.971e-05  3.580e-05  1.115e+02   2.785  0.00629 **
-# treatHigh Var  9.946e-05  3.686e-05  1.123e+02   2.698  0.00804 **
-# lineageL2     -1.161e-04  5.531e-05  4.528e+01  -2.099  0.04140 *
+# (Intercept)   2.431e-04  4.225e-05  6.487e+01   5.753 2.58e-07 ***
+# treatMod Var  8.780e-05  3.690e-05  4.107e+01   2.379   0.0221 *
+# lineageL2    -1.092e-04  6.032e-05  4.546e+01  -1.811   0.0768 .
 
-# T3-T2 RGR:
+# T3_T2_rgr:
 # Fixed effects:
-#                 Estimate Std. Error         df t value Pr(>|t|)
-# (Intercept)    7.091e-04  7.355e-05  9.495e+01   9.642 9.67e-16 ***
-# treatLow Var   2.575e-05  7.622e-05  1.089e+02   0.338 0.736157
-# treatMod Var   8.626e-05  7.109e-05  1.073e+02   1.213 0.227660
-# treatHigh Var  7.325e-05  7.258e-05  1.075e+02   1.009 0.315112
-# lineageL2     -3.620e-04  9.473e-05  4.520e+01  -3.821 0.000403 ***
+#               Estimate Std. Error         df t value Pr(>|t|)
+# (Intercept)   7.066e-04  6.926e-05  6.762e+01  10.202 2.55e-15 ***
+# treatMod Var  7.741e-05  6.930e-05  4.279e+01   1.117 0.270251
+# lineageL2    -3.469e-04  9.709e-05  4.603e+01  -3.573 0.000841 ***
 
 anova(m1)
-
-# Response: T2_T0_perc
+# T2_T0_rgr:
 # Type III Analysis of Variance Table with Satterthwaite's method
-#         Sum Sq Mean Sq NumDF  DenDF F value  Pr(>F)
-# treat   4.9620  4.9620     1 41.062  5.7448 0.02117 *
-# lineage 2.8591  2.8591     1 45.458  3.3102 0.07544 .
+#             Sum Sq    Mean Sq NumDF  DenDF F value  Pr(>F)
+# treat   1.4621e-07 1.4621e-07     1 41.065  5.6615 0.02207 *
+# lineage 8.4674e-08 8.4674e-08     1 45.464  3.2786 0.07680 .
 
-# Response: T3_T2_perc
+# T3_T2_rgr:
 # Type III Analysis of Variance Table with Satterthwaite's method
 #             Sum Sq    Mean Sq NumDF  DenDF F value    Pr(>F)
-# treat   1.7756e-07 5.9190e-08     3 107.88  0.6231 0.6015535
-# lineage 1.3869e-06 1.3869e-06     1  45.20 14.6009 0.0004033 ***
+# treat   1.1085e-07 1.1085e-07     1 42.789  1.2476 0.2702508
+# lineage 1.1343e-06 1.1343e-06     1 46.026 12.7665 0.0008411 ***
 
 
 # now let's do some more looking into the model
@@ -1764,41 +1735,19 @@ check_model(m1) #check assumptions and model fit
 # Now look at custom contrasts with emmmeans
 
 #specify model (because we are interested in pairwise, have to include the interaction)
-m.emm<- lmer(T3_T2_perc ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
+m.emm<- lmer(T3_T2_rgr ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
 
 emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
-# for T2_T0_perc
-# treat   lineage_pairwise estimate    SE   df t.ratio p.value
-# Control L1 - L2             0.487 0.423 78.7   1.150  0.2535
-# Mod Var L1 - L2             0.759 0.402 74.3   1.887  0.1261
-
-# for T2_T0_RGR
-# treat    lineage_pairwise estimate       SE  df t.ratio p.value
-# Control  L1 - L2          0.000081 7.26e-05 116   1.117  0.2664
-# Low Var  L1 - L2          0.000143 7.45e-05 122   1.926  0.1130
-# Mod Var  L1 - L2          0.000135 6.96e-05 106   1.942  0.1130
-# High Var L1 - L2          0.000105 7.17e-05 113   1.461  0.1958
-
-# treat_pairwise      estimate       SE  df t.ratio p.value
-# Control - Low Var  -4.32e-05 3.90e-05 120  -1.108  0.3240
-# Control - Mod Var  -9.44e-05 3.68e-05 120  -2.562  0.0366
-# Control - High Var -9.63e-05 3.78e-05 120  -2.545  0.0366
-# Low Var - Mod Var  -5.12e-05 3.78e-05 120  -1.352  0.2683
-# Low Var - High Var -5.30e-05 3.87e-05 121  -1.371  0.2683
-# Mod Var - High Var -1.89e-06 3.62e-05 118  -0.052  0.9586
-
-# for T3_T2_perc:
-# treat   lineage_pairwise estimate    SE   df t.ratio p.value
-# Control L1 - L2              1.05 0.413 80.8   2.551  0.0126
-# Mod Var L1 - L2              1.19 0.379 77.2   3.148  0.0047
+# for T2_T0_RGR:
+# treat   lineage_pairwise estimate       SE   df t.ratio p.value
+# Control L1 - L2          8.42e-05 7.32e-05 78.7   1.151  0.2533
+# Mod Var L1 - L2          1.30e-04 6.95e-05 74.3   1.873  0.1301
 
 # for T3_T2_RGR:
-# treat    lineage_pairwise estimate       SE  df t.ratio p.value
-# Control  L1 - L2          0.000336 0.000136 133   2.473  0.0195
-# Low Var  L1 - L2          0.000325 0.000141 140   2.298  0.0230
-# Mod Var  L1 - L2          0.000364 0.000127 120   2.876  0.0095
-# High Var L1 - L2          0.000412 0.000129 124   3.185  0.0073
+# treat   lineage_pairwise estimate       SE   df t.ratio p.value
+# Control L1 - L2          0.000325 0.000127 80.9   2.560  0.0123
+# Mod Var L1 - L2          0.000364 0.000116 77.3   3.125  0.0050
 
 
 # Make growth figures in manuscript:
@@ -1807,18 +1756,18 @@ pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
 calc_phys_2_lin_nona = calc_phys_2_lin %>%
   drop_na(lineage)
 
-#growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T2_T0_perc", groupvars=c("treat","lineage"))
-growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T3_T2_perc", groupvars=c("treat","lineage"))
+#growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T2_T0_rgr", groupvars=c("treat","lineage"))
+growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T3_T2_rgr", groupvars=c("treat","lineage"))
 
 # plot, treatment x axis colored by lineage data figure
-calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T3_T2_perc))+
+calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T3_T2_rgr))+
   theme_bw()+
   geom_jitter(aes(color = lineage, fill = lineage),
               position=position_dodge(width=0.3),
               alpha=0.2, pch = 21,
               color = "black") +
-  geom_errorbar(data = growth_means_2_lin, aes(x = treat, ymax = T3_T2_perc+se, ymin = T3_T2_perc-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
-  geom_point(data = growth_means_2_lin, mapping = aes(x=treat, y=T3_T2_perc, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  geom_errorbar(data = growth_means_2_lin, aes(x = treat, ymax = T3_T2_rgr+se, ymin = T3_T2_rgr-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = growth_means_2_lin, mapping = aes(x=treat, y=T3_T2_rgr, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
   scale_fill_manual(name = "Lineage",
                     breaks = c("L1","L2"),
                     values = cols_lineage)+
@@ -1826,7 +1775,7 @@ calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T3_T2_perc))
                      breaks = c("L1","L2"),
                      values = cols_lineage)+
   xlab("Treatment")+
-  ylab("% Change in Weight")+
+  ylab(bquote("Specific growth rate ("~day^-1~')'))+
   geom_hline(yintercept=0, linetype='dotted', color = 'gray')+
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
 calc_plot_lineage
@@ -2170,17 +2119,11 @@ pam_phys_all_lin <- left_join(phys_pam_long, lineages, by = "gen_site")
 pam_phys_all_lin$lineage = as.factor(pam_phys_all_lin$lineage)
 
 # merge with its2 types for plotting
-its2_types = read.csv("Physiology_Data/data_files/ITS2.dominanttype.csv") %>%
+its2_types = read.csv("Physiology_Data/data_files/ITS2.dominanttype.prestress.csv") %>%
   select(frag, dominant_type)
 
 pam_phys_all_lin <- left_join(pam_phys_all_lin, its2_types, by = "frag")
 pam_phys_all_lin$dominant_type = as.factor(pam_phys_all_lin$dominant_type)
-
-# merge with its2 divs
-its2_divs = read.csv("Physiology_Data/data_files/ITS2.dominantDIVs.csv") %>%
-  select(frag, dominant_div)
-
-pam_phys_all_lin <- left_join(pam_phys_all_lin, its2_divs, by = "frag")
 
 # filter to only include T3-T9 for plotting and stats
 phys_pam_all_lin_plots = pam_phys_all_lin %>%
@@ -2227,13 +2170,8 @@ pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
 m.emm2<- lmer(pam ~ time*treat + (1|gen_site), data = phys_pam_2_lin_plots, REML=FALSE)
 emms2<-emmeans(m.emm2, ~treat) #, adjust="Bonferoni"
 pairs(emms2, interaction = "pairwise") %>% rbind(adjust="fdr")
-# treat_pairwise     estimate      SE  df t.ratio p.value
-# Control - Low Var   0.00873 0.00434 841   2.010  0.1342
-# Control - Mod Var  -0.00192 0.00462 847  -0.417  0.6770
-# Control - High Var  0.00455 0.00429 836   1.060  0.3680
-# Low Var - Mod Var  -0.01065 0.00422 841  -2.522  0.0712
-# Low Var - High Var -0.00418 0.00408 836  -1.023  0.3680
-# Mod Var - High Var  0.00647 0.00430 841   1.504  0.2661
+# treat_pairwise    estimate     SE  df t.ratio p.value
+# Control - Mod Var  -0.0075 0.0052 397  -1.441  0.1504
 
 
 #Check model fit
@@ -2245,7 +2183,7 @@ check_model(m.full) #check assumptions and model fit
 #SummarySE to format data for plotting - dtv treatment
 pam_means_treat_all_lin <- summarySE(phys_pam_all_lin_plots, measurevar="pam", groupvars=c("treat","time"))
 pam_means_treat_all_lin$time <- as.numeric(as.character(pam_means_treat_all_lin$time))
-pam_means_treat_2_lin <- summarySE(phys_pam_2_lin_plots, measurevar="pam", groupvars=c("treat","time","sitename"))
+pam_means_treat_2_lin <- summarySE(phys_pam_2_lin_plots, measurevar="pam", groupvars=c("treat","time"))
 pam_means_treat_2_lin$time <- as.numeric(as.character(pam_means_treat_2_lin$time))
 
 pam_plot_treatment <- ggplot(pam_means_treat_2_lin,aes(x = time, y = pam, color = treat, fill = treat))+
@@ -2262,12 +2200,11 @@ pam_plot_treatment <- ggplot(pam_means_treat_2_lin,aes(x = time, y = pam, color 
                      labels = c("Control","Mod Var"),
                      values = cols_treat)+
   ylab("Fv/Fm")+
-  scale_x_continuous(name = "Time Point", breaks = c(45,54,61,65,70,74,79)) +
-  facet_wrap(~sitename)
+  scale_x_continuous(name = "Time Point", breaks = c(45,54,61,65,70,74,79))
 #ylim(0.4,0.7) +
 pam_plot_treatment
 
-ggsave(pam_plot_treatment, file="/Users/hannahaichelman/Dropbox/BU/TVE/PAM/PAM_treat_2_lin_sitefacet.pdf", width=8, height=5, units=c("in"), useDingbats=FALSE)
+ggsave(pam_plot_treatment, file="/Users/hannahaichelman/Dropbox/BU/TVE/PAM/PAM_treat_2lin.pdf", width=8, height=5, units=c("in"), useDingbats=FALSE)
 
 #SummarySE to format data for plotting - dtv treatment faceted by lineage
 pam_means_treat_all_lin <- summarySE(phys_pam_all_lin_plots, measurevar="pam", groupvars=c("treat","time","lineage"))
@@ -2364,7 +2301,7 @@ pam_plot_lineage_CI <- ggplot(pam_lineagemeans_CI,aes(x = time, y = pam, color =
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
 pam_plot_lineage_CI
 
-ggsave(pam_plot_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/PAM/pam_lineage_CIonly.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(pam_plot_lineage_CI, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PAM/pam_lineage_CIonly.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
 
 
 #SummarySE to format data for plotting - dominant symtype
@@ -2405,7 +2342,7 @@ pam_plot_lineage_symtype = pam_2_lineagesymtype_means %>%
   facet_wrap(~lineage)
 pam_plot_lineage_symtype
 
-ggsave(pam_plot_lineage_symtype, filename = "/Users/hannahaichelman/Documents/BU/TVE/PAM/pam_lineage_sym_2_lin_facet_dominanttype.pdf", width=8.5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(pam_plot_lineage_symtype, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PAM/pam_lineage_sym_2_lin_facet_dominanttype.pdf", width=8.5, height=4, units=c("in"), useDingbats=FALSE)
 
 #SummarySE to format data for plotting - CI only dominant symtype
 phys_pam_2_linsym_CI = phys_pam_2_linsym_nona %>%
@@ -2441,43 +2378,6 @@ pam_plot_lineage_symtype
 
 ggsave(pam_plot_lineage_symtype, filename = "/Users/hannahaichelman/Documents/BU/TVE/PAM/pam_lineage_sym_2_lin_facet_dominanttype_CIonly.pdf", width=8.5, height=4, units=c("in"), useDingbats=FALSE)
 
-#SummarySE to format data for plotting - dominant DIV
-phys_pam_2_linsym_nona = phys_pam_2_lin_plots %>%
-  drop_na(lineage, dominant_div)
-
-phys_pam_all_linsym_nona = phys_pam_all_lin_plots %>%
-  drop_na(lineage, dominant_div)
-
-pam_2_lineagediv_means <- summarySE(phys_pam_2_linsym_nona, measurevar="pam", groupvars=c("time","dominant_div","lineage"))
-pam_2_lineagediv_means$time <- as.numeric(as.character(pam_2_lineagediv_means$time))
-
-pam_all_lineagediv_means <- summarySE(phys_pam_all_linsym_nona, measurevar="pam", groupvars=c("time","dominant_type","lineage"))
-pam_all_lineagediv_means$time <- as.numeric(as.character(pam_all_lineagediv_means$time))
-
-# plot, treatment x axis colored by site data figure
-pam_plot_lineage_symtype <- ggplot(pam_2_lineagediv_means,aes(x = time, y = pam, color = dominant_div))+
-  theme_bw()+
-  annotate("rect", xmin = 46, xmax = 63, ymin = - Inf, ymax = Inf, fill = "red4", alpha = 0.15)+
-  annotate("rect", xmin = 63, xmax = 80, ymin = - Inf, ymax = Inf, fill = "royalblue4", alpha = 0.15)+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_line(aes(group = dominant_div), size = 0.5, linetype="dashed", position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = time, ymax = pam+se, ymin = pam-se), width = .2, position = position_dodge(width=0.3)) +
-  #scale_color_manual(name = "Lineage-Sym",
-  #                   values = c("#D53E4F", "#F46D43", "#3288BD", "#FEE08B"))+
-  #values = c("#3f007d","#3f007d","#807dba","#807dba","#bcbddc","#bcbddc"))+
-  #scale_fill_manual(name = "Lineage-Sym",
-  #                  values = c("#D53E4F", "#F46D43", "#3288BD", "#FEE08B"))+
-  #values = c("#3f007d","#3f007d","#807dba","#807dba","#bcbddc","#bcbddc"))+
-  #scale_shape_manual(name = "Lineage-Sym",
-  #                   values=c(21,24,21,24,21,24))+
-  ylab("Fv/Fm")+
-  scale_x_continuous(name = "Time Point", breaks = c(46,55,62,66,71,75,80)) +
-  #ylim(-0.5,4) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  facet_wrap(~lineage)
-pam_plot_lineage_symtype
-
-ggsave(pam_plot_lineage_symtype, filename = "/Users/hannahaichelman/Documents/BU/TVE/PAM/pam_lineage_sym_2_lin_DIVs.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
 
 #SummarySE to format data for plotting - combine lineage and dominant sym type
 phys_pam_2_lin_plots2 = phys_pam_2_lin_plots %>%
@@ -2974,14 +2874,14 @@ skel_phys_pca = skel_phys3 %>%
   dplyr::filter(complete.cases(.)) #drop any row that has an NA for any time point
 
 str(skel_phys_pca)
-#write.csv(skel_phys_pca, "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/skel_phys_full.csv",row.names=FALSE)
+#write.csv(skel_phys_pca, "Physiology_Data/data_files/skel_phys_full.csv",row.names=FALSE)
 
 skel_phys_pca_log = skel_phys_pca %>%
   mutate(den_cor_cm2 = as.numeric(den_cor_cm2)) %>%
   mutate_if(is.numeric, log)
 
 str(skel_phys_pca_log)
-#write.csv(skel_phys_pca_log, "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/skel_phys_full_log.csv",row.names=FALSE)
+#write.csv(skel_phys_pca_log, "Physiology_Data/data_files/skel_phys_full_log.csv",row.names=FALSE)
 
 colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="area_cor_cm2"] <-"cor_area" # corallite density
 colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="den_cor_cm2"] <-"cor_den" # corallite density
@@ -3023,7 +2923,7 @@ calc_pca_end = calc_phys_all_lin %>%
 
 hcarb_pca_t0 = hcarb_phys_all_lin %>%
   dplyr::filter(treat=="Initial") %>%
-  select(frag,treat,sitename,lineage,hcarb_mgcm2)
+  select(frag,gen_site,treat,sitename,lineage,hcarb_mgcm2)
 
 hcarb_pca_end = hcarb_phys_all_lin %>%
   dplyr::filter(treat!="Initial") %>%
@@ -3031,7 +2931,7 @@ hcarb_pca_end = hcarb_phys_all_lin %>%
 
 scarb_pca_t0 = scarb_phys_all_lin %>%
   dplyr::filter(treat=="Initial") %>%
-  select(frag,treat,sitename,lineage,scarb_mgcm2)
+  select(frag,gen_site,treat,sitename,lineage,scarb_mgcm2)
 
 scarb_pca_end = scarb_phys_all_lin %>%
   dplyr::filter(treat!="Initial") %>%
@@ -3039,25 +2939,25 @@ scarb_pca_end = scarb_phys_all_lin %>%
 
 hprot_pca_t0 = hprot_phys_all_lin %>%
   dplyr::filter(treat=="Initial") %>%
-  select(frag,treat,sitename,lineage,prot_mgcm2)
+  select(frag,gen_site,treat,sitename,lineage,prot_mgcm2)
 
 hprot_pca_end = hprot_phys_all_lin %>%
   dplyr::filter(treat!="Initial") %>%
   select(frag,treat,sitename,lineage,prot_mgcm2)
 
 tissthick_pca_t0 = tiss_phys_all_lin %>%
-  select(frag,treat,sitename,lineage,avgtiss)
+  select(frag,gen_site,treat,sitename,lineage,avgtiss)
 
 chla_pca_t0 = chl_phys_all_lin %>%
   dplyr::filter(treat=="Initial") %>%
-  select(frag,treat,sitename,lineage,chlA)
+  select(frag,gen_site,treat,sitename,lineage,chlA)
 
 chla_pca_end = chl_phys_all_lin %>%
   dplyr::filter(treat!="Initial") %>%
   select(frag,treat,sitename,lineage,chlA)
 
 corrsa_pca_t0 = corrsa_phys_all_lin %>%
-  select(frag,treat,sitename,lineage,corallite.avg.poly.mm2)
+  select(frag,gen_site,treat,sitename,lineage,corallite.avg.poly.mm2)
 
 # Initial PAM measurements were not taken, so no t0 PAM
 pam_pca_end = pam_phys_all_lin %>%
@@ -3066,7 +2966,7 @@ pam_pca_end = pam_phys_all_lin %>%
 
 sym_pca_t0 = sym_phys_all_lin %>%
   dplyr::filter(treat=="Initial") %>%
-  select(frag,treat,sitename,lineage,sym_cm2)
+  select(frag,gen_site,treat,sitename,lineage,sym_cm2)
 
 sym_pca_end = sym_phys_all_lin %>%
   dplyr::filter(treat!="Initial") %>%
@@ -3076,7 +2976,7 @@ sym_pca_end = sym_phys_all_lin %>%
 t0_full = join_all(list(hcarb_pca_t0,scarb_pca_t0,hprot_pca_t0,sym_pca_t0,tissthick_pca_t0,chla_pca_t0,corrsa_pca_t0), by = c("frag","treat","sitename","lineage"), type = "full")
 
 str(t0_full)
-#write.csv(t0_full, "/Users/hannahaichelman/Documents/BU/TVE/PCAs/t0_full.csv",row.names=FALSE)
+#write.csv(t0_full, "Physiology_Data/data_files/t0_full.csv",row.names=FALSE)
 
 t0_full_log = t0_full %>%
   dplyr::filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
@@ -3086,13 +2986,13 @@ str(t0_full_log)
 
 t0_full_log$sitename <- as.factor(t0_full_log$sitename)
 t0_full_log$treat <- as.factor(t0_full_log$treat)
-#write.csv(t0_full_log, "/Users/hannahaichelman/Documents/BU/TVE/PCAs/t0_full_log.csv", row.names=FALSE)
+#write.csv(t0_full_log, "Physiology_Data/data_files/t0_full_log.csv", row.names=FALSE)
 
 # Make end of variability combined data frame
 end_full = join_all(list(calc_pca_end,hcarb_pca_end,scarb_pca_end,hprot_pca_end,pam_pca_end,sym_pca_end,chla_pca_end), by = c("frag","treat","sitename","lineage"), type = "full")
 
 str(end_full)
-#write.csv(end_full, "/Users/hannahaichelman/Documents/BU/TVE/PCAs/end_full.csv", row.names = FALSE)
+#write.csv(end_full, "Physiology_Data/data_files/end_full.csv", row.names = FALSE)
 
 end_full_log = end_full %>%
   dplyr::filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
@@ -3105,7 +3005,7 @@ str(end_full_log)
 end_full_log$sitename <- as.factor(end_full_log$sitename)
 end_full_log$treat <- as.factor(end_full_log$treat)
 end_full_log$lineage <- as.factor(end_full_log$lineage)
-#write.csv(end_full_log, "/Users/hannahaichelman/Documents/BU/TVE/PCAs/end_full_log.csv", row.names = FALSE)
+#write.csv(end_full_log, "Physiology_Data/data_files/end_full_log.csv", row.names = FALSE)
 
 ##### Make our PCAs #####
 # once you have made the output files in the section above you can skip right to here to finalize filtering and make pca's
@@ -3123,13 +3023,14 @@ library(cowplot)
 library(vegan)
 
 # try exporting data files as csv and see what we get
-t0_pca = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/t0_full_log.csv")
-end_pca = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/end_full_log.csv")
+t0_pca = read.csv("Physiology_Data/data_files/t0_full_log.csv")
+end_pca = read.csv("Physiology_Data/data_files/end_full_log.csv")
 
 # format t0 physiology data:
 str(t0_pca)
 
 t0_pca$sitename <- as.factor(t0_pca$sitename)
+t0_pca$gen_site <- as.factor(t0_pca$gen_site)
 t0_pca$treat <- as.factor(t0_pca$treat)
 t0_pca$lineage <- as.factor(t0_pca$lineage)
 # all of the samples that have NA's for lineage are ones that didn't prep so we don't have lineage data for those genets
@@ -3141,9 +3042,20 @@ colnames(t0_pca)[colnames(t0_pca)=="sym_cm2"] <-"syms"
 colnames(t0_pca)[colnames(t0_pca)=="avgtiss"] <-"tiss"
 colnames(t0_pca)[colnames(t0_pca)=="corallite.avg.poly.mm2"] <-"corr_sa"
 
-t0_pca_all_lin = t0_pca %>%
+# add in dominant symbiont type dataframe
+its2_types_t0 = read.csv("Physiology_Data/data_files/ITS2.dominanttype.T0.csv") %>%
+  select(frag, gen_site,dominant_type)
+
+its2_types_t0$dominant_type = as.factor(its2_types_t0$dominant_type)
+
+t0_pca_sym <- left_join(t0_pca, its2_types_t0, by = "gen_site")
+str(t0_pca_sym)
+
+t0_pca_all_lin = t0_pca_sym %>%
   drop_na(lineage) %>%
-  select(-corr_sa) # want to remove this here because it is included in the new skeleton morphology pca incorporated during the revision
+  select(-corr_sa, -frag.y) %>% # want to remove this here because it is included in the new skeleton morphology pca incorporated during the revision
+  dplyr::rename(frag = frag.x) %>%
+  select(frag, gen_site, treat, sitename, lineage, dominant_type, hcarb, scarb, prot, syms, tiss, chlA)
 
 t0_pca_2_lin = t0_pca_all_lin %>%
   dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
@@ -3159,9 +3071,6 @@ end_pca$sitename <- as.factor(end_pca$sitename)
 end_pca$treat <- as.factor(end_pca$treat)
 end_pca$lineage <- as.factor(end_pca$lineage)
 
-# re-level and re-name treatment
-end_pca$treat <- factor(end_pca$treat, levels = c("Control","Low Var","Mod Var","High Var"))
-
 # re-name columns for legibility on plots
 colnames(end_pca)[colnames(end_pca)=="hcarb_mgcm2"] <-"hcarb"
 colnames(end_pca)[colnames(end_pca)=="scarb_mgcm2"] <-"scarb"
@@ -3171,19 +3080,17 @@ colnames(end_pca)[colnames(end_pca)=="sym_cm2"] <-"syms"
 colnames(end_pca)[colnames(end_pca)=="T3_T0_rgr_2"] <-"growth"
 
 # add in dominant symbiont type dataframe
-its2_types = read.csv("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ITS2.dominanttype.csv") %>%
+its2_types_ps = read.csv("Physiology_Data/data_files/ITS2.dominanttype.prestress.csv") %>%
   select(frag, dominant_type)
 
-its2_types$dominant_type = as.factor(its2_types$dominant_type)
+its2_types_ps$dominant_type = as.factor(its2_types_ps$dominant_type)
 
-end_pca_sym <- left_join(end_pca, its2_types, by = "frag")
+end_pca_sym <- left_join(end_pca, its2_types_ps, by = "frag")
 str(end_pca_sym)
 
 end_pca_all_lin = end_pca_sym %>%
   drop_na(lineage) %>%
   drop_na(dominant_type) %>%
-#  unite(lin_sym, c(lineage,dominant_type), sep = "_", remove = FALSE) %>% # make new lineage_dominant type combined factor
-#  mutate(lin_sym = as.factor(lin_sym)) %>%
   select(frag, treat, sitename, lineage, dominant_type, hcarb, scarb, prot, fv_fm, syms, chlA, growth)
 
 end_pca_2_lin = end_pca_all_lin %>%
@@ -3195,8 +3102,8 @@ end_pca_lineage_CI = end_pca_2_lin %>%
 ###
 # this part of the code uses the PCA function and stats from the FactoMineR package
 # T0 both lineage df's
-facto_t0_all_lin <- PCA(t0_pca_all_lin[,5:10], scale.unit = TRUE, ncp = 10, graph = TRUE)
-facto_t0_2_lin <- PCA(t0_pca_2_lin[,5:10], scale.unit = TRUE, ncp = 10, graph = TRUE)
+facto_t0_all_lin <- PCA(t0_pca_all_lin[,7:12], scale.unit = TRUE, ncp = 10, graph = TRUE)
+facto_t0_2_lin <- PCA(t0_pca_2_lin[,7:12], scale.unit = TRUE, ncp = 10, graph = TRUE)
 
 facto_end_all_lin <- PCA(end_pca_all_lin[,6:12], scale.unit = TRUE, ncp = 10, graph = TRUE) # no sym type info
 facto_end_2_lin <- PCA(end_pca_2_lin[,6:12], scale.unit = TRUE, ncp = 10, graph = TRUE)
@@ -3282,7 +3189,7 @@ pca_t0_site <- fviz_pca_biplot(facto_t0_2_lin,
         legend.title = element_text(face = "bold"))
 pca_t0_site
 
-ggsave(pca_t0_site, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_t0_site_2_lin.pdf", width=6, height=5, units=c("in"), useDingbats=FALSE)
+ggsave(pca_t0_site, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PCAs/pca_t0_site_2_lin.pdf", width=6, height=5, units=c("in"), useDingbats=FALSE)
 
 
 # PCA for T0 Physiology - color = lineage, shape = sitename
@@ -3308,7 +3215,7 @@ pca_t0_lineage <- fviz_pca_biplot(facto_t0_2_lin,
         legend.title = element_text(face = "bold"))
 pca_t0_lineage
 
-ggsave(pca_t0_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_t0_lineage_2.pdf", width=6, height=5, units=c("in"), useDingbats=FALSE)
+ggsave(pca_t0_lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PCAs/pca_t0_lineage_2.pdf", width=6, height=5, units=c("in"), useDingbats=FALSE)
 
 # PCA for T0 Physiology CI ONLY- color = lineage
 pca_t0_lineage_CI <- fviz_pca_biplot(facto_t0_CI,
@@ -3348,15 +3255,15 @@ pca_end_site <- fviz_pca_biplot(facto_end_2_lin,
                      labels=c("BN", "BS", "CA", "CI", "PD", "SP"),
                      name = "Site") +
   stat_ellipse(aes(color=end_pca_2_lin$sitename), type = "t", lwd = 1, show.legend = FALSE)+
-  labs(x = "PC1 (45.4% explained variance)",
-       y = "PC2 (14.9% explained variance)") +
+  labs(x = "PC1 (46.9% explained variance)",
+       y = "PC2 (17% explained variance)") +
   theme(plot.title = element_blank(),
         axis.title = element_text(face = "bold"),
         legend.title.align =  0.5, legend.text.align = 0,
         legend.title = element_text(face = "bold"))
 pca_end_site
 
-ggsave(pca_end_site, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_end_site_2.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(pca_end_site, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PCAs/pca_end_site_2.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 # PCA for End of Variability Physiology - color = treatment, shape = site
 fviz_pca_biplot(facto_end_2_lin)
@@ -3377,15 +3284,15 @@ pca_end_treat <- fviz_pca_biplot(facto_end_2_lin,
   #  stat_ellipse(geom = "polygon", type = "t", alpha = 0.3,
   #               aes(fill= end_pca_lineage$treat), show.legend = FALSE) + scale_fill_manual(values=cols_treat) + # ellipses assumes multivariate distribution using default confidence level (0.95)
   stat_ellipse(aes(color=end_pca_2_lin$treat), type = "t", lwd = 1)+
-  labs(x = "PC1 (45.4% explained variance)",
-       y = "PC2 (14.9% explained variance)") +
+  labs(x = "PC1 (46.9% explained variance)",
+       y = "PC2 (17% explained variance)") +
   theme(plot.title = element_blank(),
         axis.title = element_text(face = "bold"),
         legend.title.align =  0.5, legend.text.align = 0,
         legend.title = element_text(face = "bold"))
 pca_end_treat
 
-ggsave(pca_end_treat, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_end_treat_2_lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(pca_end_treat, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PCAs/pca_end_treat_2_lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 # PCA for End Variability Physiology - color = lineage, shape = sitename
 fviz_pca_biplot(facto_end_2_lin)
@@ -3403,15 +3310,15 @@ pca_end_lineage <- fviz_pca_biplot(facto_end_2_lin,
   #  stat_ellipse(geom = "polygon", type = "t", alpha = 0.4,
   #               aes(fill= end_pca_lineage$lineage), show.legend = FALSE) + scale_fill_manual(values=cols_lineage) + # ellipses assumes multivariate distribution using default confidence level (0.95)
   stat_ellipse(aes(color= end_pca_2_lin$lineage), type = "t", lwd = 1)+
-  labs(x = "PC1 (45.4% explained variance)",
-       y = "PC2 (14.9% explained variance)") +
+  labs(x = "PC1 (46.9% explained variance)",
+       y = "PC2 (17% explained variance)") +
   theme(plot.title = element_blank(),
         axis.title = element_text(face = "bold"),
         legend.title.align =  0.5, legend.text.align = 0,
         legend.title = element_text(face = "bold"))
 pca_end_lineage
 
-ggsave(pca_end_lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_end_lineage_2.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(pca_end_lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PCAs/pca_end_lineage_2.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 # PCA for End Variability Physiology - color = lineage+dominant sym type, shape = sitename
 its2_cols_greens = c("C1" = "#edf8e9", "C3af" = "#238b45","C3" = "#a1d99b","D1" = "#00441b")
@@ -3430,8 +3337,8 @@ pca_end_lineagesym <- fviz_pca_biplot(facto_end_2_lin,
   stat_ellipse(aes(color= end_pca_2_lin$dominant_type), type = "t", lwd = 1, show.legend = FALSE)+
   scale_color_manual(values = its2_cols_greens,
                      name = "Majority ITS2") +
-  labs(x = "PC1 (45.4% explained variance)",
-       y = "PC2 (14.9% explained variance)") +
+  labs(x = "PC1 (46.9% explained variance)",
+       y = "PC2 (17% explained variance)") +
   theme(plot.title = element_blank(),
         axis.title = element_text(face = "bold"),
         legend.title.align =  0.5, legend.text.align = 0,
@@ -3439,7 +3346,7 @@ pca_end_lineagesym <- fviz_pca_biplot(facto_end_2_lin,
   guides(color = guide_legend(override.aes = list(color = its2_cols_greens)))
 pca_end_lineagesym
 
-ggsave(pca_end_lineagesym, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_end_dominantsym_2lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(pca_end_lineagesym, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PCAs/pca_end_dominantsym_2lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 # PCA for End Variability Physiology CI ONLY- color = lineage
 pca_end_lineage_CI <- fviz_pca_biplot(facto_end_CI,
@@ -3506,8 +3413,8 @@ library(MCMC.OTU)
 library(MicEco)
 library(pairwiseAdonis)
 
-t0_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/t0_full.csv")
-end_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/PCAs/end_full.csv")
+t0_full = read.csv("Physiology_Data/data_files/t0_full.csv")
+end_full = read.csv("Physiology_Data/data_files/end_full.csv")
 skel_full = read.csv("/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/skel_phys_full.csv")
 
 str(t0_full)
@@ -3528,7 +3435,14 @@ skel_full$treat <- as.factor(skel_full$treat)
 skel_full$lineage <- as.factor(skel_full$lineage)
 
 # add in dominant symbiont type dataframe
-its2_types = read.csv("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ITS2.dominanttype.csv") %>%
+its2_types_t0 = read.csv("Physiology_Data/data_files/ITS2.dominanttype.T0.csv") %>%
+  select(frag, gen_site,dominant_type) %>%
+  mutate(dominant_type = as.factor(dominant_type))
+
+t0_full_its2 <- left_join(t0_full, its2_types_t0, by = "gen_site")
+str(t0_full_its2)
+
+its2_types_ps = read.csv("Physiology_Data/data_files/ITS2.dominanttype.prestress.csv") %>%
   select(frag, dominant_type) %>%
   mutate(dominant_type = as.factor(dominant_type))
 
@@ -3537,22 +3451,23 @@ str(end_full_its2)
 
 # Dont want to use log transformed data here
 # but need to remove NAs
-t0_full_adonis = t0_full %>%
+t0_full_adonis = t0_full_its2 %>%
   dplyr::filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
   dplyr::filter(lineage != "L3") %>% # remove L3 individuals since these aren't in our PCAs
-  select(-corallite.avg.poly.mm2) # removing here because it is now included in the skeleton morphology pca (revision)
+  select(-corallite.avg.poly.mm2, -frag.y) %>% # removing here because it is now included in the skeleton morphology pca (revision)
+  dplyr::rename(frag = frag.x) %>% # removing here because it is now included in the skeleton morphology pca (revision)
+  select(frag, gen_site, treat, sitename, lineage, dominant_type, hcarb_mgcm2, scarb_mgcm2, prot_mgcm2, sym_cm2, avgtiss, chlA)
 
 end_full_adonis = end_full_its2 %>%
   dplyr::filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
   mutate(T3_T0_rgr_2 = T3_T0_rgr + 2) %>%
   select(-T3_T0_rgr) %>% #get rid of the column with negative growth values before log transforming, just making sure to use the same data as we do in the PCAs
-  dplyr::filter(lineage != "L3") # remove L3 individuals since these aren't in our PCAs
+  dplyr::filter(lineage != "L3") %>% # remove L3 individuals since these aren't in our PCAs
+  select(frag, treat, sitename, lineage, dominant_type, T3_T0_rgr_2, hcarb_mgcm2, scarb_mgcm2, prot_mgcm2, pam, sym_cm2, chlA)
 
 skel_full_adonis = skel_full %>%
   dplyr::filter(complete.cases(.)) %>% #drop any row that has an NA for any time point
   dplyr::filter(lineage != "L3") # remove L3 individuals since these aren't in our PCAs
-
-end_full_adonis <- end_full_adonis[, c(1,2,3,4,11,5,6,7,8,9,10,12)]
 
 end_full_adonis_L1 = end_full_adonis %>%
   filter(lineage == "L1")
@@ -3561,8 +3476,8 @@ end_full_adonis_L2 = end_full_adonis %>%
   filter(lineage == "L2")
 
 # Change dataframe here based on the comparison you are interested in
-nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1)
-#nl=startedLog(data=t0_full_adonis,count.columns=5:10, logstart=1)
+#nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1)
+nl=startedLog(data=t0_full_adonis,count.columns=7:12, logstart=1)
 #nl=startedLog(data=skel_full_adonis,count.columns=5:12, logstart=1)
 
 goods.dist=vegdist(nl, method="bray", na.rm = TRUE)
@@ -3572,8 +3487,8 @@ goods.pcoa=pcoa(goods.dist)
 pcp=prcomp(nl, retx=TRUE, center=TRUE)
 scores=goods.pcoa$vectors
 summary(goods.pcoa)
-conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
-#conditions=t0_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
+#conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
+conditions=t0_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
 #conditions=skel_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
 
 # PERMANOVA
@@ -3586,32 +3501,28 @@ skel_model = adonis(scores~lineage, data=conditions, method="euclidean", permuta
 
 t0_output = adonis_OmegaSq(t0_model, partial = TRUE)
 t0_output$aov.tab
-#         Df SumsOfSqs   MeanSqs F.Model      R2 parOmegaSq Pr(>F)
-# lineage    1  0.008026 0.0080262  7.6458 0.16047    0.13662  2e-04 ***
+#           Df SumsOfSqs   MeanSqs F.Model      R2 parOmegaSq Pr(>F)
+# lineage    1  0.008026 0.0080262  7.6458 0.16047    0.13662  3e-04 ***
 # Residuals 40  0.041990 0.0010497         0.83953
 # Total     41  0.050016                   1.00000
 
 end_output = adonis_OmegaSq(end_model, partial = TRUE)
 end_output$aov.tab
-#             Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq    Pr(>F)
-# lineage        1   0.04145 0.041446 13.4691 0.11268   0.111861 9.999e-05 ***
-# dominant_type  3   0.00253 0.000845  0.2746 0.00689  -0.022476 0.9814019
-# treat          3   0.04381 0.014605  4.7463 0.11912   0.101950 0.0005999 ***
-# Residuals     91   0.28002 0.003077         0.76130
-# Total         98   0.36781                  1.00000
+
+#                 Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq  Pr(>F)
+# lineage        1  0.035560 0.035560 12.8648 0.18621   0.205044 0.00020 ***
+# dominant_type  3  0.018944 0.006315  2.2845 0.09920   0.077299 0.07639 .
+# treat          1  0.025900 0.025900  9.3700 0.13562   0.153945 0.00130 **
+# Residuals     40  0.110564 0.002764         0.57897
+# Total         45  0.190968                  1.00000
 
 pairwise.adonis(end_full_adonis[,6:12], end_full_adonis$treat)
-#                 pairs Df  SumsOfSqs    F.Model         R2 p.value p.adjusted sig
-# Control vs Low Var  1 0.16378358  1.2985891 0.02531432   0.284      1.000
-# Control vs Mod Var  1 0.58638159  4.6754774 0.09605406   0.019      0.114
-# Control vs High Var  1 0.10756046  0.9724029 0.02027005   0.369      1.000
-# Low Var vs Mod Var  1 1.35898216 11.7796173 0.19705073   0.001      0.006   *
-# Low Var vs High Var  1 0.07999826  0.7818738 0.01509937   0.441      1.000
-# Mod Var vs High Var  1 1.03218043 10.4843593 0.18896063   0.003      0.018   .
+#pairs Df SumsOfSqs  F.Model         R2 p.value p.adjusted sig
+# Control vs Mod Var  1 0.5863816 4.675477 0.09605406   0.013      0.013   .
 
 pairwise.adonis(end_full_adonis[,6:12], end_full_adonis$lineage)
-#   pairs Df SumsOfSqs  F.Model        R2 p.value p.adjusted sig
-# L2 vs L1  1  1.877907 17.36571 0.1518437   0.001      0.001  **
+#pairs Df SumsOfSqs  F.Model        R2 p.value p.adjusted sig
+# L2 vs L1  1  1.173853 10.47477 0.1922866   0.002      0.002   *
 
 skel_output = adonis_OmegaSq(skel_model, partial = TRUE)
 skel_output$aov.tab
