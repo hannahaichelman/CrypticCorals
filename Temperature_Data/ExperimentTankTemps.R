@@ -10,11 +10,10 @@ library(psych)
 library(tidyverse)
 library(ggpubr)
 
-setwd("/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/")
 
 #### Apex Temperature Data ####
 # using the master doc that doesn't have the first few days of data, the probes were mis-labeled and didn't match later measurements
-apex <- read.csv("/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Apex/Apex_Master_Doc.csv")
+apex <- read.csv("Temperature_Data/data_files/TankTemps/Apex/Apex_Master_Doc.csv")
 
 head(apex)
 tail(apex)
@@ -52,9 +51,12 @@ str(apex_long)
 
 #### Plot Apex Temps ####
 cols_treat_reds <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
+#cols_treat_reds <- c("darkgrey","#CC3300")
 
 apex_plot <- apex_long %>%
   dplyr::filter(treatment != "Control2Temp") %>% # ignore this, and add it back in to scale_color_manual with color blue to include this treatment
+  #dplyr::filter(treatment != "Low Var") %>%
+  #dplyr::filter(treatment != "High Var") %>%
   ggplot(aes(x = datetime_ct, y = Temp, color = treatment)) +
   geom_line() +
   scale_color_manual(name = "Treatment",
@@ -106,19 +108,19 @@ ggsave(file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Ape
 describe.by(apex_long, group = "treatment")
 
 #### Hobo Logger Temperature Data ####
-Tank1.1 <- read.csv("Tank_Hobo_Loggers/TVE_1_1_clean.csv") # log every 5 mins, 9/5/16 17:00 to 12/16/16 14:15
+Tank1.1 <- read.csv("Temperature_Data/data_files/TankTemps/Tank_Hobo_Loggers/TVE_1_1_clean.csv") # log every 5 mins, 9/5/16 17:00 to 12/16/16 14:15
 str(Tank1.1)
 head(Tank1.1)
 # TVE_1_2 lots of missing data
 # TVE_1_3 lots of missing data
 
-Tank2.1 <- read.csv("Tank_Hobo_Loggers/TVE_2_1_clean.csv") # log every 5 mins, 9/5/16 17:00 to 12/16/16 14:30
+Tank2.1 <- read.csv("Temperature_Data/data_files/TankTemps/Tank_Hobo_Loggers/TVE_2_1_clean.csv") # log every 5 mins, 9/5/16 17:00 to 12/16/16 14:30
 str(Tank2.1)
 head(Tank2.1)
 # TVE_2_2 lots of missing data
 # TVE_2_3 lots of missing data at the end of the experiment
 
-Tank3.1 <- read.csv("Tank_Hobo_Loggers/TVE_3_1_clean.csv") # log every 5 mins, 9/5/16 17:00 to 11/15/16, but
+Tank3.1 <- read.csv("Temperature_Data/data_files/TankTemps/Tank_Hobo_Loggers/TVE_3_1_clean.csv") # log every 5 mins, 9/5/16 17:00 to 11/15/16, but
 # starts logging at odd intervals and eventually 1 minute starting 11/14/16 12:30, so trim here.
 str(Tank3.1)
 head(Tank3.1)
@@ -126,13 +128,13 @@ head(Tank3.1)
 # TVE_3_3 lots of missing data, only through 9/13/2016
 # No TVE_3_2
 
-Tank4.2 <- read.csv("Tank_Hobo_Loggers/TVE_4_2_clean.csv") # log every 5 mins, 9/5/16 17:00 to 12/16/16 14:50
+Tank4.2 <- read.csv("Temperature_Data/data_files/TankTemps/Tank_Hobo_Loggers/TVE_4_2_clean.csv") # log every 5 mins, 9/5/16 17:00 to 12/16/16 14:50
 str(Tank4.2)
 head(Tank4.2)
 # TVE_4_1 lots of missing data, unusable
 # no TVE_4_3 exists
 
-Tank5.3 <- read.csv("Tank_Hobo_Loggers/TVE_5_3_clean.csv") # log every 5 mins, 9/5/16 17:00 to 12/16/16 14:50
+Tank5.3 <- read.csv("Temperature_Data/data_files/TankTemps/Tank_Hobo_Loggers/TVE_5_3_clean.csv") # log every 5 mins, 9/5/16 17:00 to 12/16/16 14:50
 str(Tank5.3)
 head(Tank5.3)
 # TVE_5_1 lots of missing data, unusable
@@ -542,26 +544,46 @@ hobo_plot_ctrl2_var <- grid.arrange(p1_var, p2_var, p3_var, p4_var, p5_var, nrow
 ggsave(file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_ctrl2_var.pdf", hobo_plot_ctrl2_var, width=8, height=6, units=c("in"), useDingbats=FALSE)
 
 #### Combine all hobo variability objects to plot ####
-all_temp = rbind(Tank1.1_all, Tank2.1_all, Tank3.1_all, Tank4.2_all)
+# with re-analysis, only including control and moderate variability treatments
+all_temp = rbind(Tank1.1_all, Tank3.1_all)
 head(all_temp)
 str(all_temp)
-all_temp$Treatment = factor(all_temp$Treatment, levels = c("Control","Low Var","Mod Var","High Var"))
+all_temp$Treatment = factor(all_temp$Treatment, levels = c("Control","Mod Var"))
 
-all_var = rbind(Tank1.1_var, Tank2.1_var, Tank3.1_var, Tank4.2_var)
+all_var = rbind(Tank1.1_var, Tank3.1_var)
 head(all_var)
 str(all_var)
-all_var$Treatment = factor(all_var$Treatment, levels = c("Control","Low Var","Mod Var","High Var"))
+all_var$Treatment = factor(all_var$Treatment, levels = c("Control","Mod Var"))
 
-all_stress = rbind(Tank1.1_stress, Tank2.1_stress, Tank3.1_stress, Tank4.2_stress)
+all_stress = rbind(Tank1.1_stress, Tank3.1_stress)
 head(all_stress)
 str(all_stress)
-all_stress$Treatment = factor(all_stress$Treatment, levels = c("Control","Low Var","Mod Var","High Var"))
+all_stress$Treatment = factor(all_stress$Treatment, levels = c("Control","Mod Var"))
 
-cols_treat_reds <- c("Control" = "darkgrey", "Low Var" = "#FF9966", "Mod Var"="#CC3300", "High Var"="#7f0000")
+cols_treat_reds <- c("Control" = "darkgrey", "Mod Var"="#CC3300")
+
+# also read in extra temperature data for the moderate variability treatment for the end of the experiment
+extra_data = read.csv("Temperature_Data/data_files/TankTemps/Temperature_GlassThermometer.csv")
+str(extra_data)
+extra_data$Day <- as.POSIXct(extra_data$DATE, format="%d-%b-%y")
+
+extra_data_control = extra_data %>%
+  select(Day, Sump_1) %>%
+  mutate(Treatment = "Control_extra") %>%
+  rename("Temp" = "Sump_1")
+
+extra_data_mod = extra_data %>%
+  select(Day, Sump_3) %>%
+  mutate(Treatment = "Mod Var_extra") %>%
+  rename("Temp" = "Sump_3")
+
+extra_data_combined = rbind(extra_data_control, extra_data_mod)
+extra_data_combined$Treatment = as.factor(extra_data_combined$Treatment)
+str(extra_data_combined)
 
 # plot the variability period
 str(all_var)
-all_var$Treatment = factor(all_var$Treatment, levels = c("High Var", "Mod Var", "Low Var", "Control"))
+all_var$Treatment = factor(all_var$Treatment, levels = c("Mod Var", "Control"))
 
 all_var.plot = all_var %>%
   ggplot(aes(x = DateTime_ct, y = Temp, color = Treatment))+
@@ -580,7 +602,7 @@ all_var.plot
 ggsave(all_var.plot,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Lines_Combined.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
 
 # plot the whole time course - figure 1C
-all_temp$Treatment = factor(all_temp$Treatment, levels = c("High Var", "Mod Var", "Low Var", "Control"))
+all_temp$Treatment = factor(all_temp$Treatment, levels = c("Mod Var", "Control"))
 
 all_temp.plot = all_temp %>%
   ggplot(aes(x = DateTime_ct, y = Temp, color = Treatment))+
@@ -600,7 +622,52 @@ all_temp.plot = all_temp %>%
   #theme(axis.text.x = element_blank())
   theme(axis.text.x = element_text(angle = 25, hjust = 1, vjust = 1))
 all_temp.plot
-ggsave(all_temp.plot,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_AllData_Combined.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(all_temp.plot,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_NewTreats_Combined.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
+
+
+# try to add in the extra data
+all_temp_forextra = all_temp %>%
+  select(Day, Temp, Treatment)
+
+all_temp_extra = melt(list(df1 = all_temp_forextra, df2 = extra_data_combined), id.vars = c("Day","Treatment"))
+str(all_temp_extra)
+View(all_temp_extra)
+
+all_temp_extra2 = all_temp_extra %>%
+  select(Day, value, Treatment) %>%
+  rename("Temp" = "value")
+head(all_temp_extra2)
+all_temp_extra2$DateTime = as.POSIXct(all_temp_extra2$Day, format = )
+
+cols_treat_reds2 <- c("Control" = "darkgrey", "Mod Var"="#CC3300", "Control_extra" = "black", "Mod Var_extra" = "darkred")
+# make extra mod var points outlines in black
+# re-level factor so that grey is on top of red
+all_temp.plot2 = all_temp_extra2 %>%
+  ggplot(aes(x = Day, y = Temp, color = Treatment))+
+  annotate("rect", xmin = as.POSIXct("2016-09-07 00:00:00"), xmax = as.POSIXct("2016-09-22 00:00:00"), ymin = - Inf, ymax = Inf, fill = "gray", alpha = 0.3)+
+  annotate("rect", xmin = as.POSIXct("2016-09-22 00:00:00"), xmax = as.POSIXct("2016-11-10 18:00:00"), ymin = - Inf, ymax = Inf, fill = "orange", alpha = 0.15)+
+  annotate("rect", xmin = as.POSIXct("2016-11-10 18:00:00"), xmax = as.POSIXct("2016-11-25 00:00:00"), ymin = - Inf, ymax = Inf, fill = "red4", alpha = 0.15)+
+  annotate("rect", xmin = as.POSIXct("2016-11-25 00:00:00"), xmax = as.POSIXct("2016-12-11 23:55:00"), ymin = - Inf, ymax = Inf, fill = "royalblue4", alpha = 0.15)+
+ # geom_line(aes(color = Treatment), lwd=0.75)+
+  geom_point(aes(color = Treatment))+
+  scale_color_manual(values = cols_treat_reds2)+
+  xlab("Day") +
+  scale_x_datetime(breaks = as.POSIXct(c("2016-09-07 00:00:00", "2016-09-22 00:00:00","2016-11-10 18:00:00","2016-11-14 00:00:00","2016-11-21 00:00:00","2016-11-25 00:00:00", "2016-12-11 23:55:00")),
+                   date_labels = "%m/%d/%y",
+                   limits = as.POSIXct(c("2016-09-07 00:00:00", "2016-12-11 23:55:00")))+
+  scale_y_continuous(name = "Temperature (°C)", breaks = seq(26,33,1))+
+  theme_bw()+
+  #theme(axis.text.x = element_blank())
+  theme(axis.text.x = element_text(angle = 25, hjust = 1, vjust = 1))
+all_temp.plot2
+ggsave(all_temp.plot,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_NewTreats_Combined.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
+
+ggplot(all_temp_extra, aes(x = Day, y = Temp, color = Treatment)) +
+  geom_point(aes(color = Treatment), lwd=0.75)+
+  #scale_color_manual(values = cols_treat_reds)+
+  #geom_hline(aes(yintercept = 28.5), colour="grey", linetype="dashed", lwd=.5) +
+  xlab("Day")
+
 
 # plot a subset of days to zoom in and illustrate what the profiles looked like
 all_temp.plot.subset = all_temp %>%
@@ -615,7 +682,7 @@ all_temp.plot.subset = all_temp %>%
   theme(axis.text.x = element_blank())
 #theme(axis.text.x = element_text(angle = 25, hjust = 1, vjust = 1))
 all_temp.plot.subset
-ggsave(all_temp.plot.subset,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Subset_Combined.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(all_temp.plot.subset,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Subset_NewTreats_Combined.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
 # plot all stress + recovery periods
 all_stress.plot = all_stress %>%
@@ -658,18 +725,18 @@ describe(Tank4.2_var$Temp) # High Var
 library(plotrix)
 
 all_stress_2 = all_stress %>%
-  #dplyr::filter(DateTime < "2016-11-21 00:00:00" & DateTime > "2016-11-14 00:00:00") %>%# to look at just stress
-  dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-25 00:00:00") %>%# to look at just recovery
+  dplyr::filter(DateTime < "2016-11-21 00:00:00" & DateTime > "2016-11-14 00:00:00") %>%# to look at just stress
+  #dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-25 00:00:00") %>%# to look at just recovery
   summarise_at(vars(Temp), list(mean_temp = mean, sd_temp = sd, se_temp = std.error), na.rm=TRUE)
 all_stress_2
 
 # mean_temp stress
-# mean_temp   sd_temp    se_temp
-# 1  31.81931 0.2255795 0.00282682
+# mean_temp  sd_temp     se_temp
+# 1  31.80795 0.255111 0.005276025
 
 # mean_temp recovery
 # mean_temp   sd_temp     se_temp
-# 1  29.42072 0.4755736 0.003924869
+# 1  29.30185 0.5476362 0.007828169
 
 #### DTV Function ####
 # use Dan Barshis' function to calculate dtv for these loggers
@@ -706,57 +773,58 @@ head(Tank4.2_var.dailystats)
 # combine daily variability stats for all loggers
 library(Rmisc)
 
-var.dailystats.all = rbind(Tank1.1_var.dailystats,Tank2.1_var.dailystats,Tank3.1_var.dailystats,Tank4.2_var.dailystats)
+var.dailystats.all = rbind(Tank1.1_var.dailystats,Tank3.1_var.dailystats)
 str(var.dailystats.all)
 
-var.dailystats.all$treat = factor(var.dailystats.all$treat, levels = c("Control 1","Low Var","Mod Var","High Var"))
+var.dailystats.all$treat = factor(var.dailystats.all$treat, levels = c("Control 1","Mod Var"))
 
 summarySE(data = var.dailystats.all, measurevar = "DayRange", groupvar = "treat")
-#       treat  N DayRange        sd         se         ci
+# treat  N DayRange        sd         se         ci
 # 1 Control 1 50  0.43098 0.2996750 0.04238044 0.08516668
-# 2   Low Var 50  1.80772 0.1717537 0.02428965 0.04881187
-# 3   Mod Var 50  2.88386 0.1295098 0.01831544 0.03680626
-# 4  High Var 50  4.09558 0.6225749 0.08804539 0.17693383
+# 2   Mod Var 50  2.88386 0.1295098 0.01831544 0.03680626
 
 summarySE(data = var.dailystats.all, measurevar = "DayMean", groupvar = "treat")
-#       treat  N  DayMean         sd         se         ci
+# treat  N  DayMean         sd         se         ci
 # 1 Control 1 50 29.44626 0.08399914 0.01187927 0.02387229
-# 2   Low Var 50 29.15265 0.09244450 0.01307363 0.02627244
-# 3   Mod Var 50 29.40066 0.13128601 0.01856665 0.03731107
-# 4  High Var 50 29.81221 0.28840981 0.04078731 0.08196516
+# 2   Mod Var 50 29.40066 0.13128601 0.01856665 0.03731107
 
 summarySE(data = var.dailystats.all, measurevar = "DayMax", groupvar = "treat")
-#       treat  N   DayMax        sd         se         ci
+# treat  N   DayMax        sd         se         ci
 # 1 Control 1 50 29.59380 0.1112273 0.01572991 0.03161044
-# 2   Low Var 50 30.20135 0.1932732 0.02733296 0.05492763
-# 3   Mod Var 50 31.28463 0.1869496 0.02643867 0.05313049
-# 4  High Var 50 32.40988 0.4872109 0.06890202 0.13846380
+# 2   Mod Var 50 31.28463 0.1869496 0.02643867 0.05313049
 
 summarySE(data = var.dailystats.all, measurevar = "DayMin", groupvar = "treat")
-#       treat  N   DayMin         sd         se         ci
-# 1 Control 1 50 29.16282 0.31183470 0.04410009 0.08862244
-# 2   Low Var 50 28.39363 0.09258051 0.01309286 0.02631109
-# 3   Mod Var 50 28.40077 0.10868125 0.01536985 0.03088687
-# 4  High Var 50 28.31430 0.37830137 0.05349989 0.10751206
+# treat  N   DayMin        sd         se         ci
+# 1 Control 1 50 29.16282 0.3118347 0.04410009 0.08862244
+# 2   Mod Var 50 28.40077 0.1086813 0.01536985 0.03088687
 
 #### HOBO DAILY STATS & PLOTS####
+library(effectsize)
+options(es.use_symbols = TRUE) # get nice symbols when printing!
+
 # daily range
+var.dailystats.control = var.dailystats.all %>%
+  dplyr::filter(treat=="Control 1")
+var.dailystats.mod = var.dailystats.all %>%
+  dplyr::filter(treat=="Mod Var")
+
 aov.dtv=aov(DayRange~treat, data=var.dailystats.all)
 summary(aov.dtv)
 #             Df Sum Sq Mean Sq F value Pr(>F)
-# treat         3  365.0  121.67   929.4 <2e-16 ***
-# Residuals   196   25.7    0.13
+# treat        1 150.42  150.42    2823 <2e-16 ***
+# Residuals   98   5.22    0.05
+eta_squared(aov.dtv, partial = FALSE)
+# Parameter |   η² |       95% CI
+# -------------------------------
+#   treat     | 0.97 | [0.96, 1.00]
+
+t.test(var.dailystats.control$DayRange, var.dailystats.mod$DayRange, paired=FALSE)
 
 par(mfrow=c(2,2))
 plot(aov.dtv)
 TukeyHSD(aov.dtv)
 #                       diff       lwr      upr p adj
-# Low Var-Control 1  1.37674 1.1892259 1.564254     0
-# Mod Var-Control 1  2.45288 2.2653659 2.640394     0
-# High Var-Control 1 3.66460 3.4770859 3.852114     0
-# Mod Var-Low Var    1.07614 0.8886259 1.263654     0
-# High Var-Low Var   2.28786 2.1003459 2.475374     0
-# High Var-Mod Var   1.21172 1.0242059 1.399234     0
+# Mod Var-Control 1 2.45288 2.36126 2.5445     0
 
 # daily mean
 aov.mean=aov(DayMean~treat, data=var.dailystats.all)
@@ -765,54 +833,57 @@ summary(aov.mean)
 # treat         3 11.102   3.701   127.6 <2e-16 ***
 # Residuals   196  5.685   0.029
 
+eta_squared(aov.mean, partial = FALSE)
+# Parameter |   η² |       95% CI
+# -------------------------------
+#   treat     | 0.04 | [0.00, 1.00]
+
+t.test(var.dailystats.control$DayMean, var.dailystats.mod$DayMean, paired=FALSE)
+
 par(mfrow=c(2,2))
 plot(aov.mean)
 TukeyHSD(aov.mean)
 #                           diff        lwr         upr    p adj
-# Low Var-Control 1  -0.29360865 -0.3818689 -0.20534842 0.000000
-# Mod Var-Control 1  -0.04559441 -0.1338546  0.04266581 0.539521
-# High Var-Control 1  0.36595725  0.2776970  0.45421747 0.000000
-# Mod Var-Low Var     0.24801424  0.1597540  0.33627446 0.000000
-# High Var-Low Var    0.65956590  0.5713057  0.74782612 0.000000
-# High Var-Mod Var    0.41155166  0.3232914  0.49981188 0.000000
+# Mod Var-Control 1 -0.04559441 -0.08933549 -0.001853332 0.0412216
 
 # daily maximum
 aov.max=aov(DayMax~treat, data=var.dailystats.all)
 summary(aov.max)
-#               Df Sum Sq Mean Sq F value Pr(>F)
-# treat         3 230.94   76.98   956.1 <2e-16 ***
-# Residuals   196  15.78    0.08
+#             Df Sum Sq Mean Sq F value Pr(>F)
+# treat        1  71.47   71.47    3021 <2e-16 ***
+#  Residuals   98   2.32    0.02
+
+eta_squared(aov.max, partial = FALSE)
+# Parameter |   η² |       95% CI
+# -------------------------------
+#   treat     | 0.97 | [0.96, 1.00]
 
 par(mfrow=c(2,2))
 plot(aov.max)
 TukeyHSD(aov.max)
 #                         diff       lwr       upr p adj
-# Low Var-Control 1  0.607548 0.4604983 0.7545977     0
-# Mod Var-Control 1  1.690825 1.5437757 1.8378751     0
-# High Var-Control 1 2.816077 2.6690276 2.9631270     0
-# Mod Var-Low Var    1.083277 0.9362277 1.2303271     0
-# High Var-Low Var   2.208529 2.0614796 2.3555790     0
-# High Var-Mod Var   1.125252 0.9782022 1.2723016     0
+# Mod Var-Control 1 1.690825 1.629775 1.751876     0
 
 # daily minimum
 aov.min=aov(DayMin~treat, data=var.dailystats.all)
 summary(aov.min)
-#               Df Sum Sq Mean Sq F value Pr(>F)
-# treat         3  23.83   7.942   121.8 <2e-16 ***
-# Residuals   196  12.78   0.065
+#             Df Sum Sq Mean Sq F value Pr(>F)
+# treat        1 14.518  14.518   266.3 <2e-16 ***
+# Residuals   98  5.344   0.055
+
+eta_squared(aov.min, partial = FALSE)
+# Parameter |   η² |       95% CI
+# -------------------------------
+#   treat     | 0.73 | [0.66, 1.00]
 
 par(mfrow=c(2,2))
 plot(aov.min)
 TukeyHSD(aov.min)
 #                           diff        lwr         upr     p adj
-# Low Var-Control 1  -0.7691920 -0.9015049 -0.63687906 0.0000000
-# Mod Var-Control 1  -0.7620546 -0.8943675 -0.62974166 0.0000000
-# High Var-Control 1 -0.8485227 -0.9808356 -0.71620976 0.0000000
-# Mod Var-Low Var     0.0071374 -0.1251755  0.13945034 0.9990226
-# High Var-Low Var   -0.0793307 -0.2116436  0.05298224 0.4076884
-# High Var-Mod Var   -0.0864681 -0.2187810  0.04584484 0.3299194
+# Mod Var-Control 1 -0.7620546 -0.8547326 -0.6693766     0
 
-cols_treat_reds <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
+#cols_treat_reds <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
+cols_treat_reds <- c("darkgrey","#CC3300")
 
 # plot boxplots of  treatments - supplemental fig
 tempPlot.dtv <- ggplot(var.dailystats.all, aes(x = treat, y = DayRange)) +
@@ -891,4 +962,4 @@ tempPlot.min
 
 all.temp.plots = ggarrange(tempPlot.dtv,tempPlot.mean,tempPlot.max,tempPlot.min,
                            ncol = 2, nrow = 2)
-ggsave(all.temp.plots, filename = "/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/DailyTemperatureBoxplots.pdf", width=6, height=6, units=c("in"), useDingbats=FALSE)
+ggsave(all.temp.plots, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/DailyTemperatureBoxplots_NewTreats.pdf", width=6, height=6, units=c("in"), useDingbats=FALSE)
