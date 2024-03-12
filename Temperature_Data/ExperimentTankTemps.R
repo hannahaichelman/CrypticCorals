@@ -570,12 +570,12 @@ extra_data$Day <- as.POSIXct(extra_data$DATE, format="%d-%b-%y")
 extra_data_control = extra_data %>%
   select(Day, Sump_1) %>%
   mutate(Treatment = "Control_extra") %>%
-  rename("Temp" = "Sump_1")
+  dplyr::rename("Temp" = "Sump_1")
 
 extra_data_mod = extra_data %>%
   select(Day, Sump_3) %>%
   mutate(Treatment = "Mod Var_extra") %>%
-  rename("Temp" = "Sump_3")
+  dplyr::rename("Temp" = "Sump_3")
 
 extra_data_combined = rbind(extra_data_control, extra_data_mod)
 extra_data_combined$Treatment = as.factor(extra_data_combined$Treatment)
@@ -635,21 +635,33 @@ View(all_temp_extra)
 
 all_temp_extra2 = all_temp_extra %>%
   select(Day, value, Treatment) %>%
-  rename("Temp" = "value")
+  dplyr::rename("Temp" = "value")
 head(all_temp_extra2)
-all_temp_extra2$DateTime = as.POSIXct(all_temp_extra2$Day, format = )
+all_temp_extra2$DateTime = as.POSIXct(all_temp_extra2$Day)
+all_temp_extra2$Treatment = factor(all_temp_extra2$Treatment, levels = c("Control_extra","Mod Var_extra","Control","Mod Var"))
 
-cols_treat_reds2 <- c("Control" = "darkgrey", "Mod Var"="#CC3300", "Control_extra" = "black", "Mod Var_extra" = "darkred")
+all_temp_extra2_Control = all_temp_extra2 %>%
+  dplyr::filter(Treatment == "Control")
+all_temp_extra2_ModVar = all_temp_extra2 %>%
+  dplyr::filter(Treatment == "Mod Var")
+all_temp_extra2_ControlExtra = all_temp_extra2 %>%
+  dplyr::filter(Treatment == "Control_extra")
+all_temp_extra2_ModVarExtra = all_temp_extra2 %>%
+  dplyr::filter(Treatment == "Mod Var_extra")
+
+all_temp_extra_final = rbind(all_temp_extra2_ModVar, all_temp_extra2_Control, all_temp_extra2_ControlExtra, all_temp_extra2_ModVarExtra)
+
+cols_treat_reds2 <- c("Control" = "darkgrey", "Mod Var"="#CC3300", "Control_extra" = "black", "Mod Var_extra" = "#67000d")
 # make extra mod var points outlines in black
 # re-level factor so that grey is on top of red
-all_temp.plot2 = all_temp_extra2 %>%
+all_temp.plot2 = all_temp_extra_final %>%
   ggplot(aes(x = Day, y = Temp, color = Treatment))+
   annotate("rect", xmin = as.POSIXct("2016-09-07 00:00:00"), xmax = as.POSIXct("2016-09-22 00:00:00"), ymin = - Inf, ymax = Inf, fill = "gray", alpha = 0.3)+
   annotate("rect", xmin = as.POSIXct("2016-09-22 00:00:00"), xmax = as.POSIXct("2016-11-10 18:00:00"), ymin = - Inf, ymax = Inf, fill = "orange", alpha = 0.15)+
   annotate("rect", xmin = as.POSIXct("2016-11-10 18:00:00"), xmax = as.POSIXct("2016-11-25 00:00:00"), ymin = - Inf, ymax = Inf, fill = "red4", alpha = 0.15)+
   annotate("rect", xmin = as.POSIXct("2016-11-25 00:00:00"), xmax = as.POSIXct("2016-12-11 23:55:00"), ymin = - Inf, ymax = Inf, fill = "royalblue4", alpha = 0.15)+
  # geom_line(aes(color = Treatment), lwd=0.75)+
-  geom_point(aes(color = Treatment))+
+  geom_point(aes(color = Treatment), size = 1)+
   scale_color_manual(values = cols_treat_reds2)+
   xlab("Day") +
   scale_x_datetime(breaks = as.POSIXct(c("2016-09-07 00:00:00", "2016-09-22 00:00:00","2016-11-10 18:00:00","2016-11-14 00:00:00","2016-11-21 00:00:00","2016-11-25 00:00:00", "2016-12-11 23:55:00")),
@@ -660,7 +672,7 @@ all_temp.plot2 = all_temp_extra2 %>%
   #theme(axis.text.x = element_blank())
   theme(axis.text.x = element_text(angle = 25, hjust = 1, vjust = 1))
 all_temp.plot2
-ggsave(all_temp.plot,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_NewTreats_Combined.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
+ggsave(all_temp.plot2,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_NewTreats_CombinedWithExtraData.pdf", width=11, height=4, units=c("in"), useDingbats=FALSE)
 
 ggplot(all_temp_extra, aes(x = Day, y = Temp, color = Treatment)) +
   geom_point(aes(color = Treatment), lwd=0.75)+
