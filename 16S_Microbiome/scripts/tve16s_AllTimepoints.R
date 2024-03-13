@@ -3,6 +3,7 @@
 #https://benjjneb.github.io/dada2/tutorial.html
 #with edits by Carly D. Kenkel and modifications by Nicola Kriefall
 
+# Skip to line 310 to avoid stuff that happened on the BU cluster.
 #~########################~#
 ##### PRE-PROCESSING #######
 #~########################~#
@@ -13,7 +14,7 @@
 #in Terminal home directory:
 #following instructions of installing BBtools from https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/installation-guide/
 #1. download BBMap package, sftp to installation directory
-#2. untar: 
+#2. untar:
 #tar -xvzf BBMap_(version).tar.gz
 #3. test package:
 #cd bbmap
@@ -29,7 +30,7 @@
 # >reverserc
 # GTATGCCGTCTTCTGCTTG
 
-#primers for 16S: 
+#primers for 16S:
 # >forward
 # GTGYCAGCMGCCGCGGTA
 # >reverse
@@ -39,7 +40,7 @@
 #ls *R1_001.fastq | cut -d '_' -f 1 > samples.list
 
 ##cuts off the extra words in the .fastq files
-#for file in $(cat samples.list); do  mv ${file}_*R1*.fastq ${file}_R1.fastq; mv ${file}_*R2*.fastq ${file}_R2.fastq; done 
+#for file in $(cat samples.list); do  mv ${file}_*R1*.fastq ${file}_R1.fastq; mv ${file}_*R2*.fastq ${file}_R2.fastq; done
 
 ##gets rid of reads that still have the adaptor sequence, shouldn't be there, I didn't have any
 #for file in $(cat samples.list); do ~/bin/bbmap/bbduk.sh in1=${file}_R1.fastq in2=${file}_R2.fastq ref=adaptors.fasta out1=${file}_R1_NoIll.fastq out2=${file}_R2_NoIll.fastq; done &>bbduk_NoIll.log
@@ -56,12 +57,12 @@
 # do
 # cutadapt -g GTGYCAGCMGCCGCGGTA -a ATTAGAWACCCVHGTAGTCC -G GGACTACHVGGGTWTCTAAT -A TACCGCGGCKGCTGRCAC -n 2 --discard-untrimmed -o ${file}_R1.fastq -p ${file}_R2.fastq ${file}_R1_NoIll_No4N_16S.fastq ${file}_R2_NoIll_No4N_16S.fastq
 # done &> clip.log
-##-g regular 5' forward primer 
+##-g regular 5' forward primer
 ##-G regular 5' reverse primer
 ##-o forward out
 ##-p reverse out
 ##-max-n 0 means 0 Ns allowed
-##this overwrote my original renamed files 
+##this overwrote my original renamed files
 
 # did sftp of *_R1.fastq & *_R2.fastq files to the folder to be used in dada2
 
@@ -100,7 +101,7 @@ allOrients <- function(primer) {
   # Create all orientations of the input sequence
   require(Biostrings)
   dna <- DNAString(primer)  # The Biostrings works w/ DNAString objects rather than character vectors
-  orients <- c(Forward = dna, Complement = complement(dna), Reverse = reverse(dna), 
+  orients <- c(Forward = dna, Complement = complement(dna), Reverse = reverse(dna),
                RevComp = reverseComplement(dna))
   return(sapply(orients, toString))  # Convert back to character vector
 }
@@ -118,9 +119,9 @@ primerHits <- function(primer, fn) {
   nhits <- vcountPattern(primer, sread(readFastq(fn)), fixed = FALSE)
   return(sum(nhits > 0))
 }
-rbind(FWD.ForwardReads = sapply(FWD.orients, primerHits, fn = fnFs.filtN[[9]]), 
-      FWD.ReverseReads = sapply(FWD.orients, primerHits, fn = fnRs.filtN[[9]]), 
-      REV.ForwardReads = sapply(REV.orients, primerHits, fn = fnFs.filtN[[9]]), 
+rbind(FWD.ForwardReads = sapply(FWD.orients, primerHits, fn = fnFs.filtN[[9]]),
+      FWD.ReverseReads = sapply(FWD.orients, primerHits, fn = fnRs.filtN[[9]]),
+      REV.ForwardReads = sapply(REV.orients, primerHits, fn = fnFs.filtN[[9]]),
       REV.ReverseReads = sapply(REV.orients, primerHits, fn = fnRs.filtN[[9]]))
 #spot checked a few files - don't see any primers
 
@@ -143,11 +144,11 @@ filtFs <- file.path(filt_path, paste0(sample.names, "_F_filt.fastq.gz"))
 filtRs <- file.path(filt_path, paste0(sample.names, "_R_filt.fastq.gz"))
 
 #changing a bit from default settings - maxEE=1 (1 max expected error, more conservative), truncating length at 200 bp for both forward & reverse [leaves ~50bp overlap], added "trimleft" to cut off primers [18 for forward, 20 for reverse]
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, 
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs,
                      truncLen=c(175,175), #leaves ~50bp overlap
                      maxN=0, #DADA does not allow Ns
                      maxEE=c(1,1), #allow 1 expected errors, where EE = sum(10^(-Q/10)); more conservative, model converges
-                     truncQ=2, 
+                     truncQ=2,
                      #trimLeft=c(18,20), #N nucleotides to remove from the start of each read
                      rm.phix=TRUE, #remove reads matching phiX genome
                      matchIDs=TRUE, #enforce matching between id-line sequence identifiers of F and R reads
@@ -176,13 +177,13 @@ errR <- learnErrors(filtRs, multithread=TRUE)
 #black line is estimated error rate after convergence
 #dots are observed error rate for each quality score
 
-plotErrors(errF, nominalQ=TRUE) 
-plotErrors(errR, nominalQ=TRUE) 
+plotErrors(errF, nominalQ=TRUE)
+plotErrors(errR, nominalQ=TRUE)
 
 #~############################~#
 ##### Dereplicate reads ########
 #~############################~#
-#Dereplication combines all identical sequencing reads into “unique sequences” with a corresponding “abundance”: the number of reads with that unique sequence. 
+#Dereplication combines all identical sequencing reads into “unique sequences” with a corresponding “abundance”: the number of reads with that unique sequence.
 #Dereplication substantially reduces computation time by eliminating redundant comparisons.
 #DADA2 retains a summary of the quality information associated with each unique sequence. The consensus quality profile of a unique sequence is the average of the positional qualities from the dereplicated reads. These quality profiles inform the error model of the subsequent denoising step, significantly increasing DADA2’s accuracy.
 derepFs <- derepFastq(filtFs, verbose=TRUE)
@@ -200,7 +201,7 @@ dadaRs <- dada(derepRs, err=errR, multithread=TRUE)
 
 #now, look at the dada class objects by sample
 #will tell how many 'real' variants in unique input seqs
-#By default, the dada function processes each sample independently, but pooled processing is available with pool=TRUE and that may give better results for low sampling depths at the cost of increased computation time. See our discussion about pooling samples for sample inference. 
+#By default, the dada function processes each sample independently, but pooled processing is available with pool=TRUE and that may give better results for low sampling depths at the cost of increased computation time. See our discussion about pooling samples for sample inference.
 dadaFs[[1]]
 dadaRs[[1]]
 
@@ -234,8 +235,8 @@ table(nchar(getSequences(seqtab)))
 
 plot(table(nchar(getSequences(seqtab)))) #real variants appear to be right in that 244-264 window
 
-#The sequence table is a matrix with rows corresponding to (and named by) the samples, and 
-#columns corresponding to (and named by) the sequence variants. 
+#The sequence table is a matrix with rows corresponding to (and named by) the samples, and
+#columns corresponding to (and named by) the sequence variants.
 #Sequences that are much longer or shorter than expected may be the result of non-specific priming, and may be worth removing
 
 # trying to figure out what these two peaks are, make seq tables of both peaks
@@ -244,22 +245,22 @@ seqtab2 <- seqtab[,nchar(colnames(seqtab)) %in% seq(240,260)] #again, being fair
 #~############################~#
 ##### Remove chimeras ##########
 #~############################~#
-#The core dada method removes substitution and indel errors, but chimeras remain. 
-#Fortunately, the accuracy of the sequences after denoising makes identifying chimeras easier 
-#than it is when dealing with fuzzy OTUs: all sequences which can be exactly reconstructed as 
+#The core dada method removes substitution and indel errors, but chimeras remain.
+#Fortunately, the accuracy of the sequences after denoising makes identifying chimeras easier
+#than it is when dealing with fuzzy OTUs: all sequences which can be exactly reconstructed as
 #a bimera (two-parent chimera) from more abundant sequences.
 
 seqtab.nochim <- removeBimeraDenovo(seqtab2, method="consensus", multithread=TRUE, verbose=TRUE)
 dim(seqtab.nochim)
 #Identified 1675 bimeras out of 10619 input sequences.
 
-#The fraction of chimeras varies based on factors including experimental procedures and sample complexity, 
-#but can be substantial. 
+#The fraction of chimeras varies based on factors including experimental procedures and sample complexity,
+#but can be substantial.
 sum(seqtab.nochim)/sum(seqtab2)
 #0.952486
 
-saveRDS(seqtab.nochim, file="/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/tve16s_t0_seqtab.nochim.rds")
-write.csv(seqtab.nochim, file="/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/tve16s_t0_seqtab.nochim.csv")
+saveRDS(seqtab.nochim, file="/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/tve16s_all_seqtab.nochim.rds")
+write.csv(seqtab.nochim, file="/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/tve16s_all_seqtab.nochim.csv")
 
 #~############################~#
 ##### Track Read Stats #########
@@ -284,11 +285,11 @@ write.csv(track,file="/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Tim
 
 # scp seqtab.nochim.rds file to scc
 
-# this step had to happen on the SCC because it took too much memory to run locally. 
+# this step had to happen on the SCC because it took too much memory to run locally.
 # on scc: /projectnb/davies-hb/hannah/TVE_16S_ITS/tve_prestress_files/lane1and2_16S/assign_tax
 # or for T0 analysis: /projectnb/davies-hb/hannah/TVE_Panama/TVE_16S_ITS/tve_16s_allfiles/assign_tax
 
-# first, module load R and type R to open interactive window. 
+# first, module load R and type R to open interactive window.
 # next, install dada2 using biocmanager
 # then exit the R interactive environment and submit the job "assign_tax_R" using qsub.
 
@@ -308,14 +309,14 @@ saveRDS(taxa, file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStre
 
 #### Read in previously saved datafiles  - START HERE ####
 # Trying now with all samples included, which was previously done following the same steps above just with all samples included
-setwd("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints")
+setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability")
 
-seqtab.nochim <- readRDS("tve16s_all_seqtab.nochim_newids.rds")
-taxa <- readRDS("tve16s_all_seq_taxa_newids.rds")
+seqtab.nochim <- readRDS("16S_Microbiome/data_files/tve16s_all_seqtab.nochim_newids.rds")
+taxa <- readRDS("16S_Microbiome/data_files/tve16s_all_seq_taxa_newids.rds")
 #taxa.plus <- readRDS("mr16s_revised_taxaplus.rds")
 
 # check for samples with 0 reads - all looks good for T0, but I2C4 has 0 reads
-rowSums(seqtab.nochim) 
+rowSums(seqtab.nochim)
 
 row_names_to_remove<-c("I2C4") # I2C4 being removed because of 0 reads, ITS because they were negative controls specific to ITS
 seqtab.nochim <- seqtab.nochim[!(row.names(seqtab.nochim) %in% row_names_to_remove),]
@@ -332,13 +333,13 @@ library('cowplot')
 library('ShortRead')
 library('tidyverse')
 
-#import dataframe holding sample information 
-samdf = read.csv("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/SampleInfo.csv")
+#import dataframe holding sample information
+samdf = read.csv("16S_Microbiome/data_files/SampleInfo.csv")
 dim(samdf)
 head(samdf)
 
-# add identifying data that includes lineage 3
-phys_metadata = read.csv("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/20220121_aichelman/its2_type_profiles/phys_metadata_its2.csv")
+# add identifying data that includes lineage 3 - best to include from ITS2 metadata
+phys_metadata = read.csv("ITS2_Symbiodiniaceae/data_files/phys_metadata_its2.csv")
 head(phys_metadata)
 dim(phys_metadata)
 
@@ -362,8 +363,8 @@ dim(samdf_all)
 rownames(samdf_all) <- samdf_all$frag
 
 # Construct phyloseq object (straightforward from dada2 outputs)
-ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
-               sample_data(samdf_all), 
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE),
+               sample_data(samdf_all),
                tax_table(taxa))
 
 ps
@@ -385,7 +386,7 @@ ids <- paste0("sq", seq(1, length(colnames(seqtab.nochim))))
 
 #making output fasta file for lulu step & maybe other things
 library(dada2)
-path='/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/tve16s_all.fasta'
+path='16S_Microbiome/data_files/tve16s_all.fasta'
 uniquesToFasta(seqtab.nochim, path, mode = "w", width = 20000)
 
 colnames(seqtab.nochim)<-ids
@@ -393,8 +394,8 @@ taxa2 <- cbind(taxa, rownames(taxa)) #retaining raw sequence info before renamin
 rownames(taxa2)<-ids
 
 #phyloseq object with new taxa ids
-ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
-               sample_data(samdf_all), 
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE),
+               sample_data(samdf_all),
                tax_table(taxa2))
 
 ps #17903 taxa and 239 samples
@@ -402,7 +403,7 @@ ps #17903 taxa and 239 samples
 #save(taxa2,file="taxa2.Rdata")
 #save(taxa,file="taxa.Rdata")
 
-#### remove mitochondria, chloroplasts, non-bacteria #### 
+#### remove mitochondria, chloroplasts, non-bacteria ####
 ps.mito <- subset_taxa(ps, (Family=="Mitochondria"))
 ps.mito #463 taxa to remove
 ps.chlor <- subset_taxa(ps, (Order=="Chloroplast"))
@@ -435,8 +436,8 @@ ggplot(data=df, aes(x=Index, y=LibrarySize, color=sitename)) + geom_point()
 sample_data(ps.clean)$is.neg <- sample_data(ps.clean)$Sample_or_Control == "Control"
 contamdf.prev <- isContaminant(ps.clean, neg="is.neg",threshold=0.5)
 table(contamdf.prev$contaminant)
-# FALSE  TRUE 
-# 16256   160 
+# FALSE  TRUE
+# 16256   160
 
 # Make phyloseq object of presence-absence in negative controls and true samples
 ps.pa <- transform_sample_counts(ps.clean, function(abund) 1*(abund>0))
@@ -467,7 +468,7 @@ ps.cleaner <- subset_samples(ps.clean1,(Sample_or_Control!="Control"))
 #made that qsub file by doing this, make sure to add -pe omp 10:
 #scc6_qsub_launcher.py -N split_blast_t0 -P coral -M haich@bu.edu -j y -h_rt 64:00:00 -jobsfile split_blast_t0
 
-# [haich@scc1 euk_blast]$ cat split_blast_t0 
+# [haich@scc1 euk_blast]$ cat split_blast_t0
 # blastn -query tve16s_t0_split.00001 -db nt -outfmt "6 std staxids sskingdoms" -evalue 1e-5 -max_target_seqs 5 -out tve16s_t0_split.00001_taxids.out -remote
 # blastn -query tve16s_t0_split.05001 -db nt -outfmt "6 std staxids sskingdoms" -evalue 1e-5 -max_target_seqs 5 -out tve16s_t0_split.05001_taxids.out -remote
 
@@ -482,9 +483,9 @@ ps.cleaner <- subset_samples(ps.clean1,(Sample_or_Control!="Control"))
 # #https://bioinf.shenwei.me/taxonkit/usage/
 
 # cd /net/scc-pa2/scratch/
-# wget -c ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz 
+# wget -c ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
 # tar -zxvf taxdump.tar.gz
-# cd 
+# cd
 # [haich@scc1 taxa]$ cp *.dmp /usr3/graduate/haich/.taxonkit
 
 # module load miniconda
@@ -502,11 +503,11 @@ ps.cleaner <- subset_samples(ps.clean1,(Sample_or_Control!="Control"))
 ##transferring euk.contam.asvs to back here
 ##remove from ps.cleaner
 ##should be 151 to remove
-euks <- read.csv("euk.contam.asvs.csv",header=FALSE)
+euks <- read.csv("16S_Microbiome/data_files/euk.contam.asvs.csv",header=FALSE)
 euks_names <- euks$V1
-alltaxa <- taxa_names(ps.cleaner) 
+alltaxa <- taxa_names(ps.cleaner)
 keepers <- alltaxa[(!alltaxa %in% euks_names)] #doesn't look like any were removed
-ps.cleanest <- prune_taxa(keepers, ps.cleaner) 
+ps.cleanest <- prune_taxa(keepers, ps.cleaner)
 #16256 taxa and 237 samples
 
 seqtab.cleanest <- data.frame(otu_table(ps.cleanest))
@@ -516,8 +517,8 @@ seqtab.cleanest <- data.frame(otu_table(ps.cleanest))
 saveRDS(ps.cleanest,file="phyloseq.cleanest.all.rds")
 
 #### Decontaminated (Euk contamination removed) files ####
-setwd("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints")
-ps.cleanest = readRDS("phyloseq.cleanest.all.rds")
+setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability")
+ps.cleanest = readRDS("16S_Microbiome/data_files/phyloseq.cleanest.all.rds")
 seqtab.cleanest <- data.frame(ps.cleanest@otu_table)
 samdf.cleanest <- data.frame(ps.cleanest@sam_data)
 
@@ -534,7 +535,7 @@ saveRDS(ps.cleanest.prestress,file="phyloseq.cleanest.prestress.rds")
 
 #### rarefy decontaminated data #####
 library(vegan)
-load("taxa2.Rdata")
+load("16S_Microbiome/data_files/taxa2.Rdata")
 
 # more info on rarefying: https://micca.readthedocs.io/en/latest/phyloseq.html
 # plot rarefaction curve
@@ -545,9 +546,9 @@ rarecurve(seqtab.prestress.cleanest,step=100,label=TRUE) #after removing contami
 df.t0 = data.frame(ASVs=rowSums(otu_table(ps.cleanest.t0)>0), reads=sample_sums(ps.cleanest.t0), sample_data(ps.cleanest.t0))
 df.prestress = data.frame(ASVs=rowSums(otu_table(ps.cleanest.prestress)>0), reads=sample_sums(ps.cleanest.prestress), sample_data(ps.cleanest.prestress))
 
-ggplot(df.prestress, aes(x=reads)) + 
-  geom_histogram(bins=50, color='black', fill='grey') + 
-  theme_bw() +  
+ggplot(df.prestress, aes(x=reads)) +
+  geom_histogram(bins=50, color='black', fill='grey') +
+  theme_bw() +
   geom_vline(xintercept=1000, color= "red", linetype='dashed') +
   labs(title="Histogram: Reads per Sample") + xlab("Read Count") + ylab("Sample Count")
 
@@ -580,13 +581,13 @@ seqtab.rare.prestress <- rrarefy(seqtab.less.prestress,sample=1000)
 rarecurve(seqtab.rare.prestress,step=100,label=TRUE)
 
 #phyloseq object but rarefied
-ps.rare.t0 <- phyloseq(otu_table(seqtab.rare.t0, taxa_are_rows=FALSE), 
-               sample_data(samdf.rare.t0), 
+ps.rare.t0 <- phyloseq(otu_table(seqtab.rare.t0, taxa_are_rows=FALSE),
+               sample_data(samdf.rare.t0),
                tax_table(taxa))
 ps.rare.t0 #16256 taxa and 54 samples
 
-ps.rare.prestress <- phyloseq(otu_table(seqtab.rare.prestress, taxa_are_rows=FALSE), 
-                    sample_data(samdf.rare.prestress), 
+ps.rare.prestress <- phyloseq(otu_table(seqtab.rare.prestress, taxa_are_rows=FALSE),
+                    sample_data(samdf.rare.prestress),
                     tax_table(taxa))
 ps.rare.prestress #16256 taxa and 148 samples
 
@@ -609,19 +610,19 @@ seqtab.rare.prestress <- data.frame(otu_table(ps.rare.prestress))
 
 ### data files - decontaminated, rarefied ####
 
-setwd("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints")
-ps.rare.1k.t0 = readRDS("phyloseq.t0.rarefied.1k.rds")
+setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability")
+ps.rare.1k.t0 = readRDS("16S_Microbiome/data_files/phyloseq.t0.rarefied.1k.rds")
 seqtab.rare.1k.t0 <- data.frame(ps.rare.1k.t0@otu_table)
 samdf.rare.1k.t0 <- data.frame(ps.rare.1k.t0@sam_data)
 
-ps.rare.1k.prestress = readRDS("phyloseq.prestress.rarefied.1k.rds")
+ps.rare.1k.prestress = readRDS("16S_Microbiome/data_files/phyloseq.prestress.rarefied.1k.rds")
 seqtab.rare.1k.prestress <- data.frame(ps.rare.1k.prestress@otu_table)
 samdf.rare.1k.prestress <- data.frame(ps.rare.1k.prestress@sam_data)
 
-load("taxa2.Rdata")
+load("16S_Microbiome/data_files/taxa2.Rdata")
 
-ps.rare <- phyloseq(otu_table(seqtab.rare.1k, taxa_are_rows=FALSE), 
-                    sample_data(samdf.rare.1k), 
+ps.rare <- phyloseq(otu_table(seqtab.rare.1k, taxa_are_rows=FALSE),
+                    sample_data(samdf.rare.1k),
                     tax_table(taxa2))
 ps.rare # 11369 taxa and 202 samples
 
@@ -631,10 +632,10 @@ library(MCMC.OTU)
 
 #formatting the table for mcmc.otu - requires one first column that's 1 through whatever
 #& has "X" as column name
-nums.t0 <- 1:nrow(seqtab.t0.cleanest) 
+nums.t0 <- 1:nrow(seqtab.t0.cleanest)
 samples.t0 <- rownames(seqtab.t0.cleanest)
 
-nums.prestress <- 1:nrow(seqtab.prestress.cleanest) 
+nums.prestress <- 1:nrow(seqtab.prestress.cleanest)
 samples.prestress <- rownames(seqtab.prestress.cleanest)
 
 int.t0 <- cbind(sample = 0, seqtab.t0.cleanest)
@@ -653,43 +654,43 @@ seq.trim.allinfo.t0 <- purgeOutliers(seq.formcmc.t0,count.columns=3:16258,sample
 # [1] "samples with counts below z-score -2.5 :"
 # [1] "I2A" "I3A"
 # [1] "zscores:"
-# I2A       I3A 
-# -3.113507 -3.854946 
+# I2A       I3A
+# -3.113507 -3.854946
 # [1] "OTUs passing frequency cutoff  1e-04 : 1505"
 # [1] "OTUs with counts in 0.02 of samples:"
-# 
-# FALSE  TRUE 
-# 338  1167 
+#
+# FALSE  TRUE
+# 338  1167
 
 seq.trim.allinfo.prestress <- purgeOutliers(seq.formcmc.prestress,count.columns=3:16258,sampleZcut=-2.5,otu.cut=0.0001,zero.cut=0.02)
 # [1] "samples with counts below z-score -2.5 :"
 # [1] "I2F1"
 # [1] "zscores:"
-# I2F1 
-# -3.941567 
+# I2F1
+# -3.941567
 # [1] "OTUs passing frequency cutoff  1e-04 : 1038"
 # [1] "OTUs with counts in 0.02 of samples:"
-# 
-# FALSE  TRUE 
-# 295   743 
+#
+# FALSE  TRUE
+# 295   743
 
 #remove sample info
-seq.trim.t0 <- seq.trim.allinfo.t0[,3:1169] 
-seq.trim.prestress <- seq.trim.allinfo.prestress[,3:745] 
+seq.trim.t0 <- seq.trim.allinfo.t0[,3:1169]
+seq.trim.prestress <- seq.trim.allinfo.prestress[,3:745]
 
 #write.csv(seq.trim.t0,file="tve16s_seqtab.rev.cleanest.trim.t0.csv")
 #write.csv(seq.trim.prestress,file="tve16s_seqtab.rev.cleanest.trim.prestress.csv")
 
 #remake phyloseq objects
-ps.trim.t0 <- phyloseq(otu_table(seq.trim.t0, taxa_are_rows=FALSE), 
-                         sample_data(samdf.t0.cleanest), 
+ps.trim.t0 <- phyloseq(otu_table(seq.trim.t0, taxa_are_rows=FALSE),
+                         sample_data(samdf.t0.cleanest),
                          tax_table(taxa2))
 ps.trim.t0 #1167 taxa and 52 samples
 
 #saveRDS(ps.trim,file="phyloseq.cleanest.trim.rds")
 
-ps.trim.prestress <- phyloseq(otu_table(seq.trim.prestress, taxa_are_rows=FALSE), 
-                    sample_data(samdf.prestress.cleanest), 
+ps.trim.prestress <- phyloseq(otu_table(seq.trim.prestress, taxa_are_rows=FALSE),
+                    sample_data(samdf.prestress.cleanest),
                     tax_table(taxa2))
 ps.trim.prestress #743 taxa and 182 samples
 
@@ -700,17 +701,17 @@ ps.trim.prestress #743 taxa and 182 samples
 #### rarefy trimmed data #####
 library(vegan)
 
-ps.trim.t0 = readRDS("phyloseq.cleanest.trim.t0.rds")
+ps.trim.t0 = readRDS("16S_Microbiome/data_files/phyloseq.cleanest.trim.t0.rds")
 seqtab.trim.t0 <- data.frame(ps.trim.t0@otu_table)
 samdf.trim.t0 <- data.frame(ps.trim.t0@sam_data)
 
-ps.trim.prestress = readRDS("phyloseq.cleanest.trim.prestress.rds")
+ps.trim.prestress = readRDS("16S_Microbiome/data_files/phyloseq.cleanest.trim.prestress.rds")
 seqtab.trim.prestress <- data.frame(ps.trim.prestress@otu_table)
 samdf.trim.prestress <- data.frame(ps.trim.prestress@sam_data)
 
 # plot rarefaction curve
-rarecurve(seqtab.trim.t0,step=100,label=TRUE) 
-rarecurve(seqtab.trim.prestress,step=100,label=TRUE) 
+rarecurve(seqtab.trim.t0,step=100,label=TRUE)
+rarecurve(seqtab.trim.prestress,step=100,label=TRUE)
 
 # establish samples to remove
 total.t0 <- rowSums(seqtab.trim.t0)
@@ -742,13 +743,13 @@ seqtab.rare.prestress <- rrarefy(seqtab.less.prestress,sample=1000)
 rarecurve(seqtab.rare.prestress,step=100,label=TRUE)
 
 #phyloseq object but rarefied
-ps.trim.rare.t0 <- phyloseq(otu_table(seqtab.rare.t0, taxa_are_rows=FALSE), 
-                       sample_data(samdf.rare.t0), 
+ps.trim.rare.t0 <- phyloseq(otu_table(seqtab.rare.t0, taxa_are_rows=FALSE),
+                       sample_data(samdf.rare.t0),
                        tax_table(taxa))
 ps.trim.rare.t0 #1167 taxa and 52 samples
 
-ps.trim.rare.prestress <- phyloseq(otu_table(seqtab.rare.prestress, taxa_are_rows=FALSE), 
-                              sample_data(samdf.rare.prestress), 
+ps.trim.rare.prestress <- phyloseq(otu_table(seqtab.rare.prestress, taxa_are_rows=FALSE),
+                              sample_data(samdf.rare.prestress),
                               tax_table(taxa))
 ps.trim.rare.prestress #743 taxa and 140 samples
 
@@ -771,24 +772,24 @@ saveRDS(ps.trim.rare.prestress,file="phyloseq.prestress.trim.rarefied.1k.rds")
 
 ### data files - decontaminated, trimmed, rarefied ####
 
-setwd("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints")
-ps.trim.rare.1k.t0 = readRDS("phyloseq.t0.trim.rarefied.1k.rds")
+setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability")
+ps.trim.rare.1k.t0 = readRDS("16S_Microbiome/data_files/phyloseq.t0.trim.rarefied.1k.rds")
 seqtab.trim.rare.1k.t0 <- data.frame(ps.trim.rare.1k.t0@otu_table)
 samdf.trim.rare.1k.t0 <- data.frame(ps.trim.rare.1k.t0@sam_data)
 
-ps.trim.rare.1k.prestress = readRDS("phyloseq.prestress.trim.rarefied.1k.rds")
+ps.trim.rare.1k.prestress = readRDS("16S_Microbiome/data_files/phyloseq.prestress.trim.rarefied.1k.rds")
 seqtab.trim.rare.1k.prestress <- data.frame(ps.trim.rare.1k.prestress@otu_table)
 samdf.trim.rare.1k.prestress <- data.frame(ps.trim.rare.1k.prestress@sam_data)
 
-load("taxa2.Rdata")
+load("16S_Microbiome/data_files/taxa2.Rdata")
 
-ps.trim.rare.t0 <- phyloseq(otu_table(seqtab.trim.rare.1k.t0, taxa_are_rows=FALSE), 
-                    sample_data(samdf.trim.rare.1k.t0), 
+ps.trim.rare.t0 <- phyloseq(otu_table(seqtab.trim.rare.1k.t0, taxa_are_rows=FALSE),
+                    sample_data(samdf.trim.rare.1k.t0),
                     tax_table(taxa2))
 ps.trim.rare.t0 # 11369 taxa and 202 samples
 
-ps.trim.rare.prestress <- phyloseq(otu_table(seqtab.trim.rare.1k.prestress, taxa_are_rows=FALSE), 
-                    sample_data(samdf.trim.rare.1k.prestress), 
+ps.trim.rare.prestress <- phyloseq(otu_table(seqtab.trim.rare.1k.prestress, taxa_are_rows=FALSE),
+                    sample_data(samdf.trim.rare.1k.prestress),
                     tax_table(taxa2))
 ps.trim.rare.prestress # 11369 taxa and 202 samples
 
@@ -797,15 +798,15 @@ library(phyloseq)
 library(dada2)
 
 #if needed:
-setwd("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress")
+setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability")
 
 ps.trim = readRDS("phyloseq.cleanest.trim.rds")
 seqtab.trim <- data.frame(ps.trim@otu_table)
 samdf.trim <- data.frame(ps.trim@sam_data)
 load("taxa2.Rdata")
 
-ps.trim <- phyloseq(otu_table(seqtab.trim, taxa_are_rows=FALSE), 
-                         sample_data(samdf.trim), 
+ps.trim <- phyloseq(otu_table(seqtab.trim, taxa_are_rows=FALSE),
+                         sample_data(samdf.trim),
                          tax_table(taxa2))
 ps.trim #641 taxa and 171 samples
 
@@ -828,7 +829,7 @@ write.table(seqtab.trim.t,file="tve16s_seqtab.cleanest.trim.t.txt")
 #### moving on to tve16s_diversity_analysis.R script in other folder ####
 
 #### Try Batch Correction ####
-## This step not necessary when including only the Pre-Stress data. 
+## This step not necessary when including only the Pre-Stress data.
 ## This was useful when trying to analyze T0 and Pre-Stress data together.
 
 cran.packages <- c('knitr', 'xtable', 'ggplot2', 'vegan', 'cluster',
@@ -884,7 +885,7 @@ seqtab.cleanest.keep <- seqtab.cleanest[, seqtab.index.keep]
 dim(seqtab.cleanest.keep)
 # [1]  237 1125
 
-# Add offset to handle zeros 
+# Add offset to handle zeros
 seqtab.cleanest.keep <- seqtab.cleanest.keep + 1
 
 # Centered log-ratio transformation
@@ -900,22 +901,22 @@ batch = as.factor(samdf.cleanest$time)
 trt = as.factor(samdf.cleanest$treat)
 expl.var = seqtab.pca.before$explained_variance
 
-pMain <- ggplot(data = data, aes(x = data[ ,1], y = data[ ,2], colour = batch, shape = trt)) + 
-  geom_point()+ 
-  xlab(paste0('PC1: ', round(as.numeric(expl.var[1])*100), '% expl.var')) + 
-  ylab(paste0('PC2: ', round(as.numeric(expl.var[2])*100), '% expl.var')) + 
-  scale_color_manual(values = color.mixo(1:10)) + 
+pMain <- ggplot(data = data, aes(x = data[ ,1], y = data[ ,2], colour = batch, shape = trt)) +
+  geom_point()+
+  xlab(paste0('PC1: ', round(as.numeric(expl.var[1])*100), '% expl.var')) +
+  ylab(paste0('PC2: ', round(as.numeric(expl.var[2])*100), '% expl.var')) +
+  scale_color_manual(values = color.mixo(1:10)) +
   theme_bw()+
   stat_ellipse()
-#xlim(xlim[1], xlim[2]) + 
-#ylim(ylim[1], ylim[2]) + 
+#xlim(xlim[1], xlim[2]) +
+#ylim(ylim[1], ylim[2]) +
 #labs(colour = batch.legend.title, shape = trt.legend.title)
-pMain  
-pTop <- ggplot(data,aes(x = data[ ,1], fill = batch, linetype = trt)) + 
-  geom_density(alpha = 0.5) + 
-  ylab('Density') 
-pRight <- ggplot(data, aes(x=data[ ,2], fill = batch, linetype=trt)) + 
-  geom_density(alpha = 0.5) +  coord_flip() + ylab('Density') 
+pMain
+pTop <- ggplot(data,aes(x = data[ ,1], fill = batch, linetype = trt)) +
+  geom_density(alpha = 0.5) +
+  ylab('Density')
+pRight <- ggplot(data, aes(x=data[ ,2], fill = batch, linetype=trt)) +
+  geom_density(alpha = 0.5) +  coord_flip() + ylab('Density')
 
 grid.arrange(pTop, pMain, pRight)
 

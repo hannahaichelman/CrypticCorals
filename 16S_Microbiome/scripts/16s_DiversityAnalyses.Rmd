@@ -12,8 +12,8 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-#work computer 
-setwd("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/")
+# set to github repository location
+setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability")
 ```
 
 # Setup
@@ -36,14 +36,14 @@ library(tidyverse)
 
 ```{r making phyloseq objects, eval=FALSE}
 # can skip this section once you've run it once and saved output Rdata files
-load("taxa2.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/taxa2.Rdata")
 
 #cleaned, rarefied files:
-ps.rare.1k.t0 = readRDS("phyloseq.t0.rarefied.1k.rds")
+ps.rare.1k.t0 = readRDS("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/phyloseq.t0.rarefied.1k.rds")
 seqtab.rare.1k.t0 <- data.frame(ps.rare.1k.t0@otu_table)
 samdf.rare.1k.t0 <- data.frame(ps.rare.1k.t0@sam_data)
 
-ps.rare.1k.prestress = readRDS("phyloseq.prestress.rarefied.1k.rds")
+ps.rare.1k.prestress = readRDS("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/phyloseq.prestress.rarefied.1k.rds")
 seqtab.rare.1k.prestress <- data.frame(ps.rare.1k.prestress@otu_table)
 samdf.rare.1k.prestress <- data.frame(ps.rare.1k.prestress@sam_data)
 
@@ -61,11 +61,11 @@ save(ps.rare.t0,file="ps.rare.t0.Rdata")
 save(ps.rare.prestress,file="ps.rare.prestress.Rdata")
 
 #cleaned, unrarefied files:
-ps.clean.t0 = readRDS("phyloseq.cleanest.t0.rds")
+ps.clean.t0 = readRDS("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/phyloseq.cleanest.t0.rds")
 seqtab.clean.t0 <- data.frame(ps.clean.t0@otu_table)
 samdf.clean.t0 <- data.frame(ps.clean.t0@sam_data)
 
-ps.clean.prestress = readRDS("phyloseq.cleanest.prestress.rds")
+ps.clean.prestress = readRDS("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/phyloseq.cleanest.prestress.rds")
 seqtab.clean.prestress <- data.frame(ps.clean.prestress@otu_table)
 samdf.clean.prestress <- data.frame(ps.clean.prestress@sam_data)
 
@@ -85,11 +85,11 @@ save(ps.clean.prestress,file="ps.clean.prestress.Rdata")
 
 ##TRIMMED VERSIONS:
 # trimmed and rarefied
-ps.trim.rare.t0 = readRDS("phyloseq.t0.trim.rarefied.1k.rds")
+ps.trim.rare.t0 = readRDS("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/phyloseq.t0.trim.rarefied.1k.rds")
 seqtab.trim.rare.t0 <- data.frame(ps.trim.rare.t0@otu_table)
 samdf.trim.rare.t0 <- data.frame(ps.trim.rare.t0@sam_data)
 
-ps.trim.rare.prestress = readRDS("phyloseq.prestress.trim.rarefied.1k.rds")
+ps.trim.rare.prestress = readRDS("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/phyloseq.prestress.trim.rarefied.1k.rds")
 seqtab.trim.rare.prestress <- data.frame(ps.trim.rare.prestress@otu_table)
 samdf.trim.rare.prestress <- data.frame(ps.trim.rare.prestress@sam_data)
 
@@ -107,11 +107,11 @@ save(ps.trim.rare.t0,file="ps.trim.rare.t0.Rdata")
 save(ps.trim.rare.prestress,file="ps.trim.rare.prestress.Rdata")
 
 # just trimmed
-ps.trim.t0 = readRDS("phyloseq.cleanest.trim.t0.rds")
+ps.trim.t0 = readRDS("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/phyloseq.cleanest.trim.t0.rds")
 seqtab.trim.t0 <- data.frame(ps.trim.t0@otu_table)
 samdf.trim.t0 <- data.frame(ps.trim.t0@sam_data)
 
-ps.trim.prestress = readRDS("phyloseq.cleanest.trim.prestress.rds")
+ps.trim.prestress = readRDS("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/phyloseq.cleanest.trim.prestress.rds")
 seqtab.trim.prestress <- data.frame(ps.trim.prestress@otu_table)
 samdf.trim.prestress <- data.frame(ps.trim.prestress@sam_data)
 
@@ -130,21 +130,19 @@ save(ps.trim.prestress,file="ps.trim.prestress.Rdata")
 ```
 
 ```{r read in ps objects}
-setwd("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/")
-
-load("taxa2.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/taxa2.Rdata")
 # can skip to here once you have made the .Rdata files above
-load("ps.clean.t0.Rdata")
-load("ps.clean.prestress.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.clean.t0.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.clean.prestress.Rdata")
 
-load("ps.rare.t0.Rdata")
-load("ps.rare.prestress.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.rare.t0.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.rare.prestress.Rdata")
 
-load("ps.trim.rare.t0.Rdata")
-load("ps.trim.rare.prestress.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.trim.rare.t0.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.trim.rare.prestress.Rdata")
 
-load("ps.trim.t0.Rdata")
-load("ps.trim.prestress.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.trim.t0.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.trim.prestress.Rdata")
 
 
 # remove lineage NA's from T0 data

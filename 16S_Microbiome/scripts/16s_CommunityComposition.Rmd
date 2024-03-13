@@ -32,19 +32,19 @@ library(phyloseq)
 Read in data
 
 ```{r read in data}
-setwd("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/")
+setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability")
 
-load("taxa2.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/taxa2.Rdata")
 
 #T0 phyloseq objects
-load("ps.clean.t0.Rdata")
-load("ps.rare.t0.Rdata")
-load("ps.trim.rare.t0.Rdata") # rare otu's trimmed, then rarefied (1k)
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.clean.t0.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.rare.t0.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.trim.rare.t0.Rdata") # rare otu's trimmed, then rarefied (1k)
 
 #Prestress phyloseq objects
-load("ps.clean.prestress.Rdata")
-load("ps.rare.prestress.Rdata")
-load("ps.trim.rare.prestress.Rdata") # rare otu's trimmed, then rarefied (1k)
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.clean.prestress.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.rare.prestress.Rdata")
+load("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/16S_Microbiome/data_files/ps.trim.rare.prestress.Rdata") # rare otu's trimmed, then rarefied (1k)
 
 
 # remove Control 2, and lineage NA's
