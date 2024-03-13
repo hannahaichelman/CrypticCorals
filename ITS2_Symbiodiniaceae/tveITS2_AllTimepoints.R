@@ -1,4 +1,4 @@
-# This script analyzes the ITS2 data from the Panama Daily Thermal Variability experiment - both T0 and data collected before the thermal challenge 
+# This script analyzes the ITS2 data from the Panama Daily Thermal Variability experiment - both T0 and data collected before the thermal challenge
 # Author: Hannah E Aichelman
 # hannahaichelman@gmail.com
 
@@ -21,8 +21,8 @@ library(viridis)
 # SymPortal ITS2 DIV Analysis
 # cleaned file up to remove extraneous info in the header in excel, but original file here:
 # /Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/191_20220121_03_DBV_20220121T084332.profiles.absolute.abund_and_meta.txt
-setwd("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints")
-its2_all = read.csv("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/20220121_aichelman/its2_type_profiles/SymPortal_AllTimes_RawDIVs.csv")
+setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/ITS2_Symbiodiniaceae/")
+its2_all = read.csv("data_files/SymPortal_AllTimes_RawDIVs.csv")
 head(its2_all)
 
 #### Clean up input data ####
@@ -52,7 +52,7 @@ its2_all3 = its2_all2 %>%
 
 str(its2_all3)
 
-its2_all3 = its2_all3 %>% 
+its2_all3 = its2_all3 %>%
   mutate_if(is.integer,as.numeric)
 
 # Look for individual samples with 0 reads:
@@ -68,14 +68,14 @@ str(its2_all4)
 # keep this df for div analysis
 its2_divs = its2_all4
 
-# read in sample data 
+# read in sample data
 # DIVs - this sample info includes all T0 and Pre-Stress Individuals that were run through SymPortal together.
-samdf = read.csv("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/20220121_aichelman/its2_type_profiles/SampleInfo.csv")
+samdf = read.csv("data_files/SampleInfo.csv")
 dim(samdf)
 head(samdf)
 
 # add identifying data that includes lineage 3
-phys_metadata = read.csv("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/20220121_aichelman/its2_type_profiles/phys_metadata_its2.csv")
+phys_metadata = read.csv("data_files/phys_metadata_its2.csv")
 head(phys_metadata)
 dim(phys_metadata)
 
@@ -84,7 +84,7 @@ samdf2 = left_join(samdf, phys_metadata, by = "frag")
 head(samdf2)
 dim(samdf2)
 
-# remove the rows for samples that have been removed in data 
+# remove the rows for samples that have been removed in data
 samdf3 = samdf2 %>%
   dplyr::filter(frag != "Alexa2") %>%
   dplyr::filter(frag != "Alexa1") %>%
@@ -140,7 +140,7 @@ its2_divs_prestress = its2_divs %>%
   dplyr::filter(frag!="I2I10") %>% #lineage 3
   dplyr::filter(frag!="I2H4") %>% #lineage 3
   dplyr::filter(frag %in% samdf_prestress$frag) %>%
-  column_to_rownames("frag") 
+  column_to_rownames("frag")
 
 # make all sample data frame for looking at shifts in syms
 samdf_all = samdf3 %>%
@@ -157,8 +157,8 @@ taxa.t0 <- data.frame(colnames(its2_divs_t0)) #extract sym data
 
 colnames(taxa.t0) <- c("DIV") #changing the column name to be more user-friendly
 
-taxa.t0$majority_its2 = c("A4z",	"A4",	"B19",	"B5",	"B5a",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C3",	
-                       "C1",	"C3",	"C3af",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C15",	"C1",	"C1",	
+taxa.t0$majority_its2 = c("A4z",	"A4",	"B19",	"B5",	"B5a",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C3",
+                       "C1",	"C3",	"C3af",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C15",	"C1",	"C1",
                        "C1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1")
 
 taxa.t0$genus = str_sub(taxa.t0$DIV, 1, 1)
@@ -172,7 +172,7 @@ taxa.t0$genus = as.factor(taxa.t0$genus)
 rownames(taxa.t0) <- taxa.t0$DIV
 
 taxa.t0.m <- as.matrix(taxa.t0) #also has to be a matrix
- 
+
 ps.its2.t0 <- phyloseq(sample_data(samdf_t0),
          otu_table(its2_divs_t0,taxa_are_rows=FALSE),
          tax_table(taxa.t0.m))
@@ -188,8 +188,8 @@ taxa.ps <- data.frame(colnames(its2_divs_prestress)) #extract sym data
 
 colnames(taxa.ps) <- c("DIV") #changing the column name to be more user-friendly
 
-taxa.ps$majority_its2 = c("A4z",	"A4",	"B19",	"B5",	"B5a",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C3",	
-                          "C1",	"C3",	"C3af",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C15",	"C1",	"C1",	
+taxa.ps$majority_its2 = c("A4z",	"A4",	"B19",	"B5",	"B5a",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C3",
+                          "C1",	"C3",	"C3af",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C15",	"C1",	"C1",
                           "C1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1")
 
 taxa.ps$genus = str_sub(taxa.ps$DIV, 1, 1)
@@ -218,8 +218,8 @@ taxa.all <- data.frame(colnames(its2_divs_all)) #extract sym data
 
 colnames(taxa.all) <- c("DIV") #changing the column name to be more user-friendly
 
-taxa.all$majority_its2 = c("A4z",	"A4",	"B19",	"B5",	"B5a",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C3",	
-                          "C1",	"C3",	"C3af",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C15",	"C1",	"C1",	
+taxa.all$majority_its2 = c("A4z",	"A4",	"B19",	"B5",	"B5a",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C3",
+                          "C1",	"C3",	"C3af",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C1",	"C15",	"C1",	"C1",
                           "C1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1",	"D1")
 
 taxa.all$genus = str_sub(taxa.all$DIV, 1, 1)
@@ -242,7 +242,7 @@ ps.its2.all
 # otu_table()   OTU Table:         [ 37 taxa and 231 samples ]
 # sample_data() Sample Data:       [ 231 samples by 8 sample variables ]
 # tax_table()   Taxonomy Table:    [ 37 taxa by 3 taxonomic ranks ]
-# 
+#
 
 
 #### DECONTAM ####
@@ -255,11 +255,11 @@ ps.its2.no0 <- prune_samples(sample_sums(ps.its2)!=0, ps.its2)
 ps.its2.no0 # don't lose any for pre-med seqs
 
 # now use package decontam to remove contaminant sequences
-#creates a TRUE/FALSE column for whether a sample is a negative control or not 
+#creates a TRUE/FALSE column for whether a sample is a negative control or not
 sample_data(ps.its2.no0)$control <- sample_data(ps.its2.no0)$Sample_or_Control == "Control"
 
 contamdf.prev <- isContaminant(ps.its2.no0, neg="control",threshold=0.5)
-table(contamdf.prev$contaminant) 
+table(contamdf.prev$contaminant)
 # FALSE  TRUE  - pre med seqs
 # 440    31
 
@@ -305,29 +305,29 @@ plot_bar(ps.rel.all, x="frag",fill="majority_its2")+
 
 #keeps samples with summed counts greater than 0
 ps.its2.t0.no0 <- prune_samples(sample_sums(ps.its2.t0)!=0, ps.its2.t0)
-ps.its2.t0.no0 # don't lose any 
+ps.its2.t0.no0 # don't lose any
 
 ps.its2.ps.no0 <- prune_samples(sample_sums(ps.its2.ps)!=0, ps.its2.ps)
-ps.its2.ps.no0 # don't lose any 
+ps.its2.ps.no0 # don't lose any
 
 # Remove NA's to create ps object we will plot
 # first for T0
 ps.cleanest.t0 <- subset_samples(ps.its2.t0.no0,(!is.na(lineage)))
 ps.cleanest.rel.t0 <- transform_sample_counts(ps.cleanest.t0, function(OTU) OTU/sum(OTU))
 
-# save phyloseq object 
-saveRDS(ps.cleanest.t0, "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.t0.RDS")
-saveRDS(ps.cleanest.rel.t0, "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.t0.rel.RDS")
+# save phyloseq object
+saveRDS(ps.cleanest.t0, "data_files/ps.its2.t0.RDS")
+saveRDS(ps.cleanest.rel.t0, "data_files/ps.its2.t0.rel.RDS")
 
 # write this out as dataframe
 seqtab.rel.t0 <- data.frame(ps.cleanest.rel.t0@otu_table)
-write.csv(seqtab.rel.t0, file="/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ITS2.t0.seqtab.rel.csv")
+write.csv(seqtab.rel.t0, file="data_files/ITS2.t0.seqtab.rel.csv")
 sample.data.t0 = data.frame(sample_data(ps.cleanest.rel.t0))
-write.csv(sample.data.t0, file="/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ITS2.t0.sample.data.rel.csv")
+write.csv(sample.data.t0, file="data_files/ITS2.t0.sample.data.rel.csv")
 
 taxa.t0 <- data.frame(ps.cleanest.rel.t0@tax_table)
 mtaxa.t0 <- as.matrix(taxa.t0)
-write.csv(taxa.t0, file = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/symportal_taxa.t0.csv")
+write.csv(taxa.t0, file = "data_files/symportal_taxa.t0.csv")
 
 
 # then for Pre-Stress - removing low variability and high variability to simplify experimental design
@@ -339,19 +339,19 @@ ps.cleanest.ps <- subset_samples(ps.cleaner4.ps,(treat!="High Var")) #84 samples
 
 ps.cleanest.rel.ps <- transform_sample_counts(ps.cleanest.ps, function(OTU) OTU/sum(OTU))
 
-# save phyloseq object 
-saveRDS(ps.cleanest.ps, "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.prestress.RDS")
-saveRDS(ps.cleanest.rel.ps, "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.prestress.rel.RDS")
+# save phyloseq object
+saveRDS(ps.cleanest.ps, "data_files/ps.its2.prestress.RDS")
+saveRDS(ps.cleanest.rel.ps, "data_files/ps.its2.prestress.rel.RDS")
 
 # write this out as dataframe
 seqtab.rel.ps <- data.frame(ps.cleanest.rel.ps@otu_table)
-write.csv(seqtab.rel.ps, file="/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ITS2.prestress.seqtab.rel.csv")
+write.csv(seqtab.rel.ps, file="data_files/ITS2.prestress.seqtab.rel.csv")
 sample.data.ps = data.frame(sample_data(ps.cleanest.rel.ps))
-write.csv(sample.data.ps, file="/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ITS2.prestress.sample.data.rel.csv")
+write.csv(sample.data.ps, file="data_files/ITS2.prestress.sample.data.rel.csv")
 
 taxa.ps <- data.frame(ps.cleanest.rel.ps@tax_table)
 mtaxa.ps <- as.matrix(taxa.ps)
-write.csv(taxa.ps, file = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/symportal_taxa.prestress.csv")
+write.csv(taxa.ps, file = "data_files/symportal_taxa.prestress.csv")
 
 #### Compare time points ####
 p.all.gen_site = plot_bar(ps.rel.all, x="frag", fill="majority_its2") +
@@ -390,21 +390,21 @@ ps.norm
 # otu_table()   OTU Table:         [ 440 taxa and 156 samples ]
 # sample_data() Sample Data:       [ 176 samples by 9 sample variables ]
 # tax_table()   Taxonomy Table:    [ 440 taxa by 7 taxonomic ranks ]
-saveRDS(ps.norm, "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ps.its2.norm.RDS")
+saveRDS(ps.norm, "data_files/ps.its2.norm.RDS")
 
 
 #### PS Object Versions ####
 # T0
-ps.cleanest.t0 = readRDS("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.t0.RDS")
+ps.cleanest.t0 = readRDS("data_files/ps.its2.t0.RDS")
 seqtab.t0 <- data.frame(ps.cleanest.t0@otu_table)
 samdf.t0 <- data.frame(ps.cleanest.t0@sam_data)
 
-ps.cleanest.t0.rel = readRDS("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.t0.rel.RDS")
+ps.cleanest.t0.rel = readRDS("data_files/ps.its2.t0.rel.RDS")
 seqtab.rel.t0 <- data.frame(ps.cleanest.t0.rel@otu_table)
 samdf.rel.t0 <- data.frame(ps.cleanest.t0.rel@sam_data)
 
-taxa.t0 = read.csv(file = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/symportal_taxa.t0.csv", header = TRUE) %>%
-  select(-X) 
+taxa.t0 = read.csv(file = "data_files/symportal_taxa.t0.csv", header = TRUE) %>%
+  select(-X)
 rownames(taxa.t0) <- as.factor(taxa.t0$DIV)
 sum(taxa.t0$genus == "B") # 3 div
 sum(taxa.t0$genus == "C") # 23 div
@@ -413,16 +413,16 @@ sum(taxa.t0$genus == "D") # 9 div
 mtaxa.t0 <- as.matrix(taxa.t0)
 
 # Pre-Stress
-ps.cleanest.ps = readRDS("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.prestress.RDS")
+ps.cleanest.ps = readRDS("data_files/ps.its2.prestress.RDS")
 seqtab.ps <- data.frame(ps.cleanest.ps@otu_table)
 samdf.ps <- data.frame(ps.cleanest.ps@sam_data)
 
-ps.cleanest.ps.rel = readRDS("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.prestress.rel.RDS")
+ps.cleanest.ps.rel = readRDS("data_files/ps.its2.prestress.rel.RDS")
 seqtab.rel.ps <- data.frame(ps.cleanest.ps.rel@otu_table)
 samdf.rel.ps <- data.frame(ps.cleanest.ps.rel@sam_data)
 
-taxa.ps = read.csv(file = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/symportal_taxa.prestress.csv", header = TRUE) %>%
-  select(-X) 
+taxa.ps = read.csv(file = "data_files/symportal_taxa.prestress.csv", header = TRUE) %>%
+  select(-X)
 rownames(taxa.ps) <- as.factor(taxa.ps$DIV)
 sum(taxa.ps$genus == "B") # 3 div
 sum(taxa.ps$genus == "C") # 23 div
@@ -433,17 +433,17 @@ mtaxa.ps <- as.matrix(taxa.ps)
 #### Bar plot - post-processing T0 ####
 its2_cols_greens = c("A4" = "#ffeda0", "A4z" =  "#fd8d3c",
                      "B19" = "#4eb3d3", "B5a" = "#0868ac", "B5" = "#800026",
-                     "C1" = "#edf8e9", "C15" = "#feb24c",  "C3" = "#a1d99b",  
+                     "C1" = "#edf8e9", "C15" = "#feb24c",  "C3" = "#a1d99b",
                      "C3af" = "#238b45", "D1" = "#00441b")
 
 #its2_cols_blues = c("#f6eff7", "#d0d1e6", "#a6bddb", "#67a9cf", "#3690c0", "#02818a", "#016450")
 
-# bar plot of all individuals 
+# bar plot of all individuals
 p.all = plot_bar(ps.cleanest.t0.rel, x="gen_site", fill="majority_its2") +
   theme_bw() +
   scale_fill_manual(name = "Majority ITS2", values = its2_cols_greens) +
   xlab("Sample") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 p.all
 ggsave(p.all, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_t0.pdf", width=11, height=4, units=c("in"), useDingbats=FALSE)
 
@@ -489,17 +489,17 @@ ggsave(p.site, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_Al
 #its2_cols_purple = c("white", "#efedf5","#bcbddc", "#756bb1")
 its2_cols_greens = c("A4" = "#ffeda0", "A4z" =  "#fd8d3c",
                      "B19" = "#4eb3d3", "B5a" = "#0868ac", "B5" = "#800026",
-                     "C1" = "#edf8e9", "C15" = "#feb24c",  "C3" = "#a1d99b",  
+                     "C1" = "#edf8e9", "C15" = "#feb24c",  "C3" = "#a1d99b",
                      "C3af" = "#238b45", "D1" = "#00441b")
 
 #its2_cols_blues = c("#f6eff7", "#d0d1e6", "#a6bddb", "#67a9cf", "#3690c0", "#02818a", "#016450")
 
-# bar plot of all individuals 
+# bar plot of all individuals
 p.all = plot_bar(ps.cleanest.ps.rel, x="frag", fill="majority_its2") +
   theme_bw() +
   scale_fill_manual(name = "Majority ITS2", values = its2_cols_greens) +
   xlab("Sample") +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 p.all
 ggsave(p.all, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_prestress.pdf", width=11, height=4, units=c("in"), useDingbats=FALSE)
 
@@ -659,15 +659,15 @@ ggsave(gg.pcoa, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_A
 # ps2 <- tax_glom(ps.cleanest.rel, "Species")
 # ps2f <- format_to_besthit(ps2)
 # ps.ord.2 <- ordinate(ps2f, method = "PCoA",distance="bray")
-# 
+#
 # p <- plot_ordination_utils(ps2f, ps.ord.2,
 #                            color = "lineage", plot.arrow = TRUE,
 #                            scale.arrow = 1, top.taxa = 5) +
-#   scale_color_manual(name = "Lineage", values=cols_lineage_purples) 
+#   scale_color_manual(name = "Lineage", values=cols_lineage_purples)
 #   facet_wrap(~sitename)
-# p                          
+# p
 # ggsave(p, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/bray_pcoas_site_arrows.pdf", width=4, height=3, units=c("in"), useDingbats=FALSE)
-# 
+#
 # pcoa.treat = plot_ordination_utils(ps2f, ps.ord.2, color ="lineage", plot.arrow = TRUE, top.taxa = 5) +
 #   geom_point(alpha=0.8)+
 #   scale_color_manual(name = "DTV Treatment", values=cols_treat_reds)#+
@@ -686,7 +686,7 @@ library(dplyr)
 library(edgeR)
 
 ## Raw (cleaned)
-ps = readRDS("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.t0.RDS")
+ps = readRDS("data_files/ps.its2.t0.RDS")
 
 seq.ps <- data.frame(ps@otu_table)
 samdf.ps <- data.frame(ps@sam_data)
@@ -699,31 +699,31 @@ anova(bet.ps)
 # Response: Distances
 #           Df  Sum Sq  Mean Sq F value Pr(>F)
 # Groups     5 0.60392 0.120783  1.7229 0.1493
-# Residuals 44 3.08460 0.070105               
-permutest(bet.ps,pairwise=TRUE,permutations=999) 
+# Residuals 44 3.08460 0.070105
+permutest(bet.ps,pairwise=TRUE,permutations=999)
 plot(bet.ps)
 
 # by lineage
 bet.ps <- betadisper(dist.ps,samdf.ps$lineage)
-anova(bet.ps) 
+anova(bet.ps)
 # Response: Distances
 #           Df Sum Sq  Mean Sq F value Pr(>F)
 # Groups     2 0.0090 0.004502  0.0652  0.937
-# Residuals 47 3.2473 0.069092               
-permutest(bet.ps,pairwise=TRUE,permutations=999) 
+# Residuals 47 3.2473 0.069092
+permutest(bet.ps,pairwise=TRUE,permutations=999)
 plot(bet.ps)
 
 # adonis
 adonis2(formula = seq.ps ~ sitename + lineage, data = samdf.ps, permutations = 999)
-#           Df SumOfSqs      R2      F Pr(>F)    
+#           Df SumOfSqs      R2      F Pr(>F)
 # sitename  5   5.3338 0.26425 3.2058  0.001 ***
-# lineage   2   0.8752 0.04336 1.3150  0.232    
-# Residual 42  13.9758 0.69239                  
-# Total    49  20.1847 1.00000                  
+# lineage   2   0.8752 0.04336 1.3150  0.232
+# Residual 42  13.9758 0.69239
+# Total    49  20.1847 1.00000
 
 ## Relative abundance
 # Report this since it is the data used for making the PCA's
-ps.cleanest.rel = readRDS("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.t0.rel.RDS")
+ps.cleanest.rel = readRDS("data_files/ps.its2.t0.rel.RDS")
 
 seq.ps <- data.frame(ps.cleanest.rel@otu_table)
 samdf.ps <- data.frame(ps.cleanest.rel@sam_data)
@@ -735,8 +735,8 @@ anova(bet.ps)
 # Response: Distances
 #           Df Sum Sq Mean Sq F value Pr(>F)
 # Groups     5 1.0807 0.21613  1.4332 0.2313
-# Residuals 44 6.6355 0.15081               
-permutest(bet.ps,pairwise=TRUE,permutations=999) 
+# Residuals 44 6.6355 0.15081
+permutest(bet.ps,pairwise=TRUE,permutations=999)
 # Pairwise comparisons:
 #   (Observed p-value below diagonal, permuted p-value above diagonal)
 # BN         BS         CA         CI         PD    SP
@@ -745,27 +745,27 @@ permutest(bet.ps,pairwise=TRUE,permutations=999)
 # CA 7.4554e-02 3.0221e-04            1.0000e-03 9.6000e-02 0.143
 # CI 6.4652e-01 9.0342e-01 6.4303e-06            6.4500e-01 0.450
 # PD 9.9026e-01 6.9351e-01 9.1433e-02 6.5199e-01            0.827
-# SP 8.1815e-01 4.9378e-01 1.4203e-01 4.5997e-01 8.3228e-01      
+# SP 8.1815e-01 4.9378e-01 1.4203e-01 4.5997e-01 8.3228e-01
 
 plot(bet.ps)
 
 # by lineage
 bet.ps <- betadisper(dist.ps,samdf.ps$lineage)
-anova(bet.ps) 
+anova(bet.ps)
 # Response: Distances
 #           Df Sum Sq  Mean Sq F value Pr(>F)
 # Groups     2 0.0213 0.010628  0.0604 0.9414
-# Residuals 47 8.2646 0.175843               
+# Residuals 47 8.2646 0.175843
 permutest(bet.ps,pairwise=TRUE,permutations=999) # no sig diffs
 plot(bet.ps)
 
 # adonis
 adonis2(formula = seq.ps ~ sitename + lineage, data = samdf.ps, permutations = 999)
-#           Df SumOfSqs      R2      F Pr(>F)    
+#           Df SumOfSqs      R2      F Pr(>F)
 # sitename  5   5.5299 0.28089 3.4964  0.001 ***
-# lineage   2   0.8716 0.04427 1.3776  0.185    
-# Residual 42  13.2856 0.67484                  
-# Total    49  19.6871 1.00000                  
+# lineage   2   0.8716 0.04427 1.3776  0.185
+# Residual 42  13.2856 0.67484
+# Total    49  19.6871 1.00000
 
 #pairwise.adonis(seq.ps, factors=samdf.ps$lineage, permutations=999) #no significant comparisons
 #pairwise.adonis(seq.ps, factors=samdf.ps$sitename, permutations=999) #all comparisons different except PD vs SP and BN vs CA
@@ -778,7 +778,7 @@ library(dplyr)
 library(edgeR)
 
 ## Raw (cleaned)
-ps = readRDS("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.prestress.RDS")
+ps = readRDS("data_files/ps.its2.prestress.RDS")
 
 seq.ps <- data.frame(ps@otu_table)
 samdf.ps <- data.frame(ps@sam_data)
@@ -791,31 +791,31 @@ anova(bet.ps)
 # Response: Distances
 #           Df  Sum Sq  Mean Sq F value Pr(>F)
 # Groups     5 0.60392 0.120783  1.7229 0.1493
-# Residuals 44 3.08460 0.070105               
-permutest(bet.ps,pairwise=TRUE,permutations=999) 
+# Residuals 44 3.08460 0.070105
+permutest(bet.ps,pairwise=TRUE,permutations=999)
 plot(bet.ps)
 
 # by lineage
 bet.ps <- betadisper(dist.ps,samdf.ps$lineage)
-anova(bet.ps) 
+anova(bet.ps)
 # Response: Distances
 #           Df Sum Sq  Mean Sq F value Pr(>F)
 # Groups     2 0.0090 0.004502  0.0652  0.937
-# Residuals 47 3.2473 0.069092               
-permutest(bet.ps,pairwise=TRUE,permutations=999) 
+# Residuals 47 3.2473 0.069092
+permutest(bet.ps,pairwise=TRUE,permutations=999)
 plot(bet.ps)
 
 # adonis
 adonis2(formula = seq.ps ~ sitename + lineage, data = samdf.ps, permutations = 999)
-#           Df SumOfSqs      R2      F Pr(>F)    
+#           Df SumOfSqs      R2      F Pr(>F)
 # sitename  5   5.3338 0.26425 3.2058  0.001 ***
-# lineage   2   0.8752 0.04336 1.3150  0.232    
-# Residual 42  13.9758 0.69239                  
-# Total    49  20.1847 1.00000                  
+# lineage   2   0.8752 0.04336 1.3150  0.232
+# Residual 42  13.9758 0.69239
+# Total    49  20.1847 1.00000
 
 ## Relative abundance
 # Report this since it is the data used for making the PCA's
-ps.cleanest.rel = readRDS("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.prestress.rel.RDS")
+ps.cleanest.rel = readRDS("data_files/ps.its2.prestress.rel.RDS")
 
 seq.ps <- data.frame(ps.cleanest.rel@otu_table)
 samdf.ps <- data.frame(ps.cleanest.rel@sam_data)
@@ -827,8 +827,8 @@ anova(bet.ps)
 # Response: Distances
 #           Df Sum Sq Mean Sq F value Pr(>F)
 # Groups     5 1.0807 0.21613  1.4332 0.2313
-# Residuals 44 6.6355 0.15081               
-permutest(bet.ps,pairwise=TRUE,permutations=999) 
+# Residuals 44 6.6355 0.15081
+permutest(bet.ps,pairwise=TRUE,permutations=999)
 # Pairwise comparisons:
 #   (Observed p-value below diagonal, permuted p-value above diagonal)
 # BN         BS         CA         CI         PD    SP
@@ -837,45 +837,45 @@ permutest(bet.ps,pairwise=TRUE,permutations=999)
 # CA 7.4554e-02 3.0221e-04            1.0000e-03 9.6000e-02 0.143
 # CI 6.4652e-01 9.0342e-01 6.4303e-06            6.4500e-01 0.450
 # PD 9.9026e-01 6.9351e-01 9.1433e-02 6.5199e-01            0.827
-# SP 8.1815e-01 4.9378e-01 1.4203e-01 4.5997e-01 8.3228e-01      
+# SP 8.1815e-01 4.9378e-01 1.4203e-01 4.5997e-01 8.3228e-01
 
 plot(bet.ps)
 
 # by lineage
 bet.ps <- betadisper(dist.ps,samdf.ps$lineage)
-anova(bet.ps) 
+anova(bet.ps)
 # Response: Distances
 #           Df Sum Sq  Mean Sq F value Pr(>F)
 # Groups     2 0.0213 0.010628  0.0604 0.9414
-# Residuals 47 8.2646 0.175843               
+# Residuals 47 8.2646 0.175843
 permutest(bet.ps,pairwise=TRUE,permutations=999) # no sig diffs
 plot(bet.ps)
 
 # adonis
 adonis2(formula = seq.ps ~ sitename + lineage, data = samdf.ps, permutations = 999)
-#           Df SumOfSqs      R2      F Pr(>F)    
+#           Df SumOfSqs      R2      F Pr(>F)
 # sitename  5   5.5299 0.28089 3.4964  0.001 ***
-# lineage   2   0.8716 0.04427 1.3776  0.185    
-# Residual 42  13.2856 0.67484                  
-# Total    49  19.6871 1.00000                  
+# lineage   2   0.8716 0.04427 1.3776  0.185
+# Residual 42  13.2856 0.67484
+# Total    49  19.6871 1.00000
 
 #pairwise.adonis(seq.ps, factors=samdf.ps$lineage, permutations=999) #no significant comparisons
 #pairwise.adonis(seq.ps, factors=samdf.ps$sitename, permutations=999) #all comparisons different except PD vs SP and BN vs CA
 
 #### Summary of Dominant ITS2 Majority Types and DIVs ####
 
-ps.cleanest.t0.rel = readRDS("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.t0.rel.RDS")
+ps.cleanest.t0.rel = readRDS("data_files/ps.its2.t0.rel.RDS")
 seqtab.rel.t0 <- data.frame(ps.cleanest.t0.rel@otu_table)
 samdf.rel.t0 <- data.frame(ps.cleanest.t0.rel@sam_data)
 
-ps.cleanest.ps.rel = readRDS("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ps.its2.prestress.rel.RDS")
+ps.cleanest.ps.rel = readRDS("data_files/ps.its2.prestress.rel.RDS")
 seqtab.rel.ps <- data.frame(ps.cleanest.ps.rel@otu_table)
 samdf.rel.ps <- data.frame(ps.cleanest.ps.rel@sam_data)
 
 ## First T0
 # change column names to majority its2 sequence
-taxa.t0 = read.csv(file = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/symportal_taxa.t0.csv", header = TRUE) %>%
-  select(-X) 
+taxa.t0 = read.csv(file = "data_files/symportal_taxa.t0.csv", header = TRUE) %>%
+  select(-X)
 
 taxa.t0$majority_its2
 colnames(seqtab.rel.t0) = c("A4z","A4","B19","B5","B5a","C1.1","C1.2","C1.3","C1.4","C1.5","C1.6","C1.7","C3.1","C1.8","C3.2","C3af",
@@ -899,8 +899,8 @@ seqtab.rel.t0.new = seqtab.rel.t0 %>%
 
 its2.rel.t0.combined = left_join(seqtab.rel.t0.new, samdf.rel.t0, by = "frag")
 
-its2.rel.t0.combined = its2.rel.t0.combined %>% 
-  mutate_at(c(2:11), as.numeric) 
+its2.rel.t0.combined = its2.rel.t0.combined %>%
+  mutate_at(c(2:11), as.numeric)
 
 # convert factors
 its2.rel.t0.combined$treat = as.factor(its2.rel.t0.combined$treat)
@@ -929,12 +929,12 @@ its2.rel.t0.combined.2 = its2.rel.t0.combined %>%
                                 C3af_sum < 0.5 & C3af_sum > 0.0 ~ "C3af",
                                 D1_sum < 0.5 & D1_sum > 0.0 ~ "D1"))
 
-write.csv(its2.rel.t0.combined.2, file = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ITS2.dominanttype.T0.csv", row.names = FALSE)
+write.csv(its2.rel.t0.combined.2, file = "~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/Physiology_Data/data_files/ITS2.dominanttype.T0.csv", row.names = FALSE)
 
 ## Now Prestress
 # change column names to majority its2 sequence
-taxa.ps = read.csv(file = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/symportal_taxa.prestress.csv", header = TRUE) %>%
-  select(-X) 
+taxa.ps = read.csv(file = "data_files/symportal_taxa.prestress.csv", header = TRUE) %>%
+  select(-X)
 
 taxa.ps$majority_its2
 colnames(seqtab.rel.ps) = c("A4z","A4","B19","B5","B5a","C1.1","C1.2","C1.3","C1.4","C1.5","C1.6","C1.7","C3.1","C1.8","C3.2","C3af",
@@ -958,8 +958,8 @@ seqtab.rel.ps.new = seqtab.rel.ps %>%
 
 its2.rel.ps.combined = left_join(seqtab.rel.ps.new, samdf.rel.ps, by = "frag")
 
-its2.rel.ps.combined = its2.rel.ps.combined %>% 
-  mutate_at(c(2:11), as.numeric) 
+its2.rel.ps.combined = its2.rel.ps.combined %>%
+  mutate_at(c(2:11), as.numeric)
 
 # convert factors
 its2.rel.ps.combined$treat = as.factor(its2.rel.ps.combined$treat)
@@ -988,13 +988,13 @@ its2.rel.ps.combined.2 = its2.rel.ps.combined %>%
                                 C3af_sum < 0.5 & C3af_sum > 0.0 ~ "C3af",
                                 D1_sum < 0.5 & D1_sum > 0.0 ~ "D1"))
 
-write.csv(its2.rel.ps.combined.2, file = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ITS2.dominanttype.prestress.csv", row.names = FALSE)
+write.csv(its2.rel.ps.combined.2, file = "~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/Physiology_Data/data_files/ITS2.dominanttype.prestress.csv", row.names = FALSE)
 
 head(its2.rel.t0.combined.2)
 head(its2.rel.ps.combined.2)
 
 its2.rel.combined = rbind(its2.rel.t0.combined.2, its2.rel.ps.combined.2)
-write.csv(its2.rel.combined, file = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/ITS2.dominanttype.alltimepoints.csv", row.names = FALSE)
+write.csv(its2.rel.combined, file = "~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/Physiology_Data/data_files/ITS2.dominanttype.alltimepoints.csv", row.names = FALSE)
 
 # summarize proportion of individuals with more than 50% C or D
 its2.rel.combined.2 %>%
@@ -1011,9 +1011,9 @@ its2.rel.combined.2 %>%
 # CI Only:
 # lineage     n n_gt50D p_gt50D
 # 1 L1         13       1  0.0769
-# 2 L2         14       6  0.429 
+# 2 L2         14       6  0.429
 
-# Kruskal-Wallis (non-parametric alternative to one-way anova) to see if there is a difference 
+# Kruskal-Wallis (non-parametric alternative to one-way anova) to see if there is a difference
 # in mean proportion D based on lineage
 its2.rel.combined.CI = its2.rel.combined.2 %>%
   filter(sitename=="CI")
@@ -1027,6 +1027,7 @@ kruskal.test(D1_sum ~ lineage, data = its2.rel.combined.CI)
 #data:  propD by lineage
 #Kruskal-Wallis chi-squared = 2.2793, df = 1, p-value = 0.1311
 
+## Stopped here for the revision ##
 
 # Make a plot of the proportion of durusdinium by lineage
 library(Rmisc)
@@ -1040,12 +1041,12 @@ d1_means = summarySE(its2.rel.combined_plot, measurevar = "D1_sum", groupvars = 
 
 its2_dom_plot <- ggplot(its2.rel.combined_plot, aes(x = lineage, y = D1_sum))+
   theme_bw()+
-  geom_jitter(aes(color = lineage, fill = lineage), 
-              #width = 0.25, 
+  geom_jitter(aes(color = lineage, fill = lineage),
+              #width = 0.25,
               alpha=0.2, pch = 21,
               color = "black") +
   geom_errorbar(data = d1_means, aes(x = lineage, ymax = D1_sum+se, ymin = D1_sum-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
-  geom_point(data = d1_means, mapping = aes(x=lineage, y=D1_sum, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+ 
+  geom_point(data = d1_means, mapping = aes(x=lineage, y=D1_sum, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
   scale_fill_manual(name = "Lineage",
                     breaks = c("L1","L2"),
                     values = cols_lineage)+
@@ -1054,8 +1055,8 @@ its2_dom_plot <- ggplot(its2.rel.combined_plot, aes(x = lineage, y = D1_sum))+
                      values = cols_lineage)+
   xlab("Lineage")+
   ylab("Proportion Durusdinium (+/- SE)")+
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) 
-its2_dom_plot  
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+its2_dom_plot
 
 ggsave(its2_dom_plot, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ProportionD1_majorityITS2.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
 
@@ -1072,8 +1073,8 @@ seqtab.rel.new = seqtab.rel %>%
 
 div.rel.combined = left_join(seqtab.rel.new, samdf.rel, by = "frag")
 
-div.rel.combined = div.rel.combined %>% 
-  mutate_at(c(2:21), as.numeric) 
+div.rel.combined = div.rel.combined %>%
+  mutate_at(c(2:21), as.numeric)
 
 # convert factors
 div.rel.combined$treat = as.factor(div.rel.combined$treat)
@@ -1115,7 +1116,7 @@ library(tidyverse)
 library(reshape2)
 library(ggpubr)
 
-# plot plasticity in proportion of Durusdinium symbionts relative to control, facet by lineage 
+# plot plasticity in proportion of Durusdinium symbionts relative to control, facet by lineage
 cols_lineage <- c("L1" = "#3f007d", "L2" = "#807dba", "L3" = "#bcbddc")
 cols_site <- c("CI" = "#543005", "PD"= "#bf812d",  "SP"= "#dfc27d",  "BN" = "#003c30", "BS"= "#35978f", "CA"= "#80cdc1")
 cols_treat <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
@@ -1140,7 +1141,7 @@ p.ds.lowvar = control_lowvar %>%
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") +
   facet_wrap(~lineage)
-p.ds.lowvar 
+p.ds.lowvar
 
 p.ds.modvar = control_modvar %>%
   drop_na(lineage) %>%
@@ -1153,7 +1154,7 @@ p.ds.modvar = control_modvar %>%
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") +
   facet_wrap(~lineage)
-p.ds.modvar 
+p.ds.modvar
 
 p.ds.highvar = control_highvar %>%
   drop_na(lineage) %>%
@@ -1166,9 +1167,9 @@ p.ds.highvar = control_highvar %>%
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") +
   facet_wrap(~lineage)
-p.ds.highvar 
+p.ds.highvar
 
-all_ds = ggarrange(p.ds.lowvar, p.ds.modvar,p.ds.highvar, 
+all_ds = ggarrange(p.ds.lowvar, p.ds.modvar,p.ds.highvar,
                    labels = c("A", "B", "C"),
                    ncol = 3, nrow = 1)
 ggsave(all_ds, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/PropD_alltreats.pdf", width=9, height=4, units=c("in"), useDingbats=FALSE)
@@ -1188,7 +1189,7 @@ p.ds.lineage = its2.rel.combined %>%
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
   facet_wrap(~treat)
-p.ds.lineage  
+p.ds.lineage
 ggsave(p.ds.lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/PropD_violinplot_treat.pdf", width=5, height=5, units=c("in"), useDingbats=FALSE)
 
 # violin plot - site
@@ -1204,7 +1205,7 @@ p.ds.site = its2.rel.combined %>%
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
   facet_wrap(~sitename)
-p.ds.site  
+p.ds.site
 ggsave(p.ds.site, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/PropD_violinplot_site.pdf", width=6, height=5, units=c("in"), useDingbats=FALSE)
 
 # read in data file and combine all post-med seqs into one proportion for genera A,B,C,D
@@ -1241,7 +1242,7 @@ data_joined = data_joined %>%
 str(data_joined)
 data_joined$dominant = as.factor(data_joined$dominant)
 data_joined$minor = as.factor(data_joined$minor)
-data_joined$treat = factor(data_joined$treat, 
+data_joined$treat = factor(data_joined$treat,
                                levels = c("Initial", "Control 1", "Low Var","Mod Var","High Var"))
 
 data_joined_melt = data_joined %>%
@@ -1253,16 +1254,16 @@ cols = c("#D53E4F", "#F46D43", "#FEE08B", "#66C2A5")
 melt %>%
   drop_na(treat) %>%
   drop_na(lineage) %>%
-  ggplot(aes(x = treat, y = value, fill = value)) + 
+  ggplot(aes(x = treat, y = value, fill = value)) +
   geom_bar(stat = "identity") +
   scale_fill_manual(values = cols,
-                    breaks = c("A","B","C","D"), 
+                    breaks = c("A","B","C","D"),
                     name = "Dominant ITS2 Type") +
   xlab("Treatment") +
   ylab("Relative Abundance") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
-  facet_wrap(~lineage, scale = "free") 
+  facet_wrap(~lineage, scale = "free")
 
 ggsave(its2_barplot_site, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/T0_Timepoint/its2_t0_CA.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
 
@@ -1273,7 +1274,7 @@ dominant.barplot = data_joined %>%
   ggplot(aes(x=treat, fill = dominant)) +
   geom_bar(position = "fill") +
   scale_fill_manual(values = cols,
-                    breaks = c("A","B","C","D"), 
+                    breaks = c("A","B","C","D"),
                     name = "Dominant ITS2 Type") +
   xlab("Treatment") +
   theme_minimal() +
@@ -1290,7 +1291,7 @@ minor.barplot = data_joined %>%
   ggplot(aes(x=treat, fill = minor)) +
   geom_bar(position = "fill") +
   scale_fill_manual(values = cols,
-                    breaks = c("A","B","C","D"), 
+                    breaks = c("A","B","C","D"),
                     name = "Minor ITS2 Type") +
   xlab("Treatment") +
   theme_minimal() +
@@ -1348,7 +1349,7 @@ Combined = Initial %>%
          Mod_C_delta = Mod_C - Initial_C) %>%
   select(gen_site, Control_D_delta, Low_D_delta, High_D_delta, Mod_D_delta,
          Control_C_delta, Low_C_delta, High_C_delta, Mod_C_delta) %>%
-  melt(id.vars = c("gen_site")) 
+  melt(id.vars = c("gen_site"))
 
 Combined2 = Combined %>%
   left_join(samdf_t0, by = "gen_site")
@@ -1361,11 +1362,11 @@ Combined2_Ds = Combined2 %>%
 
 str(Combined2_Cs)
 Combined2_Cs$variable=as.factor(Combined2_Cs$variable)
-Combined2_Cs$variable = factor(Combined2_Cs$variable, 
+Combined2_Cs$variable = factor(Combined2_Cs$variable,
                                        levels = c("Control_C_delta", "Low_C_delta", "Mod_C_delta","High_C_delta"))
 
 Combined2_Ds$variable=as.factor(Combined2_Ds$variable)
-Combined2_Ds$variable = factor(Combined2_Ds$variable, 
+Combined2_Ds$variable = factor(Combined2_Ds$variable,
                                        levels = c("Control_D_delta", "Low_D_delta", "Mod_D_delta","High_D_delta"))
 
 # make some plots
@@ -1389,9 +1390,9 @@ delta.Cs
 delta.Cs.box = Combined2_Cs %>%
   drop_na(lineage) %>%
   ggplot(aes(x=variable, y=value)) +
-  geom_jitter(shape=16, 
+  geom_jitter(shape=16,
               size = 3,
-              position=position_jitter(0.2), 
+              position=position_jitter(0.2),
               alpha=0.8,
               aes(color = variable)) +
   scale_color_manual(values = cols_treatment) + # for jittered points
@@ -1421,9 +1422,9 @@ delta.Ds
 delta.Ds.box = Combined2_Ds %>%
   drop_na(lineage) %>%
   ggplot(aes(x=variable, y=value)) +
-  geom_jitter(shape=16, 
+  geom_jitter(shape=16,
               size = 3,
-              position=position_jitter(0.2), 
+              position=position_jitter(0.2),
               alpha=0.8,
               aes(color = variable)) +
   scale_color_manual(values = cols_treatment) + # for jittered points
@@ -1437,12 +1438,12 @@ delta.Ds.box = Combined2_Ds %>%
   facet_wrap(~lineage)
 delta.Ds.box
 
-all_delta = ggarrange(delta.Cs, delta.Ds, 
+all_delta = ggarrange(delta.Cs, delta.Ds,
                    labels = c("A", "B"),
                    ncol = 2, nrow = 1)
 ggsave(all_delta, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_All_Timepoints/Delta_CandD_alltreats.pdf", width=12, height=8, units=c("in"), useDingbats=FALSE)
 
-all_delta_box = ggarrange(delta.Cs.box, delta.Ds.box, 
+all_delta_box = ggarrange(delta.Cs.box, delta.Ds.box,
                       labels = c("A", "B"),
                       ncol = 2, nrow = 1)
 ggsave(all_delta_box, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_All_Timepoints/Delta_CandD_alltreats_box.pdf", width=12, height=8, units=c("in"), useDingbats=FALSE)
