@@ -1,7 +1,7 @@
 ---
 title: "TVE 16S Diversity Analyses"
 author: "Nicola Kriefall, updated by Hannah Aichelman"
-date: "2/24/2022"
+date: "3/12/2024"
 output:
  rmarkdown::html_document:
     theme: cerulean
@@ -13,7 +13,7 @@ output:
 
 ```{r setup, include=FALSE}
 #work computer 
-setwd("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/")
+setwd("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/")
 ```
 
 # Setup
@@ -31,92 +31,156 @@ library(dada2)
 library(tidyverse)
 ```
 
-## Read in data
 
-```{r read in data}
-samdf <- read.csv("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/samdf_noL3.csv",header=TRUE) %>%
-  select(-X)
-row.names(samdf) <- samdf$frag
-load("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/taxa2.Rdata")
-```
-
-## Phyloseq objects
+## Read in Phyloseq objects
 
 ```{r making phyloseq objects, eval=FALSE}
-#rarefied version
-ps.rare = readRDS("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/phyloseq.rarefied.1k.rds")
-seqtab.rare <- data.frame(ps.rare@otu_table)
-samdf.rare <- data.frame(ps.rare@sam_data)
-load("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/taxa2.Rdata")
+# can skip this section once you've run it once and saved output Rdata files
+load("taxa2.Rdata")
 
-ps.rare <- phyloseq(otu_table(seqtab.rare, taxa_are_rows=FALSE), 
-                    sample_data(samdf.rare), 
+#cleaned, rarefied files:
+ps.rare.1k.t0 = readRDS("phyloseq.t0.rarefied.1k.rds")
+seqtab.rare.1k.t0 <- data.frame(ps.rare.1k.t0@otu_table)
+samdf.rare.1k.t0 <- data.frame(ps.rare.1k.t0@sam_data)
+
+ps.rare.1k.prestress = readRDS("phyloseq.prestress.rarefied.1k.rds")
+seqtab.rare.1k.prestress <- data.frame(ps.rare.1k.prestress@otu_table)
+samdf.rare.1k.prestress <- data.frame(ps.rare.1k.prestress@sam_data)
+
+ps.rare.t0 <- phyloseq(otu_table(seqtab.rare.1k.t0, taxa_are_rows=FALSE), 
+                    sample_data(samdf.rare.1k.t0), 
                     tax_table(taxa2))
-ps.rare 
-#save(ps.rare,file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/ps.rare.Rdata")
-#5489 taxa and 167 samples - raw & rarefied
+ps.rare.t0 
 
-#raw, unrarefied version:
-ps.clean = readRDS("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/phyloseq.cleanest.rds")
-seqtab.clean <- data.frame(ps.clean@otu_table)
-samdf.clean <- data.frame(ps.clean@sam_data)
-
-ps.clean <- phyloseq(otu_table(seqtab.clean, taxa_are_rows=FALSE), 
-                    sample_data(samdf.clean), 
+ps.rare.prestress <- phyloseq(otu_table(seqtab.rare.1k.prestress, taxa_are_rows=FALSE), 
+                    sample_data(samdf.rare.1k.prestress), 
                     tax_table(taxa2))
-ps.clean
-#save(ps.clean,file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/ps.clean.Rdata")
-#7680 taxa and 172 samples just raw, not rarefied
+ps.rare.prestress 
+
+save(ps.rare.t0,file="ps.rare.t0.Rdata")
+save(ps.rare.prestress,file="ps.rare.prestress.Rdata")
+
+#cleaned, unrarefied files:
+ps.clean.t0 = readRDS("phyloseq.cleanest.t0.rds")
+seqtab.clean.t0 <- data.frame(ps.clean.t0@otu_table)
+samdf.clean.t0 <- data.frame(ps.clean.t0@sam_data)
+
+ps.clean.prestress = readRDS("phyloseq.cleanest.prestress.rds")
+seqtab.clean.prestress <- data.frame(ps.clean.prestress@otu_table)
+samdf.clean.prestress <- data.frame(ps.clean.prestress@sam_data)
+
+ps.clean.t0 <- phyloseq(otu_table(seqtab.clean.t0, taxa_are_rows=FALSE), 
+                    sample_data(samdf.clean.t0), 
+                    tax_table(taxa2))
+ps.clean.t0
+
+ps.clean.prestress <- phyloseq(otu_table(seqtab.clean.prestress, taxa_are_rows=FALSE), 
+                    sample_data(samdf.clean.prestress), 
+                    tax_table(taxa2))
+ps.clean.prestress
+
+save(ps.clean.t0,file="ps.clean.t0.Rdata")
+save(ps.clean.prestress,file="ps.clean.prestress.Rdata")
+
 
 ##TRIMMED VERSIONS:
 # trimmed and rarefied
-ps.trim.rare = readRDS("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/phyloseq.trim.rare.rds")
-seqtab.trim.rare <- data.frame(ps.trim.rare@otu_table)
-samdf.trim.rare <- data.frame(ps.trim.rare@sam_data)
+ps.trim.rare.t0 = readRDS("phyloseq.t0.trim.rarefied.1k.rds")
+seqtab.trim.rare.t0 <- data.frame(ps.trim.rare.t0@otu_table)
+samdf.trim.rare.t0 <- data.frame(ps.trim.rare.t0@sam_data)
 
-ps.trim.rare <- phyloseq(otu_table(seqtab.trim.rare, taxa_are_rows=FALSE), 
-                    sample_data(samdf.trim.rare), 
+ps.trim.rare.prestress = readRDS("phyloseq.prestress.trim.rarefied.1k.rds")
+seqtab.trim.rare.prestress <- data.frame(ps.trim.rare.prestress@otu_table)
+samdf.trim.rare.prestress <- data.frame(ps.trim.rare.prestress@sam_data)
+
+ps.trim.rare.t0 <- phyloseq(otu_table(seqtab.trim.rare.t0, taxa_are_rows=FALSE), 
+                    sample_data(samdf.trim.rare.t0), 
                     tax_table(taxa2))
-ps.trim.rare
-#save(ps.trim.rare,file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/ps.trim.rare.Rdata")
-#641 taxa and 165 samples trimmed and rarefied
+ps.trim.rare.t0
 
-#checking what happens if we read in the unrarefied version:
-ps.trim = readRDS("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/phyloseq.cleanest.trim.rds")
-seqtab.trim <- data.frame(ps.trim@otu_table)
-samdf.trim <- data.frame(ps.trim@sam_data)
-
-ps.trim <- phyloseq(otu_table(seqtab.trim, taxa_are_rows=FALSE), 
-                    sample_data(samdf.trim), 
+ps.trim.rare.prestress <- phyloseq(otu_table(seqtab.trim.rare.prestress, taxa_are_rows=FALSE), 
+                    sample_data(samdf.trim.rare.prestress), 
                     tax_table(taxa2))
-ps.trim
-#save(ps.trim,file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/ps.trim.Rdata")
-#641 taxa and 171 samples trimmed but not rarefied
+ps.trim.rare.prestress
+
+save(ps.trim.rare.t0,file="ps.trim.rare.t0.Rdata")
+save(ps.trim.rare.prestress,file="ps.trim.rare.prestress.Rdata")
+
+# just trimmed
+ps.trim.t0 = readRDS("phyloseq.cleanest.trim.t0.rds")
+seqtab.trim.t0 <- data.frame(ps.trim.t0@otu_table)
+samdf.trim.t0 <- data.frame(ps.trim.t0@sam_data)
+
+ps.trim.prestress = readRDS("phyloseq.cleanest.trim.prestress.rds")
+seqtab.trim.prestress <- data.frame(ps.trim.prestress@otu_table)
+samdf.trim.prestress <- data.frame(ps.trim.prestress@sam_data)
+
+ps.trim.t0 <- phyloseq(otu_table(seqtab.trim.t0, taxa_are_rows=FALSE), 
+                    sample_data(samdf.trim.t0), 
+                    tax_table(taxa2))
+ps.trim.t0
+
+ps.trim.prestress <- phyloseq(otu_table(seqtab.trim.prestress, taxa_are_rows=FALSE), 
+                    sample_data(samdf.trim.prestress), 
+                    tax_table(taxa2))
+ps.trim.prestress
+
+save(ps.trim.t0,file="ps.trim.t0.Rdata")
+save(ps.trim.prestress,file="ps.trim.prestress.Rdata")
 ```
 
 ```{r read in ps objects}
+setwd("/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/16S_All_Timepoints/")
+
+load("taxa2.Rdata")
 # can skip to here once you have made the .Rdata files above
-load("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/ps.clean.Rdata")
-load("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/ps.rare.Rdata")
-load("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/ps.trim.rare.Rdata")
-load("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/ps.trim.Rdata")
+load("ps.clean.t0.Rdata")
+load("ps.clean.prestress.Rdata")
 
-# remove Control 2, and lineage NA's
-ps.clean <- subset_samples(ps.clean,(treat!="Control 2"))
-ps.clean <- subset_samples(ps.clean,(!is.na(lineage)))
-ps.clean <- subset_samples(ps.clean,(!is.na(treat)))
+load("ps.rare.t0.Rdata")
+load("ps.rare.prestress.Rdata")
 
-ps.trim.rare <- subset_samples(ps.trim.rare,(treat!="Control 2"))
-ps.trim.rare <- subset_samples(ps.trim.rare,(!is.na(lineage)))
-ps.trim.rare <- subset_samples(ps.trim.rare,(!is.na(treat)))
+load("ps.trim.rare.t0.Rdata")
+load("ps.trim.rare.prestress.Rdata")
 
-ps.trim <- subset_samples(ps.trim,(treat!="Control 2"))
-ps.trim <- subset_samples(ps.trim,(!is.na(lineage)))
-ps.trim <- subset_samples(ps.trim,(!is.na(treat)))
+load("ps.trim.t0.Rdata")
+load("ps.trim.prestress.Rdata")
 
-ps.rare <- subset_samples(ps.rare,(treat!="Control 2"))
-ps.rare <- subset_samples(ps.rare,(!is.na(lineage)))
-ps.rare <- subset_samples(ps.rare,(!is.na(treat)))
+
+# remove lineage NA's from T0 data
+ps.clean.t0 <- subset_samples(ps.clean.t0,(!is.na(lineage)))
+
+ps.rare.t0 <- subset_samples(ps.rare.t0,(!is.na(lineage)))
+
+ps.trim.rare.t0 <- subset_samples(ps.trim.rare.t0,(!is.na(lineage)))
+
+ps.trim.t0 <- subset_samples(ps.trim.t0,(!is.na(lineage)))
+
+
+# remove Control 2, low variability, and high variability treatments, and lineage NA's from prestress data
+ps.clean.prestress <- subset_samples(ps.clean.prestress,(!is.na(lineage)))
+ps.clean.prestress <- subset_samples(ps.clean.prestress,(!is.na(treat)))
+ps.clean.prestress <- subset_samples(ps.clean.prestress,(treat!="Control 2"))
+ps.clean.prestress <- subset_samples(ps.clean.prestress,(treat!="Low Var"))
+ps.clean.prestress <- subset_samples(ps.clean.prestress,(treat!="High Var"))
+
+ps.rare.prestress <- subset_samples(ps.rare.prestress,(!is.na(lineage)))
+ps.rare.prestress <- subset_samples(ps.rare.prestress,(!is.na(treat)))
+ps.rare.prestress <- subset_samples(ps.rare.prestress,(treat!="Control 2"))
+ps.rare.prestress <- subset_samples(ps.rare.prestress,(treat!="Low Var"))
+ps.rare.prestress <- subset_samples(ps.rare.prestress,(treat!="High Var"))
+
+ps.trim.rare.prestress <- subset_samples(ps.trim.rare.prestress,(!is.na(lineage)))
+ps.trim.rare.prestress <- subset_samples(ps.trim.rare.prestress,(!is.na(treat)))
+ps.trim.rare.prestress <- subset_samples(ps.trim.rare.prestress,(treat!="Control 2"))
+ps.trim.rare.prestress <- subset_samples(ps.trim.rare.prestress,(treat!="Low Var"))
+ps.trim.rare.prestress <- subset_samples(ps.trim.rare.prestress,(treat!="High Var"))
+
+ps.trim.prestress <- subset_samples(ps.trim.prestress,(!is.na(lineage)))
+ps.trim.prestress <- subset_samples(ps.trim.prestress,(!is.na(treat)))
+ps.trim.prestress <- subset_samples(ps.trim.prestress,(treat!="Control 2"))
+ps.trim.prestress <- subset_samples(ps.trim.prestress,(treat!="Low Var"))
+ps.trim.prestress <- subset_samples(ps.trim.prestress,(treat!="High Var"))
 ```
 
 # Diversity
@@ -124,26 +188,36 @@ ps.rare <- subset_samples(ps.rare,(!is.na(treat)))
 [Notes from phyloseq author](https://rdrr.io/bioc/phyloseq/man/estimate_richness.html)
 Visualize alpha-diversity - Should be done on raw, untrimmed dataset
 
-```{r generate div metrics}
-df <- data.frame(estimate_richness(ps.clean, split=TRUE, measures=c("Shannon","InvSimpson","Observed")))
-#df <- data.frame(estimate_richness(ps.rare, split=TRUE, measures=c("Shannon","InvSimpson","Observed")))
-#df <- data.frame(estimate_richness(ps.trim, split=TRUE, measures=c("Shannon","InvSimpson","Observed")))
-#df <- data.frame(estimate_richness(ps.trim.rare, split=TRUE, measures=c("Shannon","InvSimpson","Observed")))
+```{r generate diversity metrics T0}
+df.t0 <- data.frame(estimate_richness(ps.clean.t0, split=TRUE, measures=c("Shannon","InvSimpson","Observed")))
+samdf.clean.t0 <- data.frame(ps.clean.t0@sam_data)
 
-df$frag <- rownames(df)
-df.div <- merge(df,samdf,by="frag") #add sample data
+df.t0$frag <- rownames(df.t0)
+df.t0.div <- merge(df.t0,samdf.clean.t0,by="frag") #add sample data
 
 #shannon diversity divided by species richness
-df.div$even <- df.div$Shannon/(log(df.div$Observed))
+df.t0.div$even <- df.t0.div$Shannon/(log(df.t0.div$Observed))
 
-str(df.div)
-df.div$treat = as.factor(df.div$treat)
-df.div$treat = factor(df.div$treat, levels = c("Control", "Low Var","Mod Var","High Var"))
-
-df.div$lineage = as.factor(df.div$lineage)
-df.div$sitename = as.factor(df.div$sitename)
+str(df.t0.div)
+df.t0.div$lineage = as.factor(df.t0.div$lineage)
+df.t0.div$sitename = as.factor(df.t0.div$sitename)
 ```
 
+```{r generate diversity metrics Prestress}
+df.ps <- data.frame(estimate_richness(ps.clean.prestress, split=TRUE, measures=c("Shannon","InvSimpson","Observed")))
+samdf.clean.ps <- data.frame(ps.clean.prestress@sam_data)
+
+df.ps$frag <- rownames(df.ps)
+df.ps.div <- merge(df.ps,samdf.clean.ps,by="frag") #add sample data
+
+#shannon diversity divided by species richness
+df.ps.div$even <- df.ps.div$Shannon/(log(df.ps.div$Observed))
+
+str(df.ps.div)
+df.ps.div$treat = as.factor(df.ps.div$treat)
+df.ps.div$lineage = as.factor(df.ps.div$lineage)
+df.ps.div$sitename = as.factor(df.ps.div$sitename)
+```
 ## Alpha metrics {.tabset}
 
 Looking at everything individually, more of a synthesis below
@@ -152,27 +226,11 @@ Alpha diversity is within-sample diversity. Beta diversity, on the other hand, i
 ### Shannon
 Shannon diversity estimates species diversity, considers number of species (richness) and their relative abundance (evenness)
 
-```{r shannon site}
-cols_site_diverging <- c("CI" = "#543005", "PD"= "#bf812d",  "SP"= "#dfc27d",  "BN" = "#003c30", "BS"= "#35978f", "CA"= "#80cdc1")
-
-gg.site.sha <- ggplot(df.div,aes(x=sitename,y=Shannon,color=sitename))+
-  geom_boxplot(outlier.shape=NA)+
-  scale_color_manual(values=cols_site_diverging)+
-  geom_jitter(alpha=0.5)+
-  ylab("Shannon index")+
-  xlab("Site")+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")
-gg.site.sha
-```
-
-```{r shannon lineage}
+```{r shannon lineage t0 and prestress}
 #plotting lineages
-cols_lineage <- c("L1" = "#3f007d", "L2" = "#807dba")
-df.div.lin = df.div %>%
-  drop_na(lineage)
+cols_lineage <- c("L1" = "#3f007d", "L2" = "#807dba", "L3" = "#bcbddc")
 
-gg.lin.sh <- ggplot(df.div.lin, aes(x=lineage, y=Shannon,color=lineage))+
+gg.lin.sh.t0 <- ggplot(df.t0.div, aes(x=lineage, y=Shannon,color=lineage))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_lineage)+
   geom_jitter(alpha=0.5)+
@@ -181,17 +239,53 @@ gg.lin.sh <- ggplot(df.div.lin, aes(x=lineage, y=Shannon,color=lineage))+
   theme_bw()+
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
-gg.lin.sh
+gg.lin.sh.t0
+
+gg.lin.sh.ps <- ggplot(df.ps.div, aes(x=lineage, y=Shannon,color=lineage))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_colour_manual(values=cols_lineage)+
+  geom_jitter(alpha=0.5)+
+  xlab("Lineage")+
+  ylab("Shannon index")+
+  theme_bw()+
+  #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
+gg.lin.sh.ps
+
 ```
 
-```{r shannon treatment}
-#plotting lineages
-cols_treat_reds <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
 
-df.div.treat = df.div %>%
-  drop_na(treat)
+```{r shannon site t0 and prestress}
+cols_site_diverging <- c("CI" = "#543005", "PD"= "#bf812d",  "SP"= "#dfc27d",  "BN" = "#003c30", "BS"= "#35978f", "CA"= "#80cdc1")
 
-gg.treat.sh <- ggplot(df.div.treat, aes(x=treat, y=Shannon,color=treat))+
+gg.site.sha.t0 <- ggplot(df.t0.div,aes(x=sitename,y=Shannon,color=sitename))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_color_manual(values=cols_site_diverging)+
+  geom_jitter(alpha=0.5)+
+  ylab("Shannon index")+
+  xlab("Site")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")
+gg.site.sha.t0
+
+gg.site.sha.ps <- ggplot(df.ps.div,aes(x=sitename,y=Shannon,color=sitename))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_color_manual(values=cols_site_diverging)+
+  geom_jitter(alpha=0.5)+
+  ylab("Shannon index")+
+  xlab("Site")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")
+gg.site.sha.ps
+```
+
+
+
+```{r shannon treatment - prestress only}
+#plotting treatment
+cols_treat_reds <- c("darkgrey", "#CC3300")
+
+gg.treat.sh.ps <- ggplot(df.ps.div, aes(x=treat, y=Shannon,color=treat))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_treat_reds)+
   geom_jitter(alpha=0.5)+
@@ -200,13 +294,10 @@ gg.treat.sh <- ggplot(df.div.treat, aes(x=treat, y=Shannon,color=treat))+
   theme_bw()+
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")
-gg.treat.sh
+gg.treat.sh.ps
 
 #facet wrap by lineage
-df.div.treat.lin = df.div.treat %>%
-  drop_na(lineage)
-
-gg.treat.lin.sh <- ggplot(df.div.treat.lin, aes(x=treat, y=Shannon,color=treat))+
+gg.treat.lin.sh.ps <- ggplot(df.ps.div, aes(x=treat, y=Shannon,color=treat))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_treat_reds)+
   geom_jitter(alpha=0.5)+
@@ -216,54 +307,38 @@ gg.treat.lin.sh <- ggplot(df.div.treat.lin, aes(x=treat, y=Shannon,color=treat))
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")+
   facet_wrap(~lineage)
-gg.treat.lin.sh
+gg.treat.lin.sh.ps
 ```
 
 
 ```{r shannon stats}
 #Shannon
-shapiro.test(df.div$Shannon) # fine 
-leveneTest(df.div$Shannon~treat,data=df.div) #fine
+shapiro.test(df.t0.div$Shannon) # not fine 
+leveneTest(df.t0.div$Shannon~lineage,data=df.t0.div) #fine
 
-a.div <- aov(Shannon~treat+lineage,data=df.div)
-summary(a.div) 
-#              Df Sum Sq Mean Sq F value Pr(>F)
-# treat         3   2.81  0.9362   1.006  0.392
-# lineage       1   0.15  0.1530   0.164  0.686
-# Residuals   151 140.51  0.9305               
+a.div.t0 <- aov(Shannon~lineage,data=df.t0.div)
+summary(a.div.t0) 
+#             Df Sum Sq Mean Sq F value Pr(>F)
+# lineage      2  2.114  1.0569   1.685  0.196
+# Residuals   47 29.477  0.6272               
 
-TukeyHSD(a.div) #ns for raw, rarefied, trimmed, or not
-# $treat
-#                         diff        lwr       upr     p adj
-# Low Var-Control  -0.16026181 -0.7437523 0.4232287 0.8916025
-# Mod Var-Control  -0.35255998 -0.9008184 0.1956985 0.3428562
-# High Var-Control -0.26280069 -0.8379199 0.3123185 0.6359302
-# Mod Var-Low Var  -0.19229818 -0.7570907 0.3724944 0.8129031
-# High Var-Low Var -0.10253888 -0.6934411 0.4883633 0.9693824
-# High Var-Mod Var  0.08975929 -0.4663806 0.6458992 0.9751104
 
+shapiro.test(df.ps.div$Shannon) # not fine 
+leveneTest(df.ps.div$Shannon~lineage,data=df.ps.div) #fine
+
+a.div.ps <- aov(Shannon~lineage+treat,data=df.ps.div)
+summary(a.div.ps) 
+#             Df Sum Sq Mean Sq F value Pr(>F)
+# lineage      2   1.49  0.7454   0.642  0.529
+# treat        1   1.29  1.2878   1.109  0.295
+# Residuals   86  99.85  1.1611               
 ```
 
 ### Simpson
 
 Simpson index considered more of a dominance index, accounts for proportion of species in a sample.
-```{r simpson site}
-gg.site.sim <- ggplot(df.div,aes(x=sitename,y=InvSimpson,color=sitename))+
-  geom_boxplot(outlier.shape=NA)+
-  scale_color_manual(values=cols_site_diverging)+
-  geom_jitter(alpha=0.5)+
-  ylab("Inv. Simpson index")+
-  xlab("Site")+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
-gg.site.sim
-```
-
-```{r simpson lineage}
-df.div.lin = df.div %>%
-  drop_na(lineage)
-
-gg.lin.sim <- ggplot(df.div.lin, aes(x=lineage, y=InvSimpson,color=lineage))+
+```{r simpson lineage - t0 and prestress}
+gg.lin.sim.t0 <- ggplot(df.t0.div, aes(x=lineage, y=InvSimpson,color=lineage))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_lineage)+
   geom_jitter(alpha=0.5)+
@@ -272,12 +347,47 @@ gg.lin.sim <- ggplot(df.div.lin, aes(x=lineage, y=InvSimpson,color=lineage))+
   theme_bw()+
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")
-gg.lin.sim
+gg.lin.sim.t0
+
+gg.lin.sim.ps <- ggplot(df.ps.div, aes(x=lineage, y=InvSimpson,color=lineage))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_colour_manual(values=cols_lineage)+
+  geom_jitter(alpha=0.5)+
+  xlab("Lineage")+
+  ylab("Inv. Simpson index")+
+  theme_bw()+
+  #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")
+gg.lin.sim.ps
 ```
 
-```{r simpson treatment}
+```{r simpson site - T0 and prestress}
+gg.site.sim.t0 <- ggplot(df.t0.div,aes(x=sitename,y=InvSimpson,color=sitename))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_color_manual(values=cols_site_diverging)+
+  geom_jitter(alpha=0.5)+
+  ylab("Inv. Simpson index")+
+  xlab("Site")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
+gg.site.sim.t0
+
+gg.site.sim.ps <- ggplot(df.ps.div,aes(x=sitename,y=InvSimpson,color=sitename))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_color_manual(values=cols_site_diverging)+
+  geom_jitter(alpha=0.5)+
+  ylab("Inv. Simpson index")+
+  xlab("Site")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
+gg.site.sim.ps
+```
+
+
+
+```{r simpson treatment - prestress only}
 #plotting treatment
-gg.treat.sim <- ggplot(df.div.treat, aes(x=treat, y=InvSimpson,color=treat))+
+gg.treat.sim.ps <- ggplot(df.ps.div, aes(x=treat, y=InvSimpson,color=treat))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_treat_reds)+
   geom_jitter(alpha=0.5)+
@@ -286,9 +396,9 @@ gg.treat.sim <- ggplot(df.div.treat, aes(x=treat, y=InvSimpson,color=treat))+
   theme_bw()+
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
-gg.treat.sim
+gg.treat.sim.ps
 
-gg.treat.lin.sim <- ggplot(df.div.treat.lin, aes(x=treat, y=InvSimpson,color=treat))+
+gg.treat.lin.sim.ps <- ggplot(df.ps.div, aes(x=treat, y=InvSimpson,color=treat))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_treat_reds)+
   geom_jitter(alpha=0.5)+
@@ -298,55 +408,36 @@ gg.treat.lin.sim <- ggplot(df.div.treat.lin, aes(x=treat, y=InvSimpson,color=tre
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")+
   facet_wrap(~lineage)
-gg.treat.lin.sim
+gg.treat.lin.sim.ps
 ```
 
 ```{r simpson stats}
 #simpson
-shapiro.test(df.div$InvSimpson) #not normal
-df.div$si.log <- log(df.div$InvSimpson) 
-shapiro.test(df.div$si.log) #fine
-leveneTest(df.div$si.log~treat,data=df.div) #fine 
+shapiro.test(df.t0.div$InvSimpson) #fine
+leveneTest(df.t0.div$InvSimpson~lineage,data=df.t0.div) #fine 
 
-a.div <- aov(si.log~treat+lineage,data=df.div)
+a.div <- aov(InvSimpson~lineage,data=df.t0.div)
 summary(a.div) 
-#              Df Sum Sq Mean Sq F value Pr(>F)
-# treat         3   1.40  0.4651   0.658  0.579
-# lineage       1   0.39  0.3872   0.547  0.461
-# Residuals   151 106.80  0.7073               
+#             Df Sum Sq Mean Sq F value Pr(>F)  
+# lineage      2   8904    4452   2.518 0.0914 .
+# Residuals   47  83085    1768                 
 
-TukeyHSD(a.div) #nothing, rarefied or not
-# $treat
-#                         diff        lwr       upr     p adj
-# Low Var-Control  -0.11727921 -0.6259824 0.3914240 0.9322462
-# Mod Var-Control  -0.22011752 -0.6981045 0.2578694 0.6301021
-# High Var-Control -0.23424266 -0.7356476 0.2671622 0.6191661
-# Mod Var-Low Var  -0.10283832 -0.5952401 0.3895635 0.9484119
-# High Var-Low Var -0.11696345 -0.6321284 0.3982015 0.9350293
-# High Var-Mod Var -0.01412513 -0.4989833 0.4707331 0.9998439
-# 
-# $lineage
-#            diff        lwr       upr     p adj
-# L2-L1 0.1022401 -0.1712182 0.3756985 0.4612308
+#simpson
+shapiro.test(df.ps.div$InvSimpson) #not fine
+leveneTest(df.ps.div$InvSimpson~lineage,data=df.ps.div) #fine 
 
+a.div <- aov(InvSimpson~lineage+treat,data=df.ps.div)
+summary(a.div) 
+#             Df Sum Sq Mean Sq F value Pr(>F)
+# lineage      2    117   58.74   0.194  0.824
+# treat        1    164  163.50   0.541  0.464
+# Residuals   86  25973  302.01               
 ```
 
 ### Richness
 
-```{r richness site}
-gg.site.obs <- ggplot(df.div,aes(x=sitename,y=Observed,color=sitename))+
-  geom_boxplot(outlier.shape=NA)+
-  scale_color_manual(values=cols_site_diverging)+
-  geom_jitter(alpha=0.5)+
-  ylab("ASV richness")+
-  xlab("Site")+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
-gg.site.obs
-```
-
-```{r richness lineage}
-gg.lin.obs <- ggplot(df.div.lin, aes(x=lineage, y=Observed,color=lineage))+
+```{r richness lineage - T0 and prestress}
+gg.lin.obs.t0 <- ggplot(df.t0.div, aes(x=lineage, y=Observed,color=lineage))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_lineage)+
   geom_jitter(alpha=0.5)+
@@ -355,13 +446,46 @@ gg.lin.obs <- ggplot(df.div.lin, aes(x=lineage, y=Observed,color=lineage))+
   theme_bw()+
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
-gg.lin.obs
+gg.lin.obs.t0
+
+gg.lin.obs.ps <- ggplot(df.ps.div, aes(x=lineage, y=Observed,color=lineage))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_colour_manual(values=cols_lineage)+
+  geom_jitter(alpha=0.5)+
+  xlab("Lineage")+
+  ylab("ASV richness")+
+  theme_bw()+
+  #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
+gg.lin.obs.ps
+
 ```
 
+```{r richness site - T0 and prestress}
+gg.site.obs.t0 <- ggplot(df.t0.div,aes(x=sitename,y=Observed,color=sitename))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_color_manual(values=cols_site_diverging)+
+  geom_jitter(alpha=0.5)+
+  ylab("ASV richness")+
+  xlab("Site")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
+gg.site.obs.t0
 
-```{r richness treatment}
+gg.site.obs.ps <- ggplot(df.ps.div,aes(x=sitename,y=Observed,color=sitename))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_color_manual(values=cols_site_diverging)+
+  geom_jitter(alpha=0.5)+
+  ylab("ASV richness")+
+  xlab("Site")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
+gg.site.obs.ps
+```
+
+```{r richness treatment - prestress only}
 #plotting treatment
-gg.treat.obs <- ggplot(df.div.treat, aes(x=treat, y=Observed,color=treat))+
+gg.treat.obs.ps <- ggplot(df.ps.div, aes(x=treat, y=Observed,color=treat))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_treat_reds)+
   geom_jitter(alpha=0.5)+
@@ -370,9 +494,9 @@ gg.treat.obs <- ggplot(df.div.treat, aes(x=treat, y=Observed,color=treat))+
   theme_bw()+
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
-gg.treat.obs
+gg.treat.obs.ps
 
-gg.treat.lin.obs <- ggplot(df.div.treat.lin, aes(x=treat, y=Observed,color=treat))+
+gg.treat.lin.obs <- ggplot(df.ps.div, aes(x=treat, y=Observed,color=treat))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_treat_reds)+
   geom_jitter(alpha=0.5)+
@@ -387,38 +511,29 @@ gg.treat.lin.obs
 
 ```{r richness stats}
 #otu richness
-shapiro.test(df.div$Observed) #nope
-df.div$obs.log <- log(df.div$Observed)
-shapiro.test(df.div$obs.log) #still no...
-leveneTest(df.div$obs.log~treat,data=df.div) #fine
+shapiro.test(df.t0.div$Observed) #nope
+df.t0.div$obs.log <- log(df.t0.div$Observed)
+shapiro.test(df.t0.div$obs.log) #still no...
+leveneTest(df.t0.div$obs.log~lineage,data=df.t0.div) #fine
 
-a.div <- aov(obs.log~treat+lineage,data=df.div)
+a.div <- aov(Observed~lineage,data=df.t0.div)
 summary(a.div) 
-#             Df Sum Sq Mean Sq F value Pr(>F)  
-# treat         3   6.50  2.1655   2.188 0.0918 .
-# lineage       1   0.08  0.0800   0.081 0.7766  
-# Residuals   151 149.47  0.9899                 
+#             Df  Sum Sq Mean Sq F value Pr(>F)
+# lineage      2    8431    4216   0.185  0.831
+# Residuals   47 1069504   22755               
 
-TukeyHSD(a.div) #no differences
-# $treat
-#                          diff        lwr        upr     p adj
-# Low Var-Control  -0.186595119 -0.7883976 0.41520733 0.8517681
-# Mod Var-Control  -0.538856988 -1.1043217 0.02660771 0.0678860
-# High Var-Control -0.180503182 -0.7736716 0.41266527 0.8586593
-# Mod Var-Low Var  -0.352261868 -0.9347796 0.23025584 0.3982789
-# High Var-Low Var  0.006091938 -0.6033548 0.61553871 0.9999937
-# High Var-Mod Var  0.358353806 -0.2152397 0.93194731 0.3688171
-# 
-# $lineage
-#             diff        lwr       upr     p adj
-# L2-L1 0.04646841 -0.2770364 0.3699732 0.7769487
-
+a.div <- aov(Observed~lineage+treat,data=df.ps.div)
+summary(a.div) 
+#             Df  Sum Sq Mean Sq F value Pr(>F)  
+# lineage      2    4255    2128   0.180 0.8353  
+# treat        1   75711   75711   6.417 0.0131 *
+# Residuals   86 1014711   11799                 
 ```
 
 ### Evenness
 
-```{r evenness site}
-gg.site.eve <- ggplot(df.div,aes(x=sitename,y=even,color=sitename))+
+```{r evenness site - T0 and prestress}
+gg.site.eve.t0 <- ggplot(df.t0.div,aes(x=sitename,y=even,color=sitename))+
   geom_boxplot(outlier.shape=NA)+
   scale_color_manual(values=cols_site_diverging)+
   geom_jitter(alpha=0.5)+
@@ -426,11 +541,21 @@ gg.site.eve <- ggplot(df.div,aes(x=sitename,y=even,color=sitename))+
   xlab("Site")+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
-gg.site.eve
+gg.site.eve.t0
+
+gg.site.eve.ps <- ggplot(df.ps.div,aes(x=sitename,y=even,color=sitename))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_color_manual(values=cols_site_diverging)+
+  geom_jitter(alpha=0.5)+
+  ylab("Evenness")+
+  xlab("Site")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
+gg.site.eve.ps
 ```
 
-```{r evenness lineage}
-gg.lin.eve <- ggplot(df.div.lin, aes(x=lineage, y=even,color=lineage))+
+```{r evenness lineage - T0 and prestress}
+gg.lin.eve.t0 <- ggplot(df.t0.div, aes(x=lineage, y=even,color=lineage))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_lineage)+
   geom_jitter(alpha=0.5)+
@@ -439,12 +564,23 @@ gg.lin.eve <- ggplot(df.div.lin, aes(x=lineage, y=even,color=lineage))+
   theme_bw()+
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")
-gg.lin.eve
+gg.lin.eve.t0
+
+gg.lin.eve.ps <- ggplot(df.ps.div, aes(x=lineage, y=even,color=lineage))+
+  geom_boxplot(outlier.shape=NA)+
+  scale_colour_manual(values=cols_lineage)+
+  geom_jitter(alpha=0.5)+
+  xlab("Lineage")+
+  ylab("Evenness")+
+  theme_bw()+
+  #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")
+gg.lin.eve.ps
 ```
 
-```{r evenness treatment}
+```{r evenness treatment - prestress only}
 #plotting treatment
-gg.treat.eve <- ggplot(df.div.treat, aes(x=treat, y=even,color=treat))+
+gg.treat.eve.ps <- ggplot(df.ps.div, aes(x=treat, y=even,color=treat))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_treat_reds)+
   geom_jitter(alpha=0.5)+
@@ -453,9 +589,9 @@ gg.treat.eve <- ggplot(df.div.treat, aes(x=treat, y=even,color=treat))+
   theme_bw()+
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") 
-gg.treat.eve
+gg.treat.eve.ps
 
-gg.treat.lin.eve <- ggplot(df.div.treat.lin, aes(x=treat, y=even,color=treat))+
+gg.treat.lin.eve.ps <- ggplot(df.ps.div, aes(x=treat, y=even,color=treat))+
   geom_boxplot(outlier.shape=NA)+
   scale_colour_manual(values=cols_treat_reds)+
   geom_jitter(alpha=0.5)+
@@ -465,274 +601,155 @@ gg.treat.lin.eve <- ggplot(df.div.treat.lin, aes(x=treat, y=even,color=treat))+
   #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none")+
   facet_wrap(~lineage)
-gg.treat.lin.eve
+gg.treat.lin.eve.ps
 ```
 
 ```{r evenness stats}
 #evenness
-shapiro.test(df.div$even) #nope
-leveneTest(df.div$even~treat,data=df.div) #fine
+shapiro.test(df.t0.div$even) #nope
+leveneTest(df.t0.div$even~lineage,data=df.t0.div) #fine
 
-a.div <- aov(even~treat+lineage,data=df.div)
+a.div <- aov(even~lineage,data=df.t0.div)
 summary(a.div) 
-#              Df Sum Sq  Mean Sq F value Pr(>F)
-# treat         3 0.0496 0.016546   1.134  0.337
-# lineage       1 0.0064 0.006379   0.437  0.509
-# Residuals   151 2.2033 0.014592               
+#             Df Sum Sq  Mean Sq F value Pr(>F)  
+# lineage      2 0.0405 0.020240   2.658 0.0806 .
+# Residuals   47 0.3579 0.007616                 
 
-TukeyHSD(a.div) #no differences, rarefied or not
-# $treat
-#                          diff         lwr        upr     p adj
-# Low Var-Control  -0.019476296 -0.09254259 0.05359000 0.8998382
-# Mod Var-Control  -0.005629518 -0.07428396 0.06302492 0.9965708
-# High Var-Control -0.046561614 -0.11857963 0.02545641 0.3380400
-# Mod Var-Low Var   0.013846778 -0.05687811 0.08457167 0.9569319
-# High Var-Low Var -0.027085318 -0.10107973 0.04690909 0.7773362
-# High Var-Mod Var -0.040932096 -0.11057347 0.02870928 0.4240158
-# 
-# $lineage
-#             diff         lwr        upr    p adj
-# L2-L1 0.01312293 -0.02615457 0.05240043 0.510176
+a.div <- aov(even~lineage+treat,data=df.ps.div)
+summary(a.div) 
+#             Df Sum Sq Mean Sq F value Pr(>F)
+# lineage      2 0.0488 0.02441   0.789  0.458
+# treat        1 0.0522 0.05216   1.686  0.198
+# Residuals   85 2.6297 0.03094               
 
 ```
 
 ## Combine plots so far
 ```{r evenness stats}
 # lineages
-plots.lin = ggarrange(gg.lin.sh, gg.lin.sim, gg.lin.obs, gg.lin.eve, ncol=2, nrow=2)
-ggsave(plots.lin, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/DiversityAnalyses/plots.lineage.pdf", width=8,height=6, units=c("in"), useDingbats=FALSE)
+plots.lin.t0 = ggarrange(gg.lin.sh.t0, gg.lin.sim.t0, gg.lin.obs.t0, gg.lin.eve.t0, ncol=2, nrow=2)
+ggsave(plots.lin.t0, filename = "diversity_plots_lineage_clean_t0.pdf", width=6,height=6, units=c("in"), useDingbats=FALSE)
+
+plots.lin.ps = ggarrange(gg.lin.sh.ps, gg.lin.sim.ps, gg.lin.obs.ps, gg.lin.eve.ps, ncol=2, nrow=2)
+ggsave(plots.lin.ps, filename = "diversity_plots_lineage_clean_prestress.pdf", width=6,height=6, units=c("in"), useDingbats=FALSE)
 
 #sites
-plots.site = ggarrange(gg.site.sha, gg.site.sim, gg.site.obs, gg.site.eve, ncol=2, nrow=2)
-ggsave(plots.site, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/DiversityAnalyses/plots.sitename.pdf", width=8,height=6, units=c("in"), useDingbats=FALSE)
+plots.site.t0 = ggarrange(gg.site.sha.t0, gg.site.sim.t0, gg.site.obs.t0, gg.site.eve.t0, ncol=2, nrow=2)
+ggsave(plots.site.t0, filename = "diversity_plots_site_clean_t0.pdf", width=6,height=6, units=c("in"), useDingbats=FALSE)
+
+plots.site.ps = ggarrange(gg.site.sha.ps, gg.site.sim.ps, gg.site.obs.ps, gg.site.eve.ps, ncol=2, nrow=2)
+ggsave(plots.site.ps, filename = "diversity_plots_site_clean_prestress.pdf", width=6,height=6, units=c("in"), useDingbats=FALSE)
 
 #treatment
-plots.treat = ggarrange(gg.treat.sh, gg.treat.sim, gg.treat.obs, gg.treat.eve, ncol=2, nrow=2)
-ggsave(plots.treat, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStress/DiversityAnalyses/plots.treat.pdf", width=8,height=6, units=c("in"), useDingbats=FALSE)
-
+plots.treat.ps = ggarrange(gg.treat.sh.ps, gg.treat.sim.ps, gg.treat.obs.ps, gg.treat.eve.ps, ncol=2, nrow=2)
+ggsave(plots.treat.ps, filename = "diversity_plots_treat_clean_prestress.pdf", width=6,height=6, units=c("in"), useDingbats=FALSE)
 ```
 
 ## Hannah stopped here for manuscript. 
 
-## Phylogenetic diversity (Faith's D)
-
-Tutorial from dada2 author [here](https://f1000research.com/articles/5-1492/v2)
-
-```{r packages phylo d}
-#install.packages('devtools')
-#library(devtools)
-#devtools::install_github('twbattaglia/btools')
-library(btools)
+# GLMM Mixed Model Analysis
+```{r packages for glmm, echo=FALSE}
+# following this github pipeline: https://arsweeny.github.io/microbiome-glmm/#2_Mixed_Model_Analysis
+library(tidyverse) # data manipulation and ggplot 
+library(janitor) # data cleaning 
+library(magrittr)  # data manipulation 
+library(reshape2) # data manipulation 
+library(phyloseq) # output format of sequence processing 
+library(microbiome) # useful exploration and visualisation functions 
+library(MCMCglmm) # implementation of GLMMs 
+#library(ALDEx2) # CLR transformations 
+library(plotrix) # std error functions 
+library(pals) # palettes 
+library(MetBrewer) # palettes 
+library(ggregplot) # package my friend made with lots of handy funcions - https://github.com/gfalbery/ggregplot
 ```
 
-(I'm not running the following chunk every time, because only need to generate the file once)
+```{r data frame for glmm, echo=FALSE}
 
-```{r fasta file generation, eval=FALSE}
-# rare.otu <- as.matrix(ps.rare@otu_table)
-# rare.taxa <- data.frame(ps.rare@tax_table)
-# rownames(rare.taxa)==colnames(rare.otu)
-# 
-# colnames(rare.otu) <- rare.taxa$V8
-# ids <- rownames(rare.taxa)
-# 
-# path="~/nicfall drive/Moorea_revisions/mr16s_revised/analyze_asv_table/mr16s_rev.cleanest.fasta"
-# uniquesToFasta(rare.otu, path, ids = ids, mode = "w", width = 20000)
+psOrder <- tax_glom(ps.clean.t0, taxrank = "Family") # aggregates to the class level 
+psMelt <- psmelt(psOrder) # melts into a combined df for plots 
+head(psMelt)
+
+SampleDepth <- psMelt %>% 
+  group_by(Sample) %>% 
+  summarise(Depth=sum(Abundance)) %>% as.data.frame() # summarise reads per sample 
+RelAbundance <- full_join(psMelt, SampleDepth) %>% 
+  group_by(Sample, Family) %>% 
+  summarise(RelAbundance=Abundance/Depth) %>% as.data.frame() # summarise proportion of each phyla for each sample 
+
+require(plotrix)
+RelAbundanceMean <- RelAbundance %>% 
+  dplyr::select(-Sample) %>%  group_by(Family) %>% 
+  summarise_each(funs(mean, sd, std.error)) %>% 
+  arrange(desc(mean)) # summarise proportion of phyla across all samples 
+
+RelAbundanceMean
 ```
 
-Actual analysis part: 
+```{r actual glmm, echo=FALSE}
+str(psMelt)
+psMelt2 = psMelt %>%
+  select(-Sample_or_Control, -is.neg, -gen_site, -treat, -timepoint) %>%
+  mutate_at(vars(lineage, reef, sitename), factor)
+str(psMelt2)
 
-(I'm not running the following chunk every time, because only need to generate the files once)
+# set up model
+Mods <- list() # Model list for later 
 
-```{r phylo d, eval=FALSE}
-# seqs <- getSequences("mr16s_rev.cleanest.fasta")
-# names(seqs) <- seqs # This propagates to the tip labels of the tree
-# saveRDS(seqs,file="phylo.seqs.rev.cleanest.rds")
+mf <- 20 # multiplier for model iterations and chains 
+resp<-"Abundance" 
+fixed<- c("lineage") 
+fixed<- c("lineage:sitename") 
 
-# #also doing the same thing with a .fasta file post-trimming to see if it makes a difference:
-# seqs <- getSequences("mr16s_rev.cleanest.trimmed copy.fasta")
-# names(seqs) <- seqs # This propagates to the tip labels of the tree
-# saveRDS(seqs,file="phylo.seqs.rev.cleanest.trimmed.rds")
+mcmcF<- as.formula(paste(resp, "~", paste(fixed)))
+  
+Prior3 <- list(R = list(V = diag(1), nu = 0.002),
+               G = list(G1 = list(V = diag(1), nu = 0.002, alpha.mu = rep(0,1), alpha.V = diag(1)*100),
+                        G2 = list(V = diag(1), nu = 0.002, alpha.mu = rep(0,1), alpha.V = diag(1)*100),
+                        G3 = list(V = diag(1), nu = 0.002, alpha.mu = rep(0,1), alpha.V = diag(1)*100)))
+
+# to run the model 
+Mods[[1]]<- MCMCglmm(fixed= mcmcF, 
+                          random= ~ Sample + OTU + lineage:OTU, 
+                          prior=Prior3,
+                          data=psMelt2,
+                          verbose=T, pr=T, pl=T, # will save posteriors for random effect levels & model predictions for each iteration 
+                          family = "poisson",
+                          nitt = 13000*mf,
+                          thin = 10*mf,burnin=3000*mf)
+
+# view proportion of variance associated with each random term
+PropVarPois <- MCMCRep(Mods[[1]], scale="link") %>% # function from ggregplot to calculate proportion variance for each random effect 
+  as.data.frame() %>% 
+  mutate_at(c("Mode", "lHPD", "uHPD"), as.numeric)
+PropVarPois
+
+# Visualize variance breakdown for the model
+PropVarPois %>% pull(Mode) %>% sum -> TotalVar 
+1- TotalVar -> PoissonVar 
+
+PropVarPois[5, ] <- c("poisson", PoissonVar, NA, NA) 
+
+PropVarPois %<>% 
+  mutate_at(c("Mode", "lHPD", "uHPD"), as.numeric)
+
+# color scheme
+MicroColours <- met.brewer("Renoir",12, "discrete")
+
+PropVarPois%>% 
+  mutate(Component=fct_relevel(Component, "Sample", "OTU", "lineage:OTU","units", "poisson")) %>% 
+  ggplot(aes(x=1, y=as.numeric(Mode), fill=Component)) + 
+  geom_bar(stat="identity", colour="transparent") + 
+  scale_x_continuous(labels=NULL) + 
+  scale_fill_manual(values=MicroColours[c(2,4,6,8,10)]) +
+  theme_bw(base_size = 14) + 
+  #theme(legend.position = "top") + 
+  theme(axis.ticks.x = element_blank(), 
+        legend.text = element_text(size=11), 
+        legend.title = element_text(size=12)) + 
+  labs(x='Poisson model', y='Proportion Variance')
+
 ```
-
-Doing this next part in the cluster because it takes forever
-
-```{bash terminal phylo things, eval=FALSE}
-##script phylo.R looks like this now:
-# library(dada2)
-# library(phangorn)
-# library(DECIPHER)
-#
-# seqs <- readRDS("./phylo.seqs.rev.cleanest.rds")
-# alignment <- AlignSeqs(DNAStringSet(seqs), anchor=NA)
-# phang.align <- phyDat(as(alignment, "matrix"), type="DNA")
-# dm <- dist.ml(phang.align)
-# treeNJ <- NJ(dm) # Note, tip order != sequence order
-# fit = pml(treeNJ, data=phang.align)
-#
-# ## negative edges length changed to 0!
-# 
-# fitGTR <- update(fit, k=4, inv=0.2)
-# fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE,
-#                     rearrangement = "stochastic", control = pml.control(trace = 0))
-# detach("package:phangorn", unload=TRUE)
-# saveRDS(fitGTR, file="./phylo.fitgtr.rev.cleanest.rds")
-
-nano phylo.sh
-
-##job file looks like this:
-#$ -V # inherit the submission environment
-#$ -cwd # start job in submission directory
-#$ -N phylo.sh # job name, anything you want
-#$ -l h_rt=24:00:00
-#$ -M thenicolakriefall@gmail.com
-#$ -m be
-
-module load R
-module load rstudio
-Rscript phylo.R
-##exit
-
-##on cluster:
-qsub phylo.sh
-##saved output as: phylo.fitgtr.rev.cleanest.rds
-```
-
-Back in R
-
-```{r back in R}
-library(btools)
-
-fitGTR <- readRDS("phylo.fitgtr.rev.cleanest.rds")
-
-#to check for effects of rarefying:
-#ps.rare <- ps.clean 
-
-#new phyloseq object:
-taxa.rare <- data.frame(ps.rare@tax_table)
-seqtab.rare <- data.frame(ps.rare@otu_table)
-taxa.rare$sqs <- row.names(taxa.rare) 
-taxa.rare$sqs == colnames(seqtab.rare)
-row.names(taxa.rare) <- taxa.rare$V8
-colnames(seqtab.rare) <- taxa.rare$V8
-row.names(taxa.rare) == colnames(seqtab.rare)
-taxa.rare <- as.matrix(taxa.rare)
-
-ps.rare.tree <- phyloseq(otu_table(seqtab.rare, taxa_are_rows = FALSE),
-                         sample_data(samdf),
-                         tax_table(taxa.rare),
-                         phy_tree(fitGTR$tree))
-
-pd.div <- estimate_pd(ps.rare.tree)
-row.names(df.div) <- df.div$id
-df.div.pd <- merge(df.div,pd.div,by=0)
-
-## saving diversity data frame ##
-#save & read back in as needed
-#write.csv(df.div.pd,file="mr16s_diversity_rev.rare_6.2k.csv") #saving
-#df.div <- read.csv("mr16s_diversity_rev.rare_6.2k.csv",row.names=1,header=TRUE) #reading back in
-
-##post trimming:
-# fitGTR.trim <- readRDS("phylo.fitgtr.rev.cleanest.trimmed.rds")
-# 
-# #new phyloseq object:
-# taxa.rare <- data.frame(ps.rare.trim@tax_table)
-# seqtab.rare <- data.frame(ps.rare.trim@otu_table)
-# taxa.rare$sqs <- row.names(taxa.rare) 
-# taxa.rare$sqs == colnames(seqtab.rare)
-# row.names(taxa.rare) <- taxa.rare$V8
-# colnames(seqtab.rare) <- taxa.rare$V8
-# row.names(taxa.rare) == colnames(seqtab.rare)
-# taxa.rare <- as.matrix(taxa.rare)
-# 
-# ps.rare.tree <- phyloseq(otu_table(seqtab.rare, taxa_are_rows = FALSE),
-#                          sample_data(samdf),
-#                          tax_table(taxa.rare),
-#                          phy_tree(fitGTR.trim$tree))
-# 
-# pd.div <- estimate_pd(ps.rare.tree)
-# row.names(df.div) <- df.div$id
-# df.div.pd <- merge(df.div,pd.div,by=0)
-```
-
-### Faith's D Plots {.tabset}
-
-#### Figure - site
-
-```{r faiths d site}
-gg.fd.site <- ggplot(df.div.pd,aes(x=site,y=PD,color=site))+
-  geom_boxplot(outlier.shape=NA)+
-  scale_color_manual(values=c("darkslategray3","darkslategray4","#000004"))+
-  geom_jitter(alpha=0.5)+
-  ylab("Faith's D")+
-  xlab("Site")+
-  theme_bw()+
-  theme(legend.position="none")
-gg.fd.site
-```
-
-#### Figure - reef zone
-
-```{r faiths d rz}
-gg.fd.rz <- ggplot(df.div.pd, aes(x=zone, y=PD,color=zone,shape=zone))+
-  geom_boxplot(outlier.shape=NA)+
-  xlab("Reef zone")+
-  ylab("Faith's D")+
-  theme_bw()+
-  scale_shape_manual(values=c(16,15),labels=c("Back reef","Fore reef"))+
-  scale_colour_manual(values=c("#ED7953FF","#8405A7FF"),labels=c("Back reef","Fore reef"))+
-  #guides(color=guide_legend(title="Reef zone"),shape=guide_legend(title="Reef zone"))+
-  theme(legend.position="none")+
-  geom_jitter(alpha=0.5)+
-  facet_wrap(~site)+
-  scale_x_discrete(labels=c("BR","FR"))
-gg.fd.rz
-```
-
-#### Stats
-
-```{r phylo div stats}
-#stats - phylo div
-shapiro.test(log(df.div.pd$PD)) #normal
-df.div.pd$faith.log <- log(df.div.pd$PD) 
-leveneTest(faith.log~site*zone,data=df.div.pd) #fine 
-
-a.div <- aov(faith.log~site/zone,data=df.div.pd)
-summary(a.div)
-TukeyHSD(a.div) #Tahiti lower than the other two
-
-df.div.pd.mnw <- subset(df.div.pd,site=="MNW")
-df.div.pd.mse <- subset(df.div.pd,site=="MSE")
-df.div.pd.tnw <- subset(df.div.pd,site=="TNW")
-
-wilcox.test(PD~zone,data=df.div.pd.mnw) #ns
-summary(aov(PD~zone,data=df.div.pd.mnw)) #ns
-wilcox.test(PD~zone,data=df.div.pd.mse) #ns
-summary(aov(PD~zone,data=df.div.pd.mse)) #ns
-wilcox.test(PD~zone,data=df.div.pd.tnw) #ns
-summary(aov(PD~zone,data=df.div.pd.tnw)) #ns
-```
-
-## Synthesizing results {.tabset}
-
-Only significant comparison above is Tahiti being different from Mo'orea NW & SE in ASV richness & phylo diversity (significantly lower)
-
-### Plot by site
-
-```{r plots site}
-gg.panels.site <- ggarrange(gg.site.obs,gg.site.eve,gg.site.sha,gg.site.sim,gg.fd.site,nrow=3,ncol=2,labels="AUTO")
-gg.panels.site
-#ggsave(gg.panels.site,file="bac.div.site.pdf",height=8)
-```
-
-### Plot by reef zone
-
-```{r plots rz}
-gg.panels.rz <- ggarrange(gg.obs,gg.ev,gg.sh,gg.si,gg.fd.rz,nrow=3,ncol=2,labels="AUTO")
-gg.panels.rz
-#ggsave(gg.panels.rz,file="bac.div.rz.pdf", height=7)
-```
-
-
 
 
 
