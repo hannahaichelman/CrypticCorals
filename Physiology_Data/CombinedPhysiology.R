@@ -4523,3 +4523,9 @@ panama_temp_plot = ggplot(panama_temp, aes(x = Year, y = SST, color = param, gro
   xlab("Year")
 panama_temp_plot
 ggsave(panama_temp_plot, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/temperature_increase.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
+
+
+# write out file to use in fluorish visualization
+pan_cores_allyears_fluorish = pan_cores_allyears_trim3 %>%
+  mutate(sitename = str_split_i(coreID, "_", 3))
+write.csv(pan_cores_allyears_fluorish, file = "/Users/hannahaichelman/Dropbox/BU_Postdoc/Fluorish_Workshop/coring_temp_data.csv", row.names = FALSE)
