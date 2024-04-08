@@ -4529,3 +4529,25 @@ ggsave(panama_temp_plot, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Corin
 pan_cores_allyears_fluorish = pan_cores_allyears_trim3 %>%
   mutate(sitename = str_split_i(coreID, "_", 3))
 write.csv(pan_cores_allyears_fluorish, file = "/Users/hannahaichelman/Dropbox/BU_Postdoc/Fluorish_Workshop/coring_temp_data.csv", row.names = FALSE)
+
+head(pan_cores_allyears)
+
+# try again
+data_allyears_fluorish = pan_cores_allyears %>%
+  select(Year, coreID, calc, site, lineage)
+data_allyears_fluorish2 = summarySE(data_allyears_fluorish, measurevar = "calc", groupvars = c("site","Year"))
+data_allyears_fluorish3 = summarySE(data_allyears_fluorish, measurevar = "calc", groupvars = c("lineage","Year"))
+
+data_allyears_fluorish_site = data_allyears_fluorish2 %>%
+  select(Year, site, calc)
+
+pivoted_data_site = pivot_wider(data_allyears_fluorish_site, names_from = Year, values_from = calc)
+write.csv(pivoted_data_site, file = "/Users/hannahaichelman/Dropbox/BU_Postdoc/Fluorish_Workshop/pivoted_data_fluorish.csv", row.names = FALSE)
+
+data_allyears_fluorish_lineage = data_allyears_fluorish3 %>%
+  select(Year, lineage, calc)
+
+pivoted_data_lineage = pivot_wider(data_allyears_fluorish_lineage, names_from = Year, values_from = calc)
+
+write.csv(pivoted_data_lineage, file = "/Users/hannahaichelman/Dropbox/BU_Postdoc/Fluorish_Workshop/pivoted_data_lineage_fluorish.csv", row.names = FALSE)
+

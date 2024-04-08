@@ -310,9 +310,10 @@ ps.its2.t0.no0 # don't lose any
 ps.its2.ps.no0 <- prune_samples(sample_sums(ps.its2.ps)!=0, ps.its2.ps)
 ps.its2.ps.no0 # don't lose any
 
-# Remove NA's to create ps object we will plot
+# Remove NA's to create ps object we will plot and remove L3's
 # first for T0
-ps.cleanest.t0 <- subset_samples(ps.its2.t0.no0,(!is.na(lineage)))
+ps.cleaner.t0 <- subset_samples(ps.its2.t0.no0,(!is.na(lineage)))
+ps.cleanest.t0 <- subset_samples(ps.cleaner.t0,(lineage!="L3"))
 ps.cleanest.rel.t0 <- transform_sample_counts(ps.cleanest.t0, function(OTU) OTU/sum(OTU))
 
 # save phyloseq object
@@ -406,9 +407,9 @@ samdf.rel.t0 <- data.frame(ps.cleanest.t0.rel@sam_data)
 taxa.t0 = read.csv(file = "data_files/symportal_taxa.t0.csv", header = TRUE) %>%
   select(-X)
 rownames(taxa.t0) <- as.factor(taxa.t0$DIV)
-sum(taxa.t0$genus == "B") # 3 div
-sum(taxa.t0$genus == "C") # 23 div
-sum(taxa.t0$genus == "D") # 9 div
+sum(taxa.t0$majority_its2 == "C1") # 19 div
+sum(taxa.t0$majority_its2 == "C3") # 2 div
+sum(taxa.t0$majority_its2 == "D1") # 9 div
 
 mtaxa.t0 <- as.matrix(taxa.t0)
 
@@ -424,9 +425,9 @@ samdf.rel.ps <- data.frame(ps.cleanest.ps.rel@sam_data)
 taxa.ps = read.csv(file = "data_files/symportal_taxa.prestress.csv", header = TRUE) %>%
   select(-X)
 rownames(taxa.ps) <- as.factor(taxa.ps$DIV)
-sum(taxa.ps$genus == "B") # 3 div
-sum(taxa.ps$genus == "C") # 23 div
-sum(taxa.ps$genus == "D") # 9 div
+sum(taxa.ps$majority_its2 == "C1") # 19 div
+sum(taxa.ps$majority_its2 == "C3") # 2 div
+sum(taxa.ps$majority_its2 == "D1") # 9 div
 
 mtaxa.ps <- as.matrix(taxa.ps)
 
@@ -438,7 +439,7 @@ its2_cols_greens = c("A4" = "#ffeda0", "A4z" =  "#fd8d3c",
 
 #its2_cols_blues = c("#f6eff7", "#d0d1e6", "#a6bddb", "#67a9cf", "#3690c0", "#02818a", "#016450")
 
-# bar plot of all individuals
+# bar plot of all individuals - T0
 p.all = plot_bar(ps.cleanest.t0.rel, x="gen_site", fill="majority_its2") +
   theme_bw() +
   scale_fill_manual(name = "Majority ITS2", values = its2_cols_greens) +
@@ -577,6 +578,283 @@ p.site = plot_bar(ps.cleanest.ps.rel, x="frag", fill="majority_its2") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), axis.title.y = element_blank())
 p.site
 ggsave(p.site, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_sitefacet_prestress_majorityITS2.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
+
+
+
+#### Summary of Dominant ITS2 Majority Types and DIVs ####
+
+ps.cleanest.t0.rel = readRDS("data_files/ps.its2.t0.rel.RDS")
+seqtab.rel.t0 <- data.frame(ps.cleanest.t0.rel@otu_table)
+samdf.rel.t0 <- data.frame(ps.cleanest.t0.rel@sam_data)
+
+ps.cleanest.ps.rel = readRDS("data_files/ps.its2.prestress.rel.RDS")
+seqtab.rel.ps <- data.frame(ps.cleanest.ps.rel@otu_table)
+samdf.rel.ps <- data.frame(ps.cleanest.ps.rel@sam_data)
+
+## First T0
+# change column names to majority its2 sequence
+taxa.t0 = read.csv(file = "data_files/symportal_taxa.t0.csv", header = TRUE) %>%
+  select(-X)
+
+taxa.t0$majority_its2
+colnames(seqtab.rel.t0) = c("A4z","A4","B19","B5","B5a","C1.1","C1.2","C1.3","C1.4","C1.5","C1.6","C1.7","C3.1","C1.8","C3.2","C3af",
+                            "C1.9","C1.10","C1.11","C1.12","C1.13","C1.14","C1.15","C1.16","C15","C1.17","C1.18","C1.19",
+                            "D1.1","D1.2","D1.3","D1.4","D1.5","D1.6","D1.7","D1.8","D1.9" )
+
+# make new data frame and sum columns with the same majority its2 sequence
+seqtab.rel.t0.new = seqtab.rel.t0 %>%
+  mutate(A4z_sum = A4z) %>%
+  mutate(A4_sum = A4) %>%
+  mutate(B19_sum = B19) %>%
+  mutate(B5_sum = B5) %>%
+  mutate(B5a_sum = B5a) %>%
+  mutate(C1_sum = rowSums(select(., starts_with("C1.")))) %>%
+  mutate(C3_sum = rowSums(select(., starts_with("C3.")))) %>%
+  mutate(C3af_sum = C3af) %>%
+  mutate(C15_sum = C15) %>%
+  mutate(D1_sum = rowSums(select(., starts_with("D1.")))) %>%
+  rownames_to_column(var = "frag") %>%
+  select(frag, contains("_sum"))
+
+its2.rel.t0.combined = left_join(seqtab.rel.t0.new, samdf.rel.t0, by = "frag")
+
+its2.rel.t0.combined = its2.rel.t0.combined %>%
+  mutate_at(c(2:11), as.numeric)
+
+# convert factors
+its2.rel.t0.combined$treat = as.factor(its2.rel.t0.combined$treat)
+its2.rel.t0.combined$treat = factor(its2.rel.t0.combined$treat, levels = c("Control", "Low Var","Mod Var","High Var"))
+its2.rel.t0.combined$sitename = as.factor(its2.rel.t0.combined$sitename)
+its2.rel.t0.combined$lineage = as.factor(its2.rel.t0.combined$lineage)
+its2.rel.t0.combined$gen_site = as.factor(its2.rel.t0.combined$gen_site)
+its2.rel.t0.combined$reef = as.factor(its2.rel.t0.combined$reef)
+
+# add in dominant and minor distinctions to use in other plots
+its2.rel.t0.combined.2 = its2.rel.t0.combined %>%
+  mutate(dominant_type = case_when(A4z_sum >= 0.5 ~ "A4z",
+                                   A4_sum >= 0.5 ~ "A4",
+                              B19_sum >= 0.5 ~ "B19",
+                              B5_sum >= 0.5 ~ "B5",
+                              B5a_sum >= 0.5 ~ "B5a",
+                              C1_sum >= 0.5 ~ "C1",
+                              C3_sum >= 0.5 ~ "C3",
+                              C3af_sum >= 0.5 ~ "C3af",
+                              C15_sum >= 0.5 ~ "C15",
+                              D1_sum >= 0.5 ~ "D1")) %>%
+  mutate(minor_type = case_when(B19_sum < 0.5 & B19_sum > 0.0 ~ "B19",
+                                B5_sum < 0.5 & B5_sum > 0.0 ~ "B5",
+                                C1_sum < 0.5 & C1_sum > 0.0 ~ "C1",
+                                C3_sum < 0.5 & C3_sum > 0.0 ~ "C3",
+                                C3af_sum < 0.5 & C3af_sum > 0.0 ~ "C3af",
+                                D1_sum < 0.5 & D1_sum > 0.0 ~ "D1"))
+
+write.csv(its2.rel.t0.combined.2, file = "~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/Physiology_Data/data_files/ITS2.dominanttype.T0.csv", row.names = FALSE)
+
+## Now Prestress
+# change column names to majority its2 sequence
+taxa.ps = read.csv(file = "data_files/symportal_taxa.prestress.csv", header = TRUE) %>%
+  select(-X)
+
+taxa.ps$majority_its2
+colnames(seqtab.rel.ps) = c("A4z","A4","B19","B5","B5a","C1.1","C1.2","C1.3","C1.4","C1.5","C1.6","C1.7","C3.1","C1.8","C3.2","C3af",
+                            "C1.9","C1.10","C1.11","C1.12","C1.13","C1.14","C1.15","C1.16","C15","C1.17","C1.18","C1.19",
+                            "D1.1","D1.2","D1.3","D1.4","D1.5","D1.6","D1.7","D1.8","D1.9" )
+
+# make new data frame and sum columns with the same majority its2 sequence
+seqtab.rel.ps.new = seqtab.rel.ps %>%
+  mutate(A4z_sum = A4z) %>%
+  mutate(A4_sum = A4) %>%
+  mutate(B19_sum = B19) %>%
+  mutate(B5_sum = B5) %>%
+  mutate(B5a_sum = B5a) %>%
+  mutate(C1_sum = rowSums(select(., starts_with("C1.")))) %>%
+  mutate(C3_sum = rowSums(select(., starts_with("C3.")))) %>%
+  mutate(C3af_sum = C3af) %>%
+  mutate(C15_sum = C15) %>%
+  mutate(D1_sum = rowSums(select(., starts_with("D1.")))) %>%
+  rownames_to_column(var = "frag") %>%
+  select(frag, contains("_sum"))
+
+its2.rel.ps.combined = left_join(seqtab.rel.ps.new, samdf.rel.ps, by = "frag")
+
+its2.rel.ps.combined = its2.rel.ps.combined %>%
+  mutate_at(c(2:11), as.numeric)
+
+# convert factors
+its2.rel.ps.combined$treat = as.factor(its2.rel.ps.combined$treat)
+its2.rel.ps.combined$treat = factor(its2.rel.ps.combined$treat, levels = c("Control", "Low Var","Mod Var","High Var"))
+its2.rel.ps.combined$sitename = as.factor(its2.rel.ps.combined$sitename)
+its2.rel.ps.combined$lineage = as.factor(its2.rel.ps.combined$lineage)
+its2.rel.ps.combined$gen_site = as.factor(its2.rel.ps.combined$gen_site)
+its2.rel.ps.combined$reef = as.factor(its2.rel.ps.combined$reef)
+
+# add in dominant and minor distinctions to use in other plots
+its2.rel.ps.combined.2 = its2.rel.ps.combined %>%
+  mutate(dominant_type = case_when(A4z_sum >= 0.5 ~ "A4z",
+                                   A4_sum >= 0.5 ~ "A4",
+                                   B19_sum >= 0.5 ~ "B19",
+                                   B5_sum >= 0.5 ~ "B5",
+                                   B5a_sum >= 0.5 ~ "B5a",
+                                   C1_sum >= 0.5 ~ "C1",
+                                   C3_sum >= 0.5 ~ "C3",
+                                   C3af_sum >= 0.5 ~ "C3af",
+                                   C15_sum >= 0.5 ~ "C15",
+                                   D1_sum >= 0.5 ~ "D1")) %>%
+  mutate(minor_type = case_when(B19_sum < 0.5 & B19_sum > 0.0 ~ "B19",
+                                B5_sum < 0.5 & B5_sum > 0.0 ~ "B5",
+                                C1_sum < 0.5 & C1_sum > 0.0 ~ "C1",
+                                C3_sum < 0.5 & C3_sum > 0.0 ~ "C3",
+                                C3af_sum < 0.5 & C3af_sum > 0.0 ~ "C3af",
+                                D1_sum < 0.5 & D1_sum > 0.0 ~ "D1"))
+
+write.csv(its2.rel.ps.combined.2, file = "~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/Physiology_Data/data_files/ITS2.dominanttype.prestress.csv", row.names = FALSE)
+
+head(its2.rel.t0.combined.2)
+head(its2.rel.ps.combined.2)
+
+its2.rel.combined = rbind(its2.rel.t0.combined.2, its2.rel.ps.combined.2)
+write.csv(its2.rel.combined, file = "~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/Physiology_Data/data_files/ITS2.dominanttype.alltimepoints.csv", row.names = FALSE)
+
+# summarize proportion of individuals with more than 50% C or D
+
+its2.rel.t0.combined.2 %>%
+#its2.rel.ps.combined.2 %>%
+  #filter(sitename=="CI") %>%
+  group_by(lineage) %>%
+  dplyr::summarize(n = n(), # total sample size
+            n_gt50D = sum(D1_sum>=0.5), # number of individuals with proportion of D1 > 0.5
+            p_gt50D = n_gt50D/n) # proportion of individuals with D1 > 0.5
+# T0:
+# lineage     n n_gt50D p_gt50D
+# 1 L1         29      21   0.724
+# 2 L2         18       4   0.222
+# 3 L3          3       1   0.333 # but ignoring L3 from here
+
+# Prestress:
+# lineage     n n_gt50D p_gt50D
+# 1 L1         53      26   0.491
+# 2 L2         31       4   0.129
+
+# T0 CI only:
+# lineage     n n_gt50D p_gt50D
+# 1 L1          4       1    0.25
+# 2 L2          4       3    0.75
+
+
+# Kruskal-Wallis (non-parametric alternative to one-way anova) to see if there is a difference
+# in mean proportion D based on lineage
+its2.rel.t0.CI = its2.rel.t0.combined.2 %>%
+  filter(sitename=="CI")
+
+its2.rel.ps.CI = its2.rel.ps.combined.2 %>%
+  filter(sitename=="CI")
+
+shapiro.test(its2.rel.t0.combined.2$D1_sum) # not normal
+kruskal.test(D1_sum ~ lineage, data = its2.rel.t0.combined.2)
+#data:  D1_sum by lineage
+#Kruskal-Wallis chi-squared = 12.677, df = 1, p-value = 0.0003702
+
+
+kruskal.test(D1_sum ~ lineage, data = its2.rel.ps.combined.2)
+#data:  D1_sum by lineage
+#Kruskal-Wallis chi-squared = 16.824, df = 1, p-value = 4.101e-05
+
+
+kruskal.test(D1_sum ~ lineage, data = its2.rel.t0.CI)
+#data:  D1_sum by lineage
+#Kruskal-Wallis chi-squared = 0.7875, df = 1, p-value = 0.3749
+
+kruskal.test(D1_sum ~ lineage, data = its2.rel.ps.CI)
+#data:  D1_sum by lineage
+#Kruskal-Wallis chi-squared = 1.3451, df = 1, p-value = 0.2461
+
+
+
+## Stopped here for the revision ##
+
+
+
+
+# Make a plot of the proportion of durusdinium by lineage
+library(Rmisc)
+
+cols_lineage <- c("L1" = "#3f007d", "L2" = "#807dba", "L3" = "#bcbddc")
+
+its2.rel.combined_plot = its2.rel.combined.2 %>%
+  select(frag, treat, sitename, lineage, D1_sum)
+
+d1_means = summarySE(its2.rel.combined_plot, measurevar = "D1_sum", groupvars = c("lineage"))
+
+its2_dom_plot <- ggplot(its2.rel.combined_plot, aes(x = lineage, y = D1_sum))+
+  theme_bw()+
+  geom_jitter(aes(color = lineage, fill = lineage),
+              #width = 0.25,
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = d1_means, aes(x = lineage, ymax = D1_sum+se, ymin = D1_sum-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = d1_means, mapping = aes(x=lineage, y=D1_sum, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("L1","L2"),
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("L1","L2"),
+                     values = cols_lineage)+
+  xlab("Lineage")+
+  ylab("Proportion Durusdinium (+/- SE)")+
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+its2_dom_plot
+
+ggsave(its2_dom_plot, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ProportionD1_majorityITS2.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
+
+
+## Now make a new data frame of dominant DIVs not 'majority its2 sequences'
+ps.cleanest.rel = readRDS("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ps.its2.rel.RDS")
+seqtab.rel <- data.frame(ps.cleanest.rel@otu_table)
+samdf.rel <- data.frame(ps.cleanest.rel@sam_data)
+tax.rel <- data.frame(ps.cleanest.rel@tax_table)
+
+# make new data frame and sum columns with the same majority its2 sequence
+seqtab.rel.new = seqtab.rel %>%
+  rownames_to_column(var = "frag")
+
+div.rel.combined = left_join(seqtab.rel.new, samdf.rel, by = "frag")
+
+div.rel.combined = div.rel.combined %>%
+  mutate_at(c(2:21), as.numeric)
+
+# convert factors
+div.rel.combined$treat = as.factor(div.rel.combined$treat)
+div.rel.combined$treat = factor(div.rel.combined$treat, levels = c("Control", "Low Var","Mod Var","High Var"))
+div.rel.combined$sitename = as.factor(div.rel.combined$sitename)
+div.rel.combined$lineage = as.factor(div.rel.combined$lineage)
+div.rel.combined$gen_site = as.factor(div.rel.combined$gen_site)
+div.rel.combined$reef = as.factor(div.rel.combined$reef)
+
+# add in dominant and minor distinctions to use in other plots
+div.rel.combined.2 = div.rel.combined %>%
+  mutate(dominant_div = case_when(B19.B19j >= 0.5 ~ "B19.B19j",
+                                   B5 >= 0.5 ~ "B5",
+                                   C1.C3.C1c.C1b.C72k.C1w >= 0.5 ~ "C1.C3.C1c.C1b.C72k.C1w",
+                                   C1.C1c.C3.C1al.C1b >= 0.5 ~ "C1.C1c.C3.C1al.C1b",
+                                   C1.C3.C1b.C1c.C42.2.C72k >= 0.5 ~ "C1.C3.C1b.C1c.C42.2.C72k",
+                                   C3.C1.C3y.C6a >= 0.5 ~ "C3.C1.C3y.C6a",
+                                   C3af.C3hq >= 0.5 ~ "C3af.C3hq",
+                                   C3.C3y.C6a >= 0.5 ~ "C3.C3y.C6a",
+                                   C1.C1c >= 0.5 ~ "C1.C1c",
+                                   C1.C1c.C1al.C72k >= 0.5 ~ "C1.C1c.C1al.C72k",
+                                   C1.C1c.C1b >= 0.5 ~ "C1.C1c.C1b",
+                                   C1.C1c.C1am.C1ao.C1an.C3cm.C72k >= 0.5 ~ "C1.C1c.C1am.C1ao.C1an.C3cm.C72k",
+                                   C1.C1c.C1al >= 0.5 ~ "C1.C1c.C1al",
+                                   C3.C1 >= 0.5 ~ "C3.C1",
+                                   C15 >= 0.5 ~ "C15",
+                                   D1.D4.D1cl.D1ck.D4c.D1cm.D1c.D2 >= 0.5 ~ "D1.D4.D1cl.D1ck.D4c.D1cm.D1c.D2",
+                                   D1.D4.D4c.D1cl.D1az.D1c.D2 >= 0.5 ~ "D1.D4.D4c.D1cl.D1az.D1c.D2",
+                                   D1.D4.D4c.D1c >= 0.5 ~ "D1.D4.D4c.D1c",
+                                   D1.D4.D4c >= 0.5 ~ "D1.D4.D4c",
+                                   D1.D4.D4c.D2 >= 0.5 ~ "D1.D4.D4c.D2"))
+
+write.csv(div.rel.combined.2, file = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ITS2.dominantDIVs.csv", row.names = FALSE)
+
 
 #### Bray Curtis Dissimilarity PCoAs - T0 ####
 # color schemes
@@ -862,588 +1140,4 @@ adonis2(formula = seq.ps ~ sitename + lineage, data = samdf.ps, permutations = 9
 #pairwise.adonis(seq.ps, factors=samdf.ps$lineage, permutations=999) #no significant comparisons
 #pairwise.adonis(seq.ps, factors=samdf.ps$sitename, permutations=999) #all comparisons different except PD vs SP and BN vs CA
 
-#### Summary of Dominant ITS2 Majority Types and DIVs ####
 
-ps.cleanest.t0.rel = readRDS("data_files/ps.its2.t0.rel.RDS")
-seqtab.rel.t0 <- data.frame(ps.cleanest.t0.rel@otu_table)
-samdf.rel.t0 <- data.frame(ps.cleanest.t0.rel@sam_data)
-
-ps.cleanest.ps.rel = readRDS("data_files/ps.its2.prestress.rel.RDS")
-seqtab.rel.ps <- data.frame(ps.cleanest.ps.rel@otu_table)
-samdf.rel.ps <- data.frame(ps.cleanest.ps.rel@sam_data)
-
-## First T0
-# change column names to majority its2 sequence
-taxa.t0 = read.csv(file = "data_files/symportal_taxa.t0.csv", header = TRUE) %>%
-  select(-X)
-
-taxa.t0$majority_its2
-colnames(seqtab.rel.t0) = c("A4z","A4","B19","B5","B5a","C1.1","C1.2","C1.3","C1.4","C1.5","C1.6","C1.7","C3.1","C1.8","C3.2","C3af",
-                            "C1.9","C1.10","C1.11","C1.12","C1.13","C1.14","C1.15","C1.16","C15","C1.17","C1.18","C1.19",
-                            "D1.1","D1.2","D1.3","D1.4","D1.5","D1.6","D1.7","D1.8","D1.9" )
-
-# make new data frame and sum columns with the same majority its2 sequence
-seqtab.rel.t0.new = seqtab.rel.t0 %>%
-  mutate(A4z_sum = A4z) %>%
-  mutate(A4_sum = A4) %>%
-  mutate(B19_sum = B19) %>%
-  mutate(B5_sum = B5) %>%
-  mutate(B5a_sum = B5a) %>%
-  mutate(C1_sum = rowSums(select(., starts_with("C1.")))) %>%
-  mutate(C3_sum = rowSums(select(., starts_with("C3.")))) %>%
-  mutate(C3af_sum = C3af) %>%
-  mutate(C15_sum = C15) %>%
-  mutate(D1_sum = rowSums(select(., starts_with("D1.")))) %>%
-  rownames_to_column(var = "frag") %>%
-  select(frag, contains("_sum"))
-
-its2.rel.t0.combined = left_join(seqtab.rel.t0.new, samdf.rel.t0, by = "frag")
-
-its2.rel.t0.combined = its2.rel.t0.combined %>%
-  mutate_at(c(2:11), as.numeric)
-
-# convert factors
-its2.rel.t0.combined$treat = as.factor(its2.rel.t0.combined$treat)
-its2.rel.t0.combined$treat = factor(its2.rel.t0.combined$treat, levels = c("Control", "Low Var","Mod Var","High Var"))
-its2.rel.t0.combined$sitename = as.factor(its2.rel.t0.combined$sitename)
-its2.rel.t0.combined$lineage = as.factor(its2.rel.t0.combined$lineage)
-its2.rel.t0.combined$gen_site = as.factor(its2.rel.t0.combined$gen_site)
-its2.rel.t0.combined$reef = as.factor(its2.rel.t0.combined$reef)
-
-# add in dominant and minor distinctions to use in other plots
-its2.rel.t0.combined.2 = its2.rel.t0.combined %>%
-  mutate(dominant_type = case_when(A4z_sum >= 0.5 ~ "A4z",
-                                   A4_sum >= 0.5 ~ "A4",
-                              B19_sum >= 0.5 ~ "B19",
-                              B5_sum >= 0.5 ~ "B5",
-                              B5a_sum >= 0.5 ~ "B5a",
-                              C1_sum >= 0.5 ~ "C1",
-                              C3_sum >= 0.5 ~ "C3",
-                              C3af_sum >= 0.5 ~ "C3af",
-                              C15_sum >= 0.5 ~ "C15",
-                              D1_sum >= 0.5 ~ "D1")) %>%
-  mutate(minor_type = case_when(B19_sum < 0.5 & B19_sum > 0.0 ~ "B19",
-                                B5_sum < 0.5 & B5_sum > 0.0 ~ "B5",
-                                C1_sum < 0.5 & C1_sum > 0.0 ~ "C1",
-                                C3_sum < 0.5 & C3_sum > 0.0 ~ "C3",
-                                C3af_sum < 0.5 & C3af_sum > 0.0 ~ "C3af",
-                                D1_sum < 0.5 & D1_sum > 0.0 ~ "D1"))
-
-write.csv(its2.rel.t0.combined.2, file = "~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/Physiology_Data/data_files/ITS2.dominanttype.T0.csv", row.names = FALSE)
-
-## Now Prestress
-# change column names to majority its2 sequence
-taxa.ps = read.csv(file = "data_files/symportal_taxa.prestress.csv", header = TRUE) %>%
-  select(-X)
-
-taxa.ps$majority_its2
-colnames(seqtab.rel.ps) = c("A4z","A4","B19","B5","B5a","C1.1","C1.2","C1.3","C1.4","C1.5","C1.6","C1.7","C3.1","C1.8","C3.2","C3af",
-                            "C1.9","C1.10","C1.11","C1.12","C1.13","C1.14","C1.15","C1.16","C15","C1.17","C1.18","C1.19",
-                            "D1.1","D1.2","D1.3","D1.4","D1.5","D1.6","D1.7","D1.8","D1.9" )
-
-# make new data frame and sum columns with the same majority its2 sequence
-seqtab.rel.ps.new = seqtab.rel.ps %>%
-  mutate(A4z_sum = A4z) %>%
-  mutate(A4_sum = A4) %>%
-  mutate(B19_sum = B19) %>%
-  mutate(B5_sum = B5) %>%
-  mutate(B5a_sum = B5a) %>%
-  mutate(C1_sum = rowSums(select(., starts_with("C1.")))) %>%
-  mutate(C3_sum = rowSums(select(., starts_with("C3.")))) %>%
-  mutate(C3af_sum = C3af) %>%
-  mutate(C15_sum = C15) %>%
-  mutate(D1_sum = rowSums(select(., starts_with("D1.")))) %>%
-  rownames_to_column(var = "frag") %>%
-  select(frag, contains("_sum"))
-
-its2.rel.ps.combined = left_join(seqtab.rel.ps.new, samdf.rel.ps, by = "frag")
-
-its2.rel.ps.combined = its2.rel.ps.combined %>%
-  mutate_at(c(2:11), as.numeric)
-
-# convert factors
-its2.rel.ps.combined$treat = as.factor(its2.rel.ps.combined$treat)
-its2.rel.ps.combined$treat = factor(its2.rel.ps.combined$treat, levels = c("Control", "Low Var","Mod Var","High Var"))
-its2.rel.ps.combined$sitename = as.factor(its2.rel.ps.combined$sitename)
-its2.rel.ps.combined$lineage = as.factor(its2.rel.ps.combined$lineage)
-its2.rel.ps.combined$gen_site = as.factor(its2.rel.ps.combined$gen_site)
-its2.rel.ps.combined$reef = as.factor(its2.rel.ps.combined$reef)
-
-# add in dominant and minor distinctions to use in other plots
-its2.rel.ps.combined.2 = its2.rel.ps.combined %>%
-  mutate(dominant_type = case_when(A4z_sum >= 0.5 ~ "A4z",
-                                   A4_sum >= 0.5 ~ "A4",
-                                   B19_sum >= 0.5 ~ "B19",
-                                   B5_sum >= 0.5 ~ "B5",
-                                   B5a_sum >= 0.5 ~ "B5a",
-                                   C1_sum >= 0.5 ~ "C1",
-                                   C3_sum >= 0.5 ~ "C3",
-                                   C3af_sum >= 0.5 ~ "C3af",
-                                   C15_sum >= 0.5 ~ "C15",
-                                   D1_sum >= 0.5 ~ "D1")) %>%
-  mutate(minor_type = case_when(B19_sum < 0.5 & B19_sum > 0.0 ~ "B19",
-                                B5_sum < 0.5 & B5_sum > 0.0 ~ "B5",
-                                C1_sum < 0.5 & C1_sum > 0.0 ~ "C1",
-                                C3_sum < 0.5 & C3_sum > 0.0 ~ "C3",
-                                C3af_sum < 0.5 & C3af_sum > 0.0 ~ "C3af",
-                                D1_sum < 0.5 & D1_sum > 0.0 ~ "D1"))
-
-write.csv(its2.rel.ps.combined.2, file = "~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/Physiology_Data/data_files/ITS2.dominanttype.prestress.csv", row.names = FALSE)
-
-head(its2.rel.t0.combined.2)
-head(its2.rel.ps.combined.2)
-
-its2.rel.combined = rbind(its2.rel.t0.combined.2, its2.rel.ps.combined.2)
-write.csv(its2.rel.combined, file = "~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/Physiology_Data/data_files/ITS2.dominanttype.alltimepoints.csv", row.names = FALSE)
-
-# summarize proportion of individuals with more than 50% C or D
-its2.rel.combined.2 %>%
-  #filter(sitename=="CI") %>%
-  group_by(lineage) %>%
-  dplyr::summarize(n = n(), # total sample size
-            n_gt50D = sum(D1_sum>=0.5), # number of individuals with proportion of D1 > 0.5
-            p_gt50D = n_gt50D/n) # proportion of individuals with D1 > 0.5
-# All sites:
-# lineage     n n_gt50D p_gt50D
-# 1 L1         95      50   0.526
-# 2 L2         61       9   0.148
-
-# CI Only:
-# lineage     n n_gt50D p_gt50D
-# 1 L1         13       1  0.0769
-# 2 L2         14       6  0.429
-
-# Kruskal-Wallis (non-parametric alternative to one-way anova) to see if there is a difference
-# in mean proportion D based on lineage
-its2.rel.combined.CI = its2.rel.combined.2 %>%
-  filter(sitename=="CI")
-
-shapiro.test(its2.rel.combined.2$D1_sum) # not normal
-kruskal.test(D1_sum ~ lineage, data = its2.rel.combined.2)
-#data:  D1_sum by lineage
-#Kruskal-Wallis chi-squared = 29.87, df = 1, p-value = 4.619e-08
-
-kruskal.test(D1_sum ~ lineage, data = its2.rel.combined.CI)
-#data:  propD by lineage
-#Kruskal-Wallis chi-squared = 2.2793, df = 1, p-value = 0.1311
-
-## Stopped here for the revision ##
-
-# Make a plot of the proportion of durusdinium by lineage
-library(Rmisc)
-
-cols_lineage <- c("L1" = "#3f007d", "L2" = "#807dba", "L3" = "#bcbddc")
-
-its2.rel.combined_plot = its2.rel.combined.2 %>%
-  select(frag, treat, sitename, lineage, D1_sum)
-
-d1_means = summarySE(its2.rel.combined_plot, measurevar = "D1_sum", groupvars = c("lineage"))
-
-its2_dom_plot <- ggplot(its2.rel.combined_plot, aes(x = lineage, y = D1_sum))+
-  theme_bw()+
-  geom_jitter(aes(color = lineage, fill = lineage),
-              #width = 0.25,
-              alpha=0.2, pch = 21,
-              color = "black") +
-  geom_errorbar(data = d1_means, aes(x = lineage, ymax = D1_sum+se, ymin = D1_sum-se, color = lineage), width = .2, position = position_dodge(width=0.4)) +
-  geom_point(data = d1_means, mapping = aes(x=lineage, y=D1_sum, color = lineage, fill = lineage), size = 3.5, pch = 21, color = "black", position = position_dodge(width=0.4))+
-  scale_fill_manual(name = "Lineage",
-                    breaks = c("L1","L2"),
-                    values = cols_lineage)+
-  scale_color_manual(name = "Lineage",
-                     breaks = c("L1","L2"),
-                     values = cols_lineage)+
-  xlab("Lineage")+
-  ylab("Proportion Durusdinium (+/- SE)")+
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
-its2_dom_plot
-
-ggsave(its2_dom_plot, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ProportionD1_majorityITS2.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
-
-
-## Now make a new data frame of dominant DIVs not 'majority its2 sequences'
-ps.cleanest.rel = readRDS("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ps.its2.rel.RDS")
-seqtab.rel <- data.frame(ps.cleanest.rel@otu_table)
-samdf.rel <- data.frame(ps.cleanest.rel@sam_data)
-tax.rel <- data.frame(ps.cleanest.rel@tax_table)
-
-# make new data frame and sum columns with the same majority its2 sequence
-seqtab.rel.new = seqtab.rel %>%
-  rownames_to_column(var = "frag")
-
-div.rel.combined = left_join(seqtab.rel.new, samdf.rel, by = "frag")
-
-div.rel.combined = div.rel.combined %>%
-  mutate_at(c(2:21), as.numeric)
-
-# convert factors
-div.rel.combined$treat = as.factor(div.rel.combined$treat)
-div.rel.combined$treat = factor(div.rel.combined$treat, levels = c("Control", "Low Var","Mod Var","High Var"))
-div.rel.combined$sitename = as.factor(div.rel.combined$sitename)
-div.rel.combined$lineage = as.factor(div.rel.combined$lineage)
-div.rel.combined$gen_site = as.factor(div.rel.combined$gen_site)
-div.rel.combined$reef = as.factor(div.rel.combined$reef)
-
-# add in dominant and minor distinctions to use in other plots
-div.rel.combined.2 = div.rel.combined %>%
-  mutate(dominant_div = case_when(B19.B19j >= 0.5 ~ "B19.B19j",
-                                   B5 >= 0.5 ~ "B5",
-                                   C1.C3.C1c.C1b.C72k.C1w >= 0.5 ~ "C1.C3.C1c.C1b.C72k.C1w",
-                                   C1.C1c.C3.C1al.C1b >= 0.5 ~ "C1.C1c.C3.C1al.C1b",
-                                   C1.C3.C1b.C1c.C42.2.C72k >= 0.5 ~ "C1.C3.C1b.C1c.C42.2.C72k",
-                                   C3.C1.C3y.C6a >= 0.5 ~ "C3.C1.C3y.C6a",
-                                   C3af.C3hq >= 0.5 ~ "C3af.C3hq",
-                                   C3.C3y.C6a >= 0.5 ~ "C3.C3y.C6a",
-                                   C1.C1c >= 0.5 ~ "C1.C1c",
-                                   C1.C1c.C1al.C72k >= 0.5 ~ "C1.C1c.C1al.C72k",
-                                   C1.C1c.C1b >= 0.5 ~ "C1.C1c.C1b",
-                                   C1.C1c.C1am.C1ao.C1an.C3cm.C72k >= 0.5 ~ "C1.C1c.C1am.C1ao.C1an.C3cm.C72k",
-                                   C1.C1c.C1al >= 0.5 ~ "C1.C1c.C1al",
-                                   C3.C1 >= 0.5 ~ "C3.C1",
-                                   C15 >= 0.5 ~ "C15",
-                                   D1.D4.D1cl.D1ck.D4c.D1cm.D1c.D2 >= 0.5 ~ "D1.D4.D1cl.D1ck.D4c.D1cm.D1c.D2",
-                                   D1.D4.D4c.D1cl.D1az.D1c.D2 >= 0.5 ~ "D1.D4.D4c.D1cl.D1az.D1c.D2",
-                                   D1.D4.D4c.D1c >= 0.5 ~ "D1.D4.D4c.D1c",
-                                   D1.D4.D4c >= 0.5 ~ "D1.D4.D4c",
-                                   D1.D4.D4c.D2 >= 0.5 ~ "D1.D4.D4c.D2"))
-
-write.csv(div.rel.combined.2, file = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ITS2.dominantDIVs.csv", row.names = FALSE)
-
-
-#### Plasticity and Relative Change in Syms ####
-## NOT USING SINCE ONLY LOOKING AT PRE-STRESS TIMEPOINT
-library(tidyverse)
-library(reshape2)
-library(ggpubr)
-
-# plot plasticity in proportion of Durusdinium symbionts relative to control, facet by lineage
-cols_lineage <- c("L1" = "#3f007d", "L2" = "#807dba", "L3" = "#bcbddc")
-cols_site <- c("CI" = "#543005", "PD"= "#bf812d",  "SP"= "#dfc27d",  "BN" = "#003c30", "BS"= "#35978f", "CA"= "#80cdc1")
-cols_treat <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
-
-control_lowvar = its2.rel.combined %>%
-  dplyr::filter(treat == "Control" | treat == "Low Var")
-
-control_modvar = its2.rel.combined %>%
-  dplyr::filter(treat == "Control" | treat == "Mod Var")
-
-control_highvar = its2.rel.combined %>%
-  dplyr::filter(treat == "Control" | treat == "High Var")
-
-p.ds.lowvar = control_lowvar %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x = treat, y = propD, color = gen_site, group = gen_site))+
-  theme_bw()+
-  geom_point(size = 4, pch = 1)+
-  geom_line(aes(group = gen_site)) +
-  xlab("Treatment")+
-  ylab("Proportion Durusdinium")+
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") +
-  facet_wrap(~lineage)
-p.ds.lowvar
-
-p.ds.modvar = control_modvar %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x = treat, y = propD, color = gen_site, group = gen_site))+
-  theme_bw()+
-  geom_point(size = 4, pch = 1)+
-  geom_line(aes(group = gen_site)) +
-  xlab("Treatment")+
-  ylab("Proportion Durusdinium")+
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") +
-  facet_wrap(~lineage)
-p.ds.modvar
-
-p.ds.highvar = control_highvar %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x = treat, y = propD, color = gen_site, group = gen_site))+
-  theme_bw()+
-  geom_point(size = 4, pch = 1)+
-  geom_line(aes(group = gen_site)) +
-  xlab("Treatment")+
-  ylab("Proportion Durusdinium")+
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") +
-  facet_wrap(~lineage)
-p.ds.highvar
-
-all_ds = ggarrange(p.ds.lowvar, p.ds.modvar,p.ds.highvar,
-                   labels = c("A", "B", "C"),
-                   ncol = 3, nrow = 1)
-ggsave(all_ds, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/PropD_alltreats.pdf", width=9, height=4, units=c("in"), useDingbats=FALSE)
-
-
-# plot average proportion durusdinium by factors of interest
-# violin plot - treatment
-p.ds.lineage = its2.rel.combined %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x = lineage, y = propD, fill = lineage))+
-  geom_violin(trim = FALSE)+
-  geom_point(size = 2, color = "black")+
-  scale_fill_manual(values = cols_lineage)+
-  theme_minimal()+
-  xlab("Treatment")+
-  ylab("Proportion Durusdinium")+
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
-  facet_wrap(~treat)
-p.ds.lineage
-ggsave(p.ds.lineage, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/PropD_violinplot_treat.pdf", width=5, height=5, units=c("in"), useDingbats=FALSE)
-
-# violin plot - site
-p.ds.site = its2.rel.combined %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x = lineage, y = propD, fill = lineage))+
-  geom_violin(trim = FALSE)+
-  geom_point(size = 2, color = "black")+
-  scale_fill_manual(values = cols_lineage)+
-  theme_minimal()+
-  xlab("Treatment")+
-  ylab("Proportion Durusdinium")+
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none") +
-  facet_wrap(~sitename)
-p.ds.site
-ggsave(p.ds.site, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/PropD_violinplot_site.pdf", width=6, height=5, units=c("in"), useDingbats=FALSE)
-
-# read in data file and combine all post-med seqs into one proportion for genera A,B,C,D
-data = read.delim(file = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_PreStress_Timepoint/ITS2.seqtab.rel.csv", sep = ",")%>%
-  mutate(propA = rowSums(select(., contains("_A")))) %>%
-  mutate(propB = rowSums(select(., contains("_B")))) %>%
-  mutate(propC = rowSums(select(., contains("_C")))) %>%
-  mutate(propD = rowSums(select(., contains("_D")))) %>%
-  select(frag, propA, propB, propC, propD)
-
-# read in sample info
-samples = read.delim(file = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_All_Timepoints/ITS2.sample.data.rel.csv", sep = ",") %>%
-  select(-X)
-
-cols = c("frag", "timepoint", "Sample_or_Control", "treat", "gen_site", "sitename", "reef", "lineage")
-
-# join together sample info and data
-data_joined = left_join(samples,
-                        data,
-                        by = "frag") %>%
-  mutate_at(cols, factor)
-
-# add a column that indicates what the sample is dominated by, so we can make more categorical plots
-
-data_joined = data_joined %>%
-  mutate(dominant = case_when(propA >= 0.5 ~ "A",
-                              propB >= 0.5 ~ "B",
-                              propC >= 0.5 ~ "C",
-                              propD >= 0.5 ~ "D")) %>%
-  mutate(minor = case_when(propA < 0.5 & propA > 0.0 ~ "A",
-                           propB < 0.5 & propB > 0.0 ~ "B",
-                           propC < 0.5 & propC > 0.0 ~ "C",
-                           propD < 0.5 & propD > 0.0 ~ "D"))
-str(data_joined)
-data_joined$dominant = as.factor(data_joined$dominant)
-data_joined$minor = as.factor(data_joined$minor)
-data_joined$treat = factor(data_joined$treat,
-                               levels = c("Initial", "Control 1", "Low Var","Mod Var","High Var"))
-
-data_joined_melt = data_joined %>%
-  select(treat, timepoint, gen_site, sitename, lineage, dominant)
-melt = melt(data_joined_melt, id.vars=c("treat","timepoint","gen_site","sitename","lineage"))
-
-cols = c("#D53E4F", "#F46D43", "#FEE08B", "#66C2A5")
-
-melt %>%
-  drop_na(treat) %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x = treat, y = value, fill = value)) +
-  geom_bar(stat = "identity") +
-  scale_fill_manual(values = cols,
-                    breaks = c("A","B","C","D"),
-                    name = "Dominant ITS2 Type") +
-  xlab("Treatment") +
-  ylab("Relative Abundance") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
-  facet_wrap(~lineage, scale = "free")
-
-ggsave(its2_barplot_site, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/T0_Timepoint/its2_t0_CA.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
-
-# plot barplot of dominant type
-dominant.barplot = data_joined %>%
-  filter(treat != "Control 2") %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x=treat, fill = dominant)) +
-  geom_bar(position = "fill") +
-  scale_fill_manual(values = cols,
-                    breaks = c("A","B","C","D"),
-                    name = "Dominant ITS2 Type") +
-  xlab("Treatment") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
-  facet_wrap(~lineage)
-dominant.barplot
-ggsave(dominant.barplot, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_All_Timepoints/dominant_type_prop.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
-
-# plot barplot of dominant type
-minor.barplot = data_joined %>%
-  filter(treat != "Control 2") %>%
-  drop_na(lineage) %>%
-  drop_na(minor) %>%
-  ggplot(aes(x=treat, fill = minor)) +
-  geom_bar(position = "fill") +
-  scale_fill_manual(values = cols,
-                    breaks = c("A","B","C","D"),
-                    name = "Minor ITS2 Type") +
-  xlab("Treatment") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
-  facet_wrap(~lineage)
-minor.barplot
-ggsave(minor.barplot, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_All_Timepoints/minor_type_prop.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
-
-
-
-# Now do a kinda roundabout way to be able to plot individual samples and how they change proportion through the experiment
-Initial = data_joined %>%
-  filter(treat == "Initial") %>%
-  mutate(Initial_D = propD) %>%
-  mutate(Initial_C = propC) %>%
-  select(gen_site, frag, Initial_D, Initial_C)
-
-Control = data_joined %>%
-  filter(treat == "Control 1") %>%
-  mutate(Control_D = propD) %>%
-  mutate(Control_C = propC) %>%
-  select(gen_site, frag, Control_D, Control_C)
-
-High = data_joined %>%
-  filter(treat == "High Var") %>%
-  mutate(High_D = propD) %>%
-  mutate(High_C = propC) %>%
-  select(gen_site, frag, High_D, High_C)
-
-Low = data_joined %>%
-  filter(treat == "Low Var") %>%
-  mutate(Low_D = propD) %>%
-  mutate(Low_C = propC) %>%
-  select(gen_site, frag, Low_D, Low_C)
-
-Mod = data_joined %>%
-  filter(treat == "Mod Var") %>%
-  mutate(Mod_D = propD) %>%
-  mutate(Mod_C = propC) %>%
-  select(gen_site, frag, Mod_D, Mod_C)
-
-Combined = Initial %>%
-  full_join(Control, by = "gen_site") %>%
-  full_join(Low, by = "gen_site") %>%
-  full_join(High, by = "gen_site") %>%
-  full_join(Mod, by = "gen_site") %>%
-#  na.omit() %>%
-  mutate(Control_D_delta = Control_D - Initial_D,
-         Low_D_delta = Low_D - Initial_D,
-         High_D_delta = High_D - Initial_D,
-         Mod_D_delta = Mod_D - Initial_D,
-         Control_C_delta = Control_C - Initial_C,
-         Low_C_delta = Low_C - Initial_C,
-         High_C_delta = High_C - Initial_C,
-         Mod_C_delta = Mod_C - Initial_C) %>%
-  select(gen_site, Control_D_delta, Low_D_delta, High_D_delta, Mod_D_delta,
-         Control_C_delta, Low_C_delta, High_C_delta, Mod_C_delta) %>%
-  melt(id.vars = c("gen_site"))
-
-Combined2 = Combined %>%
-  left_join(samdf_t0, by = "gen_site")
-
-Combined2_Cs = Combined2 %>%
-  filter(str_detect(variable, '_C_'))
-
-Combined2_Ds = Combined2 %>%
-  filter(str_detect(variable, '_D_'))
-
-str(Combined2_Cs)
-Combined2_Cs$variable=as.factor(Combined2_Cs$variable)
-Combined2_Cs$variable = factor(Combined2_Cs$variable,
-                                       levels = c("Control_C_delta", "Low_C_delta", "Mod_C_delta","High_C_delta"))
-
-Combined2_Ds$variable=as.factor(Combined2_Ds$variable)
-Combined2_Ds$variable = factor(Combined2_Ds$variable,
-                                       levels = c("Control_D_delta", "Low_D_delta", "Mod_D_delta","High_D_delta"))
-
-# make some plots
-cols_lineage <- c("L1" = "#fc8d59", "L2" = "#99d594")
-cols_treatment <- c("cornflowerblue","darkolivegreen3","darkgoldenrod1","coral2")
-cols_sites <- c("I-Cristobal" = "red4", "I-Punta Donato"= "indianred3",  "I-STRI Point"= "mistyrose3",  "O-Bastimentos N" = "royalblue4", "O-Bastimentos S"= "cornflowerblue", "O-Cayo de Agua"= "lightblue")
-
-delta.Cs = Combined2_Cs %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x = variable, y = value, color = gen_site, group = gen_site)) +
-  theme_bw() +
-  geom_point(size = 4) +
-  #geom_line(aes(group = gen_site)) +
-  ylab("Change in Cladocopium Proportion") +
-  geom_hline(aes(yintercept = 0), color = "grey", linetype = "dashed", lwd = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") +
-  facet_wrap(~lineage)
-delta.Cs
-
-delta.Cs.box = Combined2_Cs %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x=variable, y=value)) +
-  geom_jitter(shape=16,
-              size = 3,
-              position=position_jitter(0.2),
-              alpha=0.8,
-              aes(color = variable)) +
-  scale_color_manual(values = cols_treatment) + # for jittered points
-  geom_boxplot(outlier.shape = NA,
-               alpha = 0.85,
-               aes(fill = variable))+
-  scale_fill_manual(values = cols_treatment) + # for boxplot
-  ylab("Change in Cladocopium Proportion") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") +
-  facet_wrap(~lineage)
-delta.Cs.box
-
-delta.Ds = Combined2_Ds %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x = variable, y = value, color = gen_site, group = gen_site)) +
-  theme_bw() +
-  geom_point(size = 4) +
-  #geom_line(aes(group = gen_site)) +
-  ylab("Change in Durusdinium Proportion") +
-  geom_hline(aes(yintercept = 0), color = "grey", linetype = "dashed", lwd = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") +
-  facet_wrap(~lineage)
-delta.Ds
-
-delta.Ds.box = Combined2_Ds %>%
-  drop_na(lineage) %>%
-  ggplot(aes(x=variable, y=value)) +
-  geom_jitter(shape=16,
-              size = 3,
-              position=position_jitter(0.2),
-              alpha=0.8,
-              aes(color = variable)) +
-  scale_color_manual(values = cols_treatment) + # for jittered points
-  geom_boxplot(outlier.shape = NA,
-               alpha = 0.85,
-               aes(fill = variable))+
-  scale_fill_manual(values = cols_treatment) + # for boxplot
-  ylab("Change in Durusdinium Proportion") +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), legend.position = "none") +
-  facet_wrap(~lineage)
-delta.Ds.box
-
-all_delta = ggarrange(delta.Cs, delta.Ds,
-                   labels = c("A", "B"),
-                   ncol = 2, nrow = 1)
-ggsave(all_delta, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_All_Timepoints/Delta_CandD_alltreats.pdf", width=12, height=8, units=c("in"), useDingbats=FALSE)
-
-all_delta_box = ggarrange(delta.Cs.box, delta.Ds.box,
-                      labels = c("A", "B"),
-                      ncol = 2, nrow = 1)
-ggsave(all_delta_box, filename = "/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/ITS_All_Timepoints/Delta_CandD_alltreats_box.pdf", width=12, height=8, units=c("in"), useDingbats=FALSE)
