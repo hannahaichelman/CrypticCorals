@@ -1,5 +1,11 @@
+#### Set-Up ####
+library(tidyverse)
+library(Rmisc)
+library(lme4)
+library(ggpubr)
+
 #### Coring Data ####
-cores = read.csv("Physiology_Data/data_files/Growth_allRegions_JPcoringdata.csv")
+cores = read.csv("Coring_Data/data_files/Growth_allRegions_JPcoringdata.csv")
 head(cores)
 
 pan_cores = cores %>%
@@ -134,7 +140,7 @@ samplesize_hist =
 samplesize_hist
 ggsave(samplesize_hist, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_samplesize.pdf", width=10, height=3, units=c("in"), useDingbats=FALSE)
 
-
+#### 1980 - 2014 data ####
 # Average density, calcification, and linear extension by lineage only - recent data only
 sitemeans_linext_all_recent = summarySE(data = pan_cores_recent, measurevar = c("linext"), groupvars = c("lineage"))
 sitemeans_den_all_recent = summarySE(data = pan_cores_recent, measurevar = c("density"), groupvars = c("lineage"))
@@ -225,22 +231,22 @@ ggsave(core.plots_recent, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Cori
 # stats for these recent data
 calc_recent_lm = lm(calc~lineage, data = sitemeans_calc_cores_recent)
 summary(calc_recent_lm)
+#               Estimate Std. Error t value Pr(>|t|)
+#  (Intercept)  0.66753    0.04024  16.587 6.38e-14 ***
+#  lineage2    -0.11685    0.06970  -1.676    0.108
 
 linext_recent_lm = lm(linext~lineage, data = sitemeans_linext_cores_recent)
 summary(linext_recent_lm)
+#            Estimate Std. Error t value Pr(>|t|)
+#(Intercept)  0.51570    0.03256  15.836 1.64e-13 ***
+#lineage2    -0.13432    0.05640  -2.381   0.0263 *
 
 density_recent_lm = lm(density~lineage, data = sitemeans_den_cores_recent)
 summary(density_recent_lm)
+#            Estimate Std. Error t value Pr(>|t|)
+#(Intercept)  1.30024    0.02951  44.065  < 2e-16 ***
+#lineage2     0.16288    0.05111   3.187  0.00426 **
 
-# try stats with random effect of core:
-calc_recent_lmer = lmer(calc~lineage + (1|coreID), data = pan_cores_recent)
-summary(calc_recent_lmer)
-
-linext_recent_lmer = lmer(linext~lineage + (1|coreID), data = pan_cores_recent)
-summary(linext_recent_lmer)
-
-density_recent_lmer = lmer(density~lineage + (1|coreID), data = pan_cores_recent)
-summary(density_recent_lmer)
 
 # Average density, calcification, and linear extension by lineage only - All years
 
@@ -329,13 +335,23 @@ ggsave(core.plots_all, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringD
 # stats for all data
 calc_all_lm = lm(calc~lineage, data = sitemeans_calc_cores)
 summary(calc_all_lm)
+#            Estimate Std. Error t value Pr(>|t|)
+#(Intercept)  0.67913    0.03967  17.121 3.34e-14 ***
+#lineage2    -0.11787    0.06871  -1.716      0.1
 
 linext_all_lm = lm(linext~lineage, data = sitemeans_linext_cores)
 summary(linext_all_lm)
+#              Estimate Std. Error t value Pr(>|t|)
+#(Intercept)  0.52111    0.03206  16.252 9.68e-14 ***
+#lineage2    -0.13181    0.05554  -2.373   0.0268 *
 
 density_all_lm = lm(density~lineage, data = sitemeans_den_cores)
 summary(density_all_lm)
+#            Estimate Std. Error t value Pr(>|t|)
+#(Intercept)  1.30905    0.03038  43.089  < 2e-16 ***
+#lineage2     0.15550    0.05262   2.955  0.00731 **
 
+#### Growth trends - all years ####
 ## Visualizing growth trends across lineages - all years
 
 linext_trends = summarySE(data = pan_cores_allyears, measurevar = c("linext"), groupvars = c("lineage","Year"))
@@ -393,6 +409,8 @@ trends = ggarrange(linext, den, calc,
 trends
 
 ggsave(trends, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_trends_alltime.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+
+#### Growth trends - recent years ####
 
 # now looking at growth trends only recent years (1980-2014)
 linext_recent = summarySE(data = pan_cores_recent, measurevar = c("linext"), groupvars = c("lineage","Year"))
@@ -455,6 +473,7 @@ trends_recent
 ggsave(trends_recent, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_trends_1980_2014.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
 
 
+#### Plots by site ####
 
 # Linear extension by site with jitter points by lineage
 
@@ -621,8 +640,7 @@ ggsave(plots_recent, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringDat
 
 
 
-
-## Correlate coring data with temperature
+#### Correlations with temperature data ####
 # read in temperature data
 panama_temp = read.csv("Coring_Data/data_files/Panama_SST_31Jan24.csv")
 str(panama_temp)
@@ -655,13 +673,13 @@ pan_cores_allyears_trim2 = left_join(pan_cores_allyears_trim, mean_sst, by = "Ye
 pan_cores_allyears_trim3 = left_join(pan_cores_allyears_trim2, summer_mean_sst, by = "Year")
 
 head(pan_cores_allyears_trim3)
-View(pan_cores_allyears_trim3)
+#View(pan_cores_allyears_trim3)
 
 pan_cores_recent_trim2 = left_join(pan_cores_recent_trim, mean_sst, by = "Year")
 pan_cores_recent_trim3 = left_join(pan_cores_recent_trim2, summer_mean_sst, by = "Year")
 
 head(pan_cores_recent_trim3)
-View(pan_cores_recent_trim3)
+#View(pan_cores_recent_trim3)
 
 corrplot_annualmean = ggplot(pan_cores_allyears_trim3, aes(x = AnnualMean, y = calc, color = lineage, group = lineage)) +
   theme_bw() +
@@ -719,13 +737,44 @@ corrplot_summermean_recent = ggplot(pan_cores_recent_trim3, aes(x = SummerMean, 
   ylab("Calcification")
 corrplot_summermean_recent
 
-
 corrplots_temperature = ggarrange(corrplot_annualmean, corrplot_annualmean_recent, corrplot_summermean, corrplot_summermean_recent,
                                   ncol = 2, nrow = 2,
                                   common.legend = TRUE, legend = 'right',
                                   labels = c("A. All Years", "B. 1980-2014", "C. All Years", "D. 1980-2014"))
 ggsave(corrplots_temperature, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/coring_temperature_correlations.pdf", width=8, height=6, units=c("in"), useDingbats=FALSE)
 
+
+calc_summermean_lm = lm(calc ~ SummerMean + lineage, data = pan_cores_recent_trim3)
+summary(calc_summermean_lm)
+#Coefficients:
+#             Estimate Std. Error t value Pr(>|t|)
+#(Intercept)  0.574547   0.862673   0.666    0.506
+#SummerMean   0.003429   0.030293   0.113    0.910
+#lineage2    -0.130618   0.017786  -7.344 5.29e-13 ***
+
+calc_annmean_lm = lm(calc ~ AnnualMean + lineage, data = pan_cores_recent_trim3)
+summary(calc_annmean_lm)
+#Coefficients:
+#          Estimate Std. Error t value Pr(>|t|)
+#(Intercept)  1.18307    0.98318   1.203    0.229
+#AnnualMean  -0.01807    0.03476  -0.520    0.603
+#lineage2    -0.13050    0.01778  -7.338 5.51e-13 ***
+
+calc_summermean_lm_allyrs = lm(calc ~ SummerMean + lineage, data = pan_cores_allyears_trim3)
+summary(calc_summermean_lm_allyrs)
+#Coefficients:
+#            Estimate Std. Error t value Pr(>|t|)
+#(Intercept)  0.06165    0.51837   0.119    0.905
+#SummerMean   0.02123    0.01830   1.160    0.246
+#lineage2    -0.10760    0.01415  -7.605 5.44e-14 ***
+
+calc_annmean_lm_allyrs = lm(calc ~ AnnualMean + lineage, data = pan_cores_allyears_trim3)
+summary(calc_annmean_lm_allyrs)
+#Coefficients:
+#            Estimate Std. Error t value Pr(>|t|)
+#(Intercept)  0.16387    0.59131   0.277    0.782
+#AnnualMean   0.01772    0.02100   0.844    0.399
+#lineage2    -0.10740    0.01416  -7.587 6.21e-14 ***
 
 
 # plot panama temp increase over time
@@ -747,29 +796,18 @@ panama_temp_plot
 ggsave(panama_temp_plot, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/CoringData/temperature_increase.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
 
 
-# write out file to use in fluorish visualization
-pan_cores_allyears_fluorish = pan_cores_allyears_trim3 %>%
-  mutate(sitename = str_split_i(coreID, "_", 3))
-write.csv(pan_cores_allyears_fluorish, file = "/Users/hannahaichelman/Dropbox/BU_Postdoc/Fluorish_Workshop/coring_temp_data.csv", row.names = FALSE)
+summermeanlm = lm(SummerMean ~ Year, data = summer_mean_sst)
+summary(summermeanlm)
+#Coefficients:
+#              Estimate Std. Error t value Pr(>|t|)
+#(Intercept)   67.319    161.197   0.418    0.677
+#SummerMean    66.779      5.728  11.659   <2e-16 ***
 
-head(pan_cores_allyears)
+annmeanlm = lm(AnnualMean ~ Year, data = mean_sst)
+summary(annmeanlm)
+#Coefficients:
+#             Estimate Std. Error t value Pr(>|t|)
+#(Intercept) -272.675    172.003  -1.585    0.115
+#AnnualMean    79.309      6.146  12.903   <2e-16 ***
 
-# try again
-data_allyears_fluorish = pan_cores_allyears %>%
-  select(Year, coreID, calc, site, lineage)
-data_allyears_fluorish2 = summarySE(data_allyears_fluorish, measurevar = "calc", groupvars = c("site","Year"))
-data_allyears_fluorish3 = summarySE(data_allyears_fluorish, measurevar = "calc", groupvars = c("lineage","Year"))
-
-data_allyears_fluorish_site = data_allyears_fluorish2 %>%
-  select(Year, site, calc)
-
-pivoted_data_site = pivot_wider(data_allyears_fluorish_site, names_from = Year, values_from = calc)
-write.csv(pivoted_data_site, file = "/Users/hannahaichelman/Dropbox/BU_Postdoc/Fluorish_Workshop/pivoted_data_fluorish.csv", row.names = FALSE)
-
-data_allyears_fluorish_lineage = data_allyears_fluorish3 %>%
-  select(Year, lineage, calc)
-
-pivoted_data_lineage = pivot_wider(data_allyears_fluorish_lineage, names_from = Year, values_from = calc)
-
-write.csv(pivoted_data_lineage, file = "/Users/hannahaichelman/Dropbox/BU_Postdoc/Fluorish_Workshop/pivoted_data_lineage_fluorish.csv", row.names = FALSE)
 

@@ -665,6 +665,9 @@ pwd
 
 wget popgen.dk/software/download/NGSadmix/ngsadmix32.cpp 
 
+# compile
+g++ ngsadmix32.cpp -O3 -lpthread -lz -o NGSadmix
+
 # all set, downloaded in bin.
 
 # NgsAdmix for K from 2 to 5 : do not run if the dataset contains clones or genotyping replicates!

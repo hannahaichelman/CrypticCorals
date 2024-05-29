@@ -9,6 +9,7 @@ library(scales)
 library(psych)
 library(tidyverse)
 library(ggpubr)
+library(reshape2)
 
 
 #### Apex Temperature Data ####
@@ -674,12 +675,6 @@ all_temp.plot2 = all_temp_extra_final %>%
 all_temp.plot2
 ggsave(all_temp.plot2,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_NewTreats_CombinedWithExtraData.pdf", width=11, height=4, units=c("in"), useDingbats=FALSE)
 
-ggplot(all_temp_extra, aes(x = Day, y = Temp, color = Treatment)) +
-  geom_point(aes(color = Treatment), lwd=0.75)+
-  #scale_color_manual(values = cols_treat_reds)+
-  #geom_hline(aes(yintercept = 28.5), colour="grey", linetype="dashed", lwd=.5) +
-  xlab("Day")
-
 
 # plot a subset of days to zoom in and illustrate what the profiles looked like
 all_temp.plot.subset = all_temp %>%
@@ -736,19 +731,26 @@ describe(Tank4.2_var$Temp) # High Var
 # Find overall mean during heat challenge and recovery periods:
 library(plotrix)
 
-all_stress_2 = all_stress %>%
-  dplyr::filter(DateTime < "2016-11-21 00:00:00" & DateTime > "2016-11-14 00:00:00") %>%# to look at just stress
-  #dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-25 00:00:00") %>%# to look at just recovery
+all_temp_extra_final_stress = all_temp_extra_final %>%
+  dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-10 18:00:00")
+
+all_temp_extra_final_var = all_temp_extra_final %>%
+  dplyr::filter(DateTime < "2016-11-10 18:00:00" & DateTime > "2016-09-22 00:00:00")
+
+all_stress_2 = all_temp_extra_final_stress %>%
+  #dplyr::filter(DateTime < "2016-11-21 00:00:00" & DateTime > "2016-11-14 00:00:00") %>%# to look at just stress
+  dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-25 00:00:00") %>%# to look at just recovery
   summarise_at(vars(Temp), list(mean_temp = mean, sd_temp = sd, se_temp = std.error), na.rm=TRUE)
 all_stress_2
 
 # mean_temp stress
-# mean_temp  sd_temp     se_temp
-# 1  31.80795 0.255111 0.005276025
+#   mean_temp  sd_temp     se_temp
+#  31.81101 0.283578 0.006740405
 
 # mean_temp recovery
 # mean_temp   sd_temp     se_temp
-# 1  29.30185 0.5476362 0.007828169
+#  29.30921 0.5626535 0.008281483
+
 
 #### DTV Function ####
 # use Dan Barshis' function to calculate dtv for these loggers
@@ -865,6 +867,8 @@ summary(aov.max)
 # treat        1  71.47   71.47    3021 <2e-16 ***
 #  Residuals   98   2.32    0.02
 
+t.test(var.dailystats.control$DayMax, var.dailystats.mod$DayMax, paired=FALSE)
+
 eta_squared(aov.max, partial = FALSE)
 # Parameter |   η² |       95% CI
 # -------------------------------
@@ -882,6 +886,8 @@ summary(aov.min)
 #             Df Sum Sq Mean Sq F value Pr(>F)
 # treat        1 14.518  14.518   266.3 <2e-16 ***
 # Residuals   98  5.344   0.055
+
+t.test(var.dailystats.control$DayMin, var.dailystats.mod$DayMin, paired=FALSE)
 
 eta_squared(aov.min, partial = FALSE)
 # Parameter |   η² |       95% CI

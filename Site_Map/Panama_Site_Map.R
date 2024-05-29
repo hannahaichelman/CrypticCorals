@@ -1,9 +1,15 @@
 # Original code written by JP Rippe (jpr6mg@gmail.com)
-# Updated by Hannah Aichelman April 22, 2020
+# Updated by Hannah Aichelman May 6, 2022
 
 # This script creates the zoomed in and inset map for figure 1. These images were then put together using Adobe Illustrator.
 
 #install and load necessary libraries
+if(!requireNamespace("BiocManager"))
+  install.packages("BiocManager")
+BiocManager::install("rgeos")
+
+remotes::install_version("rgeos", version = "0.6-4")
+
 #install.packages("gpclib", type="source")
 library(mapproj)
 library(dplyr)
@@ -18,13 +24,13 @@ library(maptools)
 library(cowplot)
 
 #set working directory
-setwd("/Users/hannahaichelman/Documents/BU/TVE/Site_Map")
+setwd("Site_Map/")
 
 #You will need to download, gunzip, and place the gshhs_f.b.gz file from NOAA in your working directory.
 #The file can be found here: https://www.ngdc.noaa.gov/mgg/shorelines/data/gshhs/oldversions/version1.2/
 #clip gshhs_f.b to the broader area that you want to include in your map. gshhs_f.b is the high definition noaa coastline layer
 if (!rgeosStatus()) gpclibPermit()
-gshhs.f.b <- "gshhs_f.b"
+gshhs.f.b <- "/Users/hannahaichelman/Dropbox/BU/TVE/Site_Map/gshhs_f.b"
 #Crop global map layer to desired extent
 sf1 <- getRgshhsMap(gshhs.f.b, xlim = c(-110, -55), ylim = c(0, 35)) %>%
   fortify()

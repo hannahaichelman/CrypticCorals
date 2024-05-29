@@ -191,7 +191,7 @@ str(phys_metadata) # includes all 3 lineages
 # first try logit regression: https://stats.oarc.ucla.edu/r/dae/logit-regression/
 library(aod)
 
-mylogit = glm(formula = lineage ~ reef, data = phys_metadata_all, family = "binomial")
+mylogit = glm(formula = lineage ~ reef, data = phys_metadata, family = "binomial")
 summary(mylogit)
 
 # now try chi-square test:
@@ -1692,7 +1692,7 @@ ggplot(calc_phys, aes(treat, T2_T0_perc, color = sitename))+
 
 ## Mixed Model
 # interested in the effects of dtv treatment and lineage
-
+#m1 <- lmer(T2_T0_rgr ~ treat+lineage + (1|gen_site), data = calc_phys_2_lin, REML=TRUE)
 m1 <- lmer(T3_T2_rgr ~ treat+lineage + (1|gen_site), data = calc_phys_2_lin, REML=TRUE)
 summary(m1)
 # T2_T0_rgr:
@@ -1735,7 +1735,8 @@ check_model(m1) #check assumptions and model fit
 # Now look at custom contrasts with emmmeans
 
 #specify model (because we are interested in pairwise, have to include the interaction)
-m.emm<- lmer(T3_T2_rgr ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
+m.emm<- lmer(T2_T0_rgr ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
+#m.emm<- lmer(T3_T2_rgr ~ treat*lineage + (1|gen_site), data = calc_phys_2_lin, REML=FALSE)
 
 emms<-emmeans(m.emm, ~lineage|treat) #, adjust="Bonferoni"
 pairs(emms, interaction = "pairwise") %>% rbind(adjust="fdr")
@@ -1758,6 +1759,11 @@ calc_phys_2_lin_nona = calc_phys_2_lin %>%
 
 growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T2_T0_rgr", groupvars=c("treat","lineage"))
 #growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T3_T2_rgr", groupvars=c("treat","lineage"))
+
+# to calculate percent increase in growth by treatment:
+#    treat  N    T2_T0_rgr           sd           se           ci
+#1 Control 39 0.0001938333 0.0002046579 3.277149e-05 6.634242e-05
+#2 Mod Var 43 0.0002890555 0.0002539979 3.873432e-05 7.816902e-05
 
 # plot, treatment x axis colored by lineage data figure
 calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T2_T0_rgr))+
@@ -2705,7 +2711,7 @@ corrsa_plot_lineage_CI <- ggplot(corrsa_means_lineage_CI,aes(x = lineage, y = co
 corrsa_plot_lineage_CI
 ggsave(corrsa_plot_lineage_CI, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Corallite_SA/corrsa_lineage_CIonly.pdf", width=3, height=3, units=c("in"), useDingbats=FALSE)
 
-#### Skeleton Morphometrics and DLI ####
+#### Skeleton Morphometrics ####
 skel_phys = read.csv("Physiology_Data/data_files/T0_morphology.csv")
 
 head(skel_phys)
@@ -2768,7 +2774,7 @@ anova(m1)
 # Residuals  5 0.51914 0.10383
 
 
-# Stats of daily light integral by lineage
+# Stats of daily light integral by lineage - not included in manuscript since we don't have DLI data for each site.
 str(skel_phys_nona_2lin)
 
 m2 <- lm(dli_kd0.38 ~ lineage, data = skel_phys_nona_2lin)
@@ -2786,30 +2792,12 @@ anova(m2)
 
 
 # PLOTS
-# plot differences in daily light integral across lineages and site of origin
-dli_site_avg = summarySE(skel_phys_nona_2lin, measurevar="dli_kd0.38", groupvars=c("lineage","sitename"))
-
-dli_plot_lineage <- ggplot(skel_phys_nona_2lin, aes(x = lineage, y = dli_kd0.38))+
-  theme_bw()+
-  geom_boxplot(aes(group = lineage), fill = c("#3f007d", "#807dba"), alpha = 0.5, outlier.shape=NA) +
-  scale_fill_manual(values = cols_lineage)+
-  geom_jitter(aes(shape = sitename), color = "black", size = 2, width = 0.3)+
-  scale_shape_manual(values = c(15,16,17,22,21,24),
-                     breaks=c("BN", "BS", "CA", "CI", "PD", "SP"),
-                     labels=c("BN", "BS", "CA", "CI", "PD", "SP"),
-                     name = "Site") +
-  ylab(bquote("Daily Light Integral (mol quanta"~m^-2~~day^-1~')')) +
-  xlab("Lineage")
-dli_plot_lineage
-ggsave(dli_plot_lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/SkeletonMorphometry/DLI_lineage.pdf", width=3, height=3, units=c("in"), useDingbats=FALSE)
-
-
- # light enhancement factor plots
+# light enhancement factor plots
 # summarize data for plotting
 lef_means <- summarySE(skel_phys_nona, measurevar="lef", groupvars=c("lineage"))
 lef_means_2lin <- summarySE(skel_phys_nona_2lin, measurevar="lef", groupvars=c("lineage"))
-lef_means_SP <- summarySE(skel_phys3_SP, measurevar="lef", groupvars=c("lineage"))
-lef_means_CI <- summarySE(skel_phys3_CI, measurevar="lef", groupvars=c("lineage"))
+lef_means_SP <- summarySE(skel_phys_SP, measurevar="lef", groupvars=c("lineage"))
+lef_means_CI <- summarySE(skel_phys_CI, measurevar="lef", groupvars=c("lineage"))
 
 # plot, colored by lineage data figure
 lef_plot_lineage <- ggplot(skel_phys_nona_2lin, aes(x = lineage, y = lef))+
@@ -2867,7 +2855,7 @@ lef_plot_lineage_SP <- ggplot(skel_phys_SP,aes(x = lineage, y = lef))+
 lef_plot_lineage_SP
 ggsave(lef_plot_lineage_SP, filename = "/Users/hannahaichelman/Documents/BU/TVE/SkeletonMorphometry/LEF_2_lin_SP.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
 
-## Skeleton morphology PCAs
+#### Skeleton morphology PCAs ####
 
 skel_phys_pca = skel_phys3 %>%
   select(frag,treat,sitename,lineage,area_cor_cm2,den_cor_cm2,diam_cal_cm,dist_cor_cm,s_length_cm,s_thick_cm,t_thick_cm,lef) %>%
@@ -2884,7 +2872,7 @@ skel_phys_pca_log = skel_phys_pca %>%
 str(skel_phys_pca_log)
 #write.csv(skel_phys_pca_log, "Physiology_Data/data_files/skel_phys_full_log.csv",row.names=FALSE)
 
-colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="area_cor_cm2"] <-"cor_area" # corallite density
+colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="area_cor_cm2"] <-"cor_area" # corallite area
 colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="den_cor_cm2"] <-"cor_den" # corallite density
 colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="diam_cal_cm"] <-"cal_diam" # calyx diameter
 colnames(skel_phys_pca_log)[colnames(skel_phys_pca_log)=="dist_cor_cm"] <-"cor_dist" # distance between corallites
@@ -3370,7 +3358,7 @@ pca_end_lineage_CI
 ggsave(pca_end_lineage_CI, filename = "/Users/hannahaichelman/Documents/BU/TVE/PCAs/pca_end_lineage_CIonly.pdf", width=5, height=5, units=c("in"), useDingbats=FALSE)
 
 
-# try faceting by sitename using ggplot
+# try faceting by sitename using ggplot - this was used for data exploration
 t0_df <- prcomp(t0_pca[,5:9], scale. = TRUE)
 end_df <- prcomp(end_pca_2_lin[,9:15], scale. = TRUE)
 
@@ -3408,7 +3396,7 @@ autoplot(end_df, data = end_pca_2_lin,
 
 
 ##### PCA Adonis Tests #####
-#Use an Adonis test to get significance of factors on holobiont physiology
+#Use an Adonis test to get significance of factors on holobiont physiology and skeleton morphology
 library(vegan)
 library(MCMC.OTU)
 library(MicEco)
@@ -3478,9 +3466,9 @@ end_full_adonis_L2 = end_full_adonis %>%
   filter(lineage == "L2")
 
 # Change dataframe here based on the comparison you are interested in
-#nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1)
-nl=startedLog(data=t0_full_adonis,count.columns=7:12, logstart=1)
-#nl=startedLog(data=skel_full_adonis,count.columns=5:12, logstart=1)
+#nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1) # N=46
+#nl=startedLog(data=t0_full_adonis,count.columns=7:12, logstart=1) # N=42
+nl=startedLog(data=skel_full_adonis,count.columns=5:12, logstart=1) # N=42
 
 goods.dist=vegdist(nl, method="bray", na.rm = TRUE)
 goods.pcoa=pcoa(goods.dist)
@@ -3490,8 +3478,8 @@ pcp=prcomp(nl, retx=TRUE, center=TRUE)
 scores=goods.pcoa$vectors
 summary(goods.pcoa)
 #conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
-conditions=t0_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
-#conditions=skel_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
+#conditions=t0_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
+conditions=skel_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
 
 # PERMANOVA
 head(scores)
