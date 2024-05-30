@@ -1,15 +1,15 @@
-setwd('/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/tuftscustompipeline_denovo_nosyms/')
+#setwd('~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/')
 
 # assembling the input table
-dir="/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/tuftscustompipeline_denovo_nosyms/" # path to input files
+dir="2bRAD/data_files/" # path to input files
 inName="mydata.noclone_k3.qopt" # name of the input file to plot, output of ngsAdmix or ADMIXTURE run
 #pops="inds2pops" # 2-column tab-delimited table of individual assignments to populations; must be in the same order as samples in the bam list or vcf file.
 
 #------------
 
 npops=as.numeric(sub(".+(\\d+)\\..+","\\1",inName))
-tbl=read.table("mydata.noclone_k3.qopt")
-i2p=read.table("bam_barcode_names_tuftscustom_noclone.txt", header = TRUE)
+tbl=read.table("2bRAD/data_files/mydata.noclone_k3.qopt")
+i2p=read.table("2bRAD/data_files/bam_barcode_names_tuftscustom_noclone.csv", header = TRUE, sep = ",")
 i2p = i2p[,1:2]
 
 names(i2p)=c("ind","pop")
@@ -26,7 +26,7 @@ cols_lineage_k2 <- c("#3f007d", "#807dba")
 cols_lineage_k3 <- c("#bcbddc", "#807dba", "#3f007d")
 
 #Download below from https://github.com/z0on/2bRAD_denovo/blob/master/plot_admixture_v5_function.R
-source("/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/plot_admixture_v5_function.R")
+source("2bRAD/data_files/plot_admixture_v5_function.R")
 quartz()
 ords=plotAdmixture(data=tbl,npops=npops,grouping.method="distance",vshift=0.1,colors=cols_lineage_k3)
 

@@ -3,8 +3,8 @@ library(dplyr)
 library(tidyverse)
 library(vegan)
 
-setwd("/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/")
-bams=data.frame(read.table("tuftscustompipeline_denovo_nosyms/bams.txt", header=FALSE)) # list of bam files
+#setwd('~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/2bRAD/')
+bams=data.frame(read.table("2bRAD/data_files/bams.txt", header=FALSE)) # list of bam files
 colnames(bams)<- "bam"
 #goods=c(1:length(bams))
 
@@ -18,7 +18,7 @@ colnames(bams)<- "bam"
 #--------------------
 
 # loading individual to population correspondences
-i2p=read.table("bam_barcode_names_tuftscustom.csv",sep=",",header=TRUE) # 2-column tab-delimited table of individual assignments to populations; must be in the same order as samples in the bam list or vcf file.
+i2p=read.table("2bRAD/data_files/bam_barcode_names_tuftscustom.csv",sep=",",header=TRUE) # 2-column tab-delimited table of individual assignments to populations; must be in the same order as samples in the bam list or vcf file.
 row.names(i2p)=i2p[,1]
 #i2p=i2p[goods,]
 site=i2p[,2]
@@ -81,12 +81,12 @@ cols_lineage <- c("#bcbddc","#756bb1")
 # clustering / PCoA based on identity by state (IBS) based on single read resampling
 # (for low and/or uneven coverage)
 # all clones removed
-ma = as.matrix(read.table("tuftscustompipeline_denovo_nosyms/myresult2.noclone.ibsMat"))
+ma = as.matrix(read.table("2bRAD/data_files/myresult2.noclone.ibsMat"))
 colnames(ma)=i2p_noclones$sample_id
 rownames(ma)=i2p_noclones$sample_id
 
 # to make cluster dendrogram with all samples included:
-ma = as.matrix(read.table("tuftscustompipeline_denovo_nosyms/myresult2.ibsMat"))
+ma = as.matrix(read.table("2bRAD/data_files/myresult2.ibsMat"))
 colnames(ma)=i2p$sample_id
 rownames(ma)=i2p$sample_id
 
