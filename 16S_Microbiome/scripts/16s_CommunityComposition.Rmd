@@ -82,7 +82,7 @@ ps.trim.rare.prestress <- subset_samples(ps.trim.rare.prestress,(treat!="Low Var
 ps.trim.rare.prestress <- subset_samples(ps.trim.rare.prestress,(treat!="High Var"))
 ps.trim.rare.prestress <- subset_samples(ps.trim.rare.prestress,lineage!="L3")
 
-# moving forward with rarefied data, doesn't seem to make a difference in the results whether rare OTUs trimmed or not and want to keep same dataset / # of individuals that we have for the diversity analyses
+# moving forward with rarefied data, doesn't seem to make a difference in the results whether rare OTUs trimmed or not 
 
 # make the factors of interest actual factors - T0
 sample_data(ps.rare.t0)$sitename = as.factor(sample_data(ps.rare.t0)$sitename)
@@ -276,7 +276,11 @@ permutest(bet.all.t0, pairwise = TRUE, permutations = 999) # all ns
 plot(bet.all.t0) 
 
 bet.all.t0 <- betadisper(dist.rare.t0,samdf.rare.t0$lineage)
-anova(bet.all.t0) #p=0.851
+anova(bet.all.t0) 
+#           Df   Sum Sq    Mean Sq F value Pr(>F)
+# Groups     1 0.000073 0.00007286  0.0357  0.851
+# Residuals 45 0.091896 0.00204212               
+
 plot(bet.all.t0) 
 
 adonis2(seq.rare.t0 ~ lineage, data=samdf.rare.t0, permutations=999)
@@ -323,12 +327,12 @@ anova(bet.all.ps)
 
 plot(bet.all.ps) 
 
-adonis2(seq.rare.ps ~ treat+lineage+sitename, data=samdf.rare.ps, permutations=999)
+adonis2(seq.rare.ps ~ treat+lineage, data=samdf.rare.ps, permutations=999)
 #          Df SumOfSqs      R2      F Pr(>F)  
-# treat     1   0.6103 0.02043 1.4151  0.034 *
-# lineage   1   0.5445 0.01823 1.2625  0.097 .
-# sitename  5   2.4113 0.08071 1.1182  0.115  
-# Residual 61  26.3079 0.88063                
+# treat     1   0.6103 0.02043 1.4026  0.045 *
+# lineage   1   0.5445 0.01823 1.2512  0.106  
+# Residual 66  28.7192 0.96134                
+# Total    68  29.8740 1.00000                
 
 ```
 

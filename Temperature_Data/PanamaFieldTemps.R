@@ -47,10 +47,8 @@ its2_cols_greens = c("C1" = "#edf8e9", "C3af" = "#238b45","C3" = "#a1d99b","D1" 
 ##### Importing and Formatting Data #####
 
 # set wd
-setwd("/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/Field_Hobo_Loggers/Trimmed HOBO txt files")
+setwd("Temperature_Data/data_files/Field_HOBO_txt_files/")
 
-# what's in the wd
-list.files("/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/Field_Hobo_Loggers/Trimmed HOBO txt files")
 
 # make each HOBO file an xts/zoo object
 # these lines will give you an object where the datetime is the rowname and the temperature value is in a column
@@ -84,7 +82,7 @@ STRI.IR2.arr12 <- xts(zoo(read.table("STRI.IR2.arr12.trmd.txt", header=TRUE, sep
 # i. maximum temperature by month #
 
 # read in the below csv to skip this section of code
-monthly.mmm <- read.csv(file = "/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/Field_Hobo_Loggers/data_sheets/MonthlyTempParams.csv")
+monthly.mmm <- read.csv(file = "MonthlyTempParams.csv")
 ###
 
 # (step 1) use xts/zoo to get monthly max temperatures by site as xts/zoo objects
@@ -205,7 +203,7 @@ aggregate(range ~ logger, data = monthly.mmm, FUN = "mean")
 # i. maximum temperature by week #
 
 # read in this csv to skip running this section of code:
-weekly.mmm <- read.csv(file = "/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/Field_Hobo_Loggers/data_sheets/WeeklyTempParams.csv")
+weekly.mmm <- read.csv(file = "WeeklyTempParams.csv")
 ###
 
 # (step 1) use xts/zoo to get monthly max temperatures by site as xts/zoo objects
@@ -307,7 +305,7 @@ aggregate(range ~ logger, data = weekly.mmm, FUN = "mean")
 #### Compiling All Logged Data in Longform ####
 
 # read in this csv file to skip running this code for all temp data
-master.melt <- read.csv(file = "/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/Field_Hobo_Loggers/data_sheets/AllTempData.csv")
+master.melt <- read.csv(file = "AllTempData.csv")
 
 ###
 
@@ -377,7 +375,7 @@ aggregate(temp ~ logger, data = master.melt, FUN = "mean")
 
 # read in these csv files to skip running this section of code for all data, daytime data only, and nighttime data only, can skip straight to plots
 
-dailys <- read.csv(file = "/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/Field_Hobo_Loggers/data_sheets/SeasonalDailyTempData.csv")
+dailys <- read.csv(file = "SeasonalDailyTempData.csv")
 
 ###
 
@@ -609,7 +607,7 @@ ggsave(boxplots_collection, filename = "/Users/hannahaichelman/Documents/BU/TVE/
 #### Daily Temperature Variation ####
 
 # read in this csv to skip running this section of code
-daily.mmm <- read.csv(file = "/Users/hannahaichelman/Documents/BU/TVE/TemperatureData/Field_Hobo_Loggers/data_sheets/DailyTempRangeData.csv")
+daily.mmm <- read.csv(file = "DailyTempRangeData.csv")
 ###
 
 # it's easier to do use setDT to get "typical day" patterns than xtx/zoo because the unique datetime values in the xts/zoo preclude looking at things by time of day
@@ -719,7 +717,7 @@ weekly.mmm %>%
 # Cayo.OR3.arr3        2.56
 # Drago.OR4            2.27
 
-#### Figure 1 Boxplots ####
+#### Figure S3 Boxplots ####
 daily.mmm$logger = as.factor(daily.mmm$logger)
 
 daily.mmm.plot = daily.mmm %>%

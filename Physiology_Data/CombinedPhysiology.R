@@ -3466,9 +3466,9 @@ end_full_adonis_L2 = end_full_adonis %>%
   filter(lineage == "L2")
 
 # Change dataframe here based on the comparison you are interested in
-#nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1) # N=46
+nl=startedLog(data=end_full_adonis,count.columns=6:12, logstart=1) # N=46
 #nl=startedLog(data=t0_full_adonis,count.columns=7:12, logstart=1) # N=42
-nl=startedLog(data=skel_full_adonis,count.columns=5:12, logstart=1) # N=42
+#nl=startedLog(data=skel_full_adonis,count.columns=5:12, logstart=1) # N=42
 
 goods.dist=vegdist(nl, method="bray", na.rm = TRUE)
 goods.pcoa=pcoa(goods.dist)
@@ -3477,16 +3477,16 @@ goods.pcoa=pcoa(goods.dist)
 pcp=prcomp(nl, retx=TRUE, center=TRUE)
 scores=goods.pcoa$vectors
 summary(goods.pcoa)
-#conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
+conditions=end_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
 #conditions=t0_full_adonis[, c("frag","treat","sitename","lineage","dominant_type")] #make sure to change dataframe here
-conditions=skel_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
+#conditions=skel_full_adonis[, c("frag","treat","sitename","lineage")] #make sure to change dataframe here
 
 # PERMANOVA
 head(scores)
 head(conditions)
 
 t0_model = adonis(scores~lineage, data=conditions, method="euclidean", permutations = 10000)
-end_model = adonis(scores~lineage+dominant_type+treat, data=conditions, method="euclidean", permutations = 10000)
+end_model = adonis(scores~lineage+treat, data=conditions, method="euclidean", permutations = 10000)
 skel_model = adonis(scores~lineage, data=conditions, method="euclidean", permutations = 10000)
 
 t0_output = adonis_OmegaSq(t0_model, partial = TRUE)
@@ -3499,12 +3499,11 @@ t0_output$aov.tab
 end_output = adonis_OmegaSq(end_model, partial = TRUE)
 end_output$aov.tab
 
-#                 Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq  Pr(>F)
-# lineage        1  0.035560 0.035560 12.8648 0.18621   0.205044 0.00020 ***
-# dominant_type  3  0.018944 0.006315  2.2845 0.09920   0.077299 0.07639 .
-# treat          1  0.025900 0.025900  9.3700 0.13562   0.153945 0.00130 **
-# Residuals     40  0.110564 0.002764         0.57897
-# Total         45  0.190968                  1.00000
+#           Df SumsOfSqs  MeanSqs F.Model      R2 parOmegaSq Pr(>F)
+# lineage    1  0.035560 0.035560  12.571 0.18621    0.20099  2e-04 ***
+# treat      1  0.033776 0.033776  11.941 0.17687    0.19214  3e-04 ***
+# Residuals 43  0.121632 0.002829         0.63692
+# Total     45  0.190968                  1.00000
 
 pairwise.adonis(end_full_adonis[,6:12], end_full_adonis$treat)
 #pairs Df SumsOfSqs  F.Model         R2 p.value p.adjusted sig

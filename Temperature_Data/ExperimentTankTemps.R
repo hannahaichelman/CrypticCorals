@@ -602,7 +602,7 @@ all_var.plot = all_var %>%
 all_var.plot
 ggsave(all_var.plot,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_Lines_Combined.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
 
-# plot the whole time course - figure 1C
+# plot the whole time course
 all_temp$Treatment = factor(all_temp$Treatment, levels = c("Mod Var", "Control"))
 
 all_temp.plot = all_temp %>%
@@ -626,13 +626,13 @@ all_temp.plot
 ggsave(all_temp.plot,file="/Users/hannahaichelman/Dropbox/BU/TVE/TemperatureData/TankTemps/Tank_Hobo_Loggers/plots/TankTempHobo_NewTreats_Combined.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
 
 
-# try to add in the extra data
+# add in the extra data from the glass thermometer
 all_temp_forextra = all_temp %>%
   select(Day, Temp, Treatment)
 
 all_temp_extra = melt(list(df1 = all_temp_forextra, df2 = extra_data_combined), id.vars = c("Day","Treatment"))
 str(all_temp_extra)
-View(all_temp_extra)
+#View(all_temp_extra)
 
 all_temp_extra2 = all_temp_extra %>%
   select(Day, value, Treatment) %>%
@@ -738,8 +738,8 @@ all_temp_extra_final_var = all_temp_extra_final %>%
   dplyr::filter(DateTime < "2016-11-10 18:00:00" & DateTime > "2016-09-22 00:00:00")
 
 all_stress_2 = all_temp_extra_final_stress %>%
-  #dplyr::filter(DateTime < "2016-11-21 00:00:00" & DateTime > "2016-11-14 00:00:00") %>%# to look at just stress
-  dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-25 00:00:00") %>%# to look at just recovery
+  dplyr::filter(DateTime < "2016-11-21 00:00:00" & DateTime > "2016-11-14 00:00:00") %>%# to look at just stress
+  #dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-25 00:00:00") %>%# to look at just recovery
   summarise_at(vars(Temp), list(mean_temp = mean, sd_temp = sd, se_temp = std.error), na.rm=TRUE)
 all_stress_2
 
@@ -792,6 +792,7 @@ str(var.dailystats.all)
 
 var.dailystats.all$treat = factor(var.dailystats.all$treat, levels = c("Control 1","Mod Var"))
 
+# look at average temperature stats during the 50 days of variability
 summarySE(data = var.dailystats.all, measurevar = "DayRange", groupvar = "treat")
 # treat  N DayRange        sd         se         ci
 # 1 Control 1 50  0.43098 0.2996750 0.04238044 0.08516668
@@ -833,6 +834,8 @@ eta_squared(aov.dtv, partial = FALSE)
 #   treat     | 0.97 | [0.96, 1.00]
 
 t.test(var.dailystats.control$DayRange, var.dailystats.mod$DayRange, paired=FALSE)
+#data:  var.dailystats.control$DayRange and var.dailystats.mod$DayRange
+#t = -53.129, df = 66.686, p-value < 2.2e-16
 
 par(mfrow=c(2,2))
 plot(aov.dtv)
@@ -843,9 +846,9 @@ TukeyHSD(aov.dtv)
 # daily mean
 aov.mean=aov(DayMean~treat, data=var.dailystats.all)
 summary(aov.mean)
-#               Df Sum Sq Mean Sq F value Pr(>F)
-# treat         3 11.102   3.701   127.6 <2e-16 ***
-# Residuals   196  5.685   0.029
+#            Df Sum Sq Mean Sq F value Pr(>F)
+#treat        1  0.052 0.05197   4.279 0.0412 *
+#Residuals   98  1.190 0.01215
 
 eta_squared(aov.mean, partial = FALSE)
 # Parameter |   η² |       95% CI
@@ -853,6 +856,8 @@ eta_squared(aov.mean, partial = FALSE)
 #   treat     | 0.04 | [0.00, 1.00]
 
 t.test(var.dailystats.control$DayMean, var.dailystats.mod$DayMean, paired=FALSE)
+#data:  var.dailystats.control$DayMean and var.dailystats.mod$DayMean
+#t = 2.0686, df = 83.36, p-value = 0.04169
 
 par(mfrow=c(2,2))
 plot(aov.mean)
@@ -868,6 +873,8 @@ summary(aov.max)
 #  Residuals   98   2.32    0.02
 
 t.test(var.dailystats.control$DayMax, var.dailystats.mod$DayMax, paired=FALSE)
+#data:  var.dailystats.control$DayMax and var.dailystats.mod$DayMax
+#t = -54.961, df = 79.827, p-value < 2.2e-16
 
 eta_squared(aov.max, partial = FALSE)
 # Parameter |   η² |       95% CI
@@ -888,6 +895,8 @@ summary(aov.min)
 # Residuals   98  5.344   0.055
 
 t.test(var.dailystats.control$DayMin, var.dailystats.mod$DayMin, paired=FALSE)
+#data:  var.dailystats.control$DayMin and var.dailystats.mod$DayMin
+#t = 16.317, df = 60.731, p-value < 2.2e-16
 
 eta_squared(aov.min, partial = FALSE)
 # Parameter |   η² |       95% CI
