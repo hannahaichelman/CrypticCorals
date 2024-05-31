@@ -738,8 +738,8 @@ all_temp_extra_final_var = all_temp_extra_final %>%
   dplyr::filter(DateTime < "2016-11-10 18:00:00" & DateTime > "2016-09-22 00:00:00")
 
 all_stress_2 = all_temp_extra_final_stress %>%
-  dplyr::filter(DateTime < "2016-11-21 00:00:00" & DateTime > "2016-11-14 00:00:00") %>%# to look at just stress
-  #dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-25 00:00:00") %>%# to look at just recovery
+  #dplyr::filter(DateTime < "2016-11-21 00:00:00" & DateTime > "2016-11-14 00:00:00") %>%# to look at just stress
+  dplyr::filter(DateTime < "2016-12-11 23:55:00" & DateTime > "2016-11-25 00:00:00") %>%# to look at just recovery
   summarise_at(vars(Temp), list(mean_temp = mean, sd_temp = sd, se_temp = std.error), na.rm=TRUE)
 all_stress_2
 

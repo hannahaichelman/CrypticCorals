@@ -248,6 +248,7 @@ summary(density_recent_lm)
 #lineage2     0.16288    0.05111   3.187  0.00426 **
 
 
+#### All years ####
 # Average density, calcification, and linear extension by lineage only - All years
 
 sitemeans_linext_all = summarySE(data = pan_cores_allyears, measurevar = c("linext"), groupvars = c("lineage"))

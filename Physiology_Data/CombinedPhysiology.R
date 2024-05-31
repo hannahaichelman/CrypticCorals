@@ -585,14 +585,13 @@ anova(model.prot.initial)
 check_model(model.prot.initial)
 
 
-model.prot.final <- lmer(prot_mgcm2 ~ treat+lineage+dominant_type + (1|gen_site), data = post_hprot_phys_2_lin)
+model.prot.final <- lmer(prot_mgcm2 ~ treat+lineage + (1|gen_site), data = post_hprot_phys_2_lin)
 summary(model.prot.final)
 anova(model.prot.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#                 Sum Sq  Mean Sq NumDF  DenDF F value   Pr(>F)
-# treat         0.001871 0.001871     1 24.744  0.2244 0.639851
-# lineage       0.092738 0.092738     1 34.767 11.1244 0.002036 **
-# dominant_type 0.009024 0.003008     3 41.718  0.3608 0.781577
+#           Sum Sq  Mean Sq NumDF  DenDF F value   Pr(>F)
+# treat   0.003558 0.003558     1 21.929  0.3924 0.537489
+# lineage 0.107332 0.107332     1 26.358 11.8368 0.001947 **
 
 check_model(model.prot.final)
 
@@ -839,14 +838,13 @@ anova(model.hcarb.initial)
 check_model(model.hcarb.initial)
 
 
-model.hcarb.final <- lmer(hcarb_mgcm2 ~ lineage+treat+dominant_type + (1|gen_site), data = post_hcarb_phys_2_lin)
+model.hcarb.final <- lmer(hcarb_mgcm2 ~ lineage+treat + (1|gen_site), data = post_hcarb_phys_2_lin)
 summary(model.hcarb.final)
 anova(model.hcarb.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#                Sum Sq Mean Sq NumDF  DenDF F value    Pr(>F)
-# lineage       0.17919 0.17919     1 48.667  9.7312  0.003042 **
-# treat         0.33958 0.33958     1 43.460 18.4420 9.662e-05 ***
-# dominant_type 0.02979 0.00993     3 52.594  0.5394  0.657428
+#          Sum Sq Mean Sq NumDF  DenDF F value    Pr(>F)
+# lineage 0.29784 0.29784     1 45.068  16.462 0.0001947 ***
+# treat   0.37173 0.37173     1 44.136  20.546 4.412e-05 ***
 
 check_model(model.hcarb.final)
 
@@ -1067,14 +1065,13 @@ anova(model.scarb.initial)
 check_model(model.scarb.initial)
 
 
-model.scarb.final <- lmer(scarb_mgcm2 ~ lineage+treat+dominant_type + (1|gen_site), data = post_scarb_phys_2_lin)
+model.scarb.final <- lmer(scarb_mgcm2 ~ lineage+treat + (1|gen_site), data = post_scarb_phys_2_lin)
 summary(model.scarb.final)
 anova(model.scarb.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#                 Sum Sq  Mean Sq NumDF  DenDF F value   Pr(>F)
-# lineage       0.013316 0.013316     1 50.127  3.4142 0.070543 .
-# treat         0.042956 0.042956     1 44.759 11.0133 0.001804 **
-# dominant_type 0.004003 0.001334     3 53.137  0.3421 0.794962
+#           Sum Sq  Mean Sq NumDF  DenDF F value    Pr(>F)
+# lineage 0.012491 0.012491     1 46.485  3.1981 0.0802413 .
+# treat   0.048970 0.048970     1 45.600 12.5380 0.0009318 ***
 
 check_model(model.scarb.final)
 
@@ -1216,14 +1213,13 @@ anova(model.sym.initial)
 check_model(model.sym.initial)
 
 
-model.sym.final <- lmer(sym_cm2 ~ lineage+treat+dominant_type + (1|gen_site), data = post_sym_phys_2_lin)
+model.sym.final <- lmer(sym_cm2 ~ lineage+treat + (1|gen_site), data = post_sym_phys_2_lin)
 summary(model.sym.final)
 anova(model.sym.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#                   Sum Sq    Mean Sq NumDF  DenDF F value   Pr(>F)
-# lineage       2.4936e+12 2.4936e+12     1   45.5  9.3460 0.003734 **
-# treat         1.5494e+12 1.5494e+12     1 4176.2  5.8073 0.016003 *
-# dominant_type 2.7764e+11 9.2546e+10     3   54.2  0.3469 0.791542
+#             Sum Sq    Mean Sq NumDF  DenDF F value   Pr(>F)
+# lineage 3.0830e+12 3.0830e+12     1   40.8 11.7416 0.001408 **
+# treat   1.7649e+12 1.7649e+12     1 4967.4  6.7216 0.009553 **
 
 check_model(model.sym.final)
 
@@ -1406,14 +1402,13 @@ anova(model.chl.initial)
 check_model(model.chl.initial)
 
 
-model.chl.final <- lmer(chlA ~ treat+lineage+dominant_type + (1|gen_site), data = post_chl_phys_2_lin)
+model.chl.final <- lmer(chlA ~ treat+lineage + (1|gen_site), data = post_chl_phys_2_lin)
 summary(model.chl.final)
 anova(model.chl.final)
 # Type III Analysis of Variance Table with Satterthwaite's method
-#               Sum Sq Mean Sq NumDF DenDF F value   Pr(>F)
-# treat          0.041   0.041     1    75  0.0138 0.906781
-# lineage       32.913  32.913     1    75 11.0195 0.001394 **
-# dominant_type  9.250   3.083     3    75  1.0323 0.383255
+#          Sum Sq Mean Sq NumDF DenDF F value   Pr(>F)
+# treat    0.0048  0.0048     1    78  0.0016 0.968064
+# lineage 29.0579 29.0579     1    78  9.7166 0.002557 **
 
 check_model(model.chl.final)
 

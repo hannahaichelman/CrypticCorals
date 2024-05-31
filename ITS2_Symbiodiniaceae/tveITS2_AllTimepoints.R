@@ -396,15 +396,15 @@ saveRDS(ps.norm, "data_files/ps.its2.norm.RDS")
 
 #### PS Object Versions ####
 # T0
-ps.cleanest.t0 = readRDS("data_files/ps.its2.t0.RDS")
+ps.cleanest.t0 = readRDS("ITS2_Symbiodiniaceae/data_files/ps.its2.t0.RDS")
 seqtab.t0 <- data.frame(ps.cleanest.t0@otu_table)
 samdf.t0 <- data.frame(ps.cleanest.t0@sam_data)
 
-ps.cleanest.t0.rel = readRDS("data_files/ps.its2.t0.rel.RDS")
+ps.cleanest.t0.rel = readRDS("ITS2_Symbiodiniaceae/data_files/ps.its2.t0.rel.RDS")
 seqtab.rel.t0 <- data.frame(ps.cleanest.t0.rel@otu_table)
 samdf.rel.t0 <- data.frame(ps.cleanest.t0.rel@sam_data)
 
-taxa.t0 = read.csv(file = "data_files/symportal_taxa.t0.csv", header = TRUE) %>%
+taxa.t0 = read.csv(file = "ITS2_Symbiodiniaceae/data_files/symportal_taxa.t0.csv", header = TRUE) %>%
   select(-X)
 rownames(taxa.t0) <- as.factor(taxa.t0$DIV)
 sum(taxa.t0$majority_its2 == "C1") # 19 div
@@ -414,15 +414,15 @@ sum(taxa.t0$majority_its2 == "D1") # 9 div
 mtaxa.t0 <- as.matrix(taxa.t0)
 
 # Pre-Stress
-ps.cleanest.ps = readRDS("data_files/ps.its2.prestress.RDS")
+ps.cleanest.ps = readRDS("ITS2_Symbiodiniaceae/data_files/ps.its2.prestress.RDS")
 seqtab.ps <- data.frame(ps.cleanest.ps@otu_table)
 samdf.ps <- data.frame(ps.cleanest.ps@sam_data)
 
-ps.cleanest.ps.rel = readRDS("data_files/ps.its2.prestress.rel.RDS")
+ps.cleanest.ps.rel = readRDS("ITS2_Symbiodiniaceae/data_files/ps.its2.prestress.rel.RDS")
 seqtab.rel.ps <- data.frame(ps.cleanest.ps.rel@otu_table)
 samdf.rel.ps <- data.frame(ps.cleanest.ps.rel@sam_data)
 
-taxa.ps = read.csv(file = "data_files/symportal_taxa.prestress.csv", header = TRUE) %>%
+taxa.ps = read.csv(file = "ITS2_Symbiodiniaceae/data_files/symportal_taxa.prestress.csv", header = TRUE) %>%
   select(-X)
 rownames(taxa.ps) <- as.factor(taxa.ps$DIV)
 sum(taxa.ps$majority_its2 == "C1") # 19 div
@@ -583,17 +583,17 @@ ggsave(p.site, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_Al
 
 #### Summary of Dominant ITS2 Majority Types and DIVs ####
 
-ps.cleanest.t0.rel = readRDS("data_files/ps.its2.t0.rel.RDS")
+ps.cleanest.t0.rel = readRDS("ITS2_Symbiodiniaceae/data_files/ps.its2.t0.rel.RDS")
 seqtab.rel.t0 <- data.frame(ps.cleanest.t0.rel@otu_table)
 samdf.rel.t0 <- data.frame(ps.cleanest.t0.rel@sam_data)
 
-ps.cleanest.ps.rel = readRDS("data_files/ps.its2.prestress.rel.RDS")
+ps.cleanest.ps.rel = readRDS("ITS2_Symbiodiniaceae/data_files/ps.its2.prestress.rel.RDS")
 seqtab.rel.ps <- data.frame(ps.cleanest.ps.rel@otu_table)
 samdf.rel.ps <- data.frame(ps.cleanest.ps.rel@sam_data)
 
 ## First T0
 # change column names to majority its2 sequence
-taxa.t0 = read.csv(file = "data_files/symportal_taxa.t0.csv", header = TRUE) %>%
+taxa.t0 = read.csv(file = "ITS2_Symbiodiniaceae/data_files/symportal_taxa.t0.csv", header = TRUE) %>%
   select(-X)
 
 taxa.t0$majority_its2
@@ -652,7 +652,7 @@ write.csv(its2.rel.t0.combined.2, file = "~/Dropbox/BU/TVE/TVE_Github/DielTempVa
 
 ## Now Prestress
 # change column names to majority its2 sequence
-taxa.ps = read.csv(file = "data_files/symportal_taxa.prestress.csv", header = TRUE) %>%
+taxa.ps = read.csv(file = "ITS2_Symbiodiniaceae/data_files/symportal_taxa.prestress.csv", header = TRUE) %>%
   select(-X)
 
 taxa.ps$majority_its2
