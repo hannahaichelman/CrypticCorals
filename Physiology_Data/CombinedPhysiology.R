@@ -2582,56 +2582,6 @@ anova(m1)
 # lineage    1 265.56 265.558  80.386 2.129e-11 ***
 # Residuals 43 142.05   3.304
 
-
-#SummarySE to format data for plotting site name
-corrsa_means_site_all_lin <- summarySE(corrsa_phys_all_lin, measurevar="corallite.avg.poly.mm2", groupvars=c("sitename"))
-corrsa_means_site_2_lin <- summarySE(corrsa_phys_2_lin, measurevar="corallite.avg.poly.mm2", groupvars=c("sitename"))
-
-# plot, treatment x axis colored by site data figure
-corrsa_plot_site <- ggplot(corrsa_means_site_2_lin,aes(x = sitename, y = corallite.avg.poly.mm2, color = sitename, pch = sitename))+
-  theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = sitename, ymax = corallite.avg.poly.mm2+se, ymin = corallite.avg.poly.mm2-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_color_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values = cols_site)+
-  scale_shape_manual(name = "Site",
-                     labels = c("CI","PD","SP","BN","BS","CA"),
-                     values=c(19,19,19,17,17,17))+
-  xlab("Site Name")+
-  ylab(bquote("Corallite Area (mm" ^2~')'))+
-  #ylim(3.75,6) +
-  #geom_vline(xintercept = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
-corrsa_plot_site
-ggsave(corrsa_plot_site, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Corallite_SA/corrsa_site_2_lin.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
-
-# SummarySE for reef zone
-corrsa_means_reef_all_lin <- summarySE(corrsa_phys_all_lin, measurevar="corallite.avg.poly.mm2", groupvars=c("reef"))
-corrsa_means_reef_2_lin <- summarySE(corrsa_phys_2_lin, measurevar="corallite.avg.poly.mm2", groupvars=c("reef"))
-
-# plot, reef zone x axis
-corrsa_plot_reef <- ggplot(corrsa_means_reef_2_lin,aes(x = reef, y = corallite.avg.poly.mm2, color = reef, pch = reef))+
-  theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = reef, ymax = corallite.avg.poly.mm2+se, ymin = corallite.avg.poly.mm2-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_color_manual(name = "Reef Zone",
-                     labels = c("Inshore","Offshore"),
-                     values = c("red4","royalblue4"))+
-  scale_shape_manual(name = "Reef Zone",
-                     labels = c("Inshore","Offshore"),
-                     values=c(19,17))+
-  xlab("Reef Zone")+
-  ylab(bquote("Corallite Area (mm" ^2~')'))+
-  #ylim(3.75,6) +
-  #geom_vline(xintercept = 1.5) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
-  theme(legend.position = "none")
-corrsa_plot_reef
-ggsave(corrsa_plot_reef, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Corallite_SA/corrsa_reef_2_lin.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
-
-
 #SummarySE to format data for plotting with lineage
 corrsa_phys_all_lin_nona = corrsa_phys_all_lin %>%
   drop_na(lineage)
@@ -2705,6 +2655,56 @@ corrsa_plot_lineage_CI <- ggplot(corrsa_means_lineage_CI,aes(x = lineage, y = co
   theme(legend.position = "none")
 corrsa_plot_lineage_CI
 ggsave(corrsa_plot_lineage_CI, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Corallite_SA/corrsa_lineage_CIonly.pdf", width=3, height=3, units=c("in"), useDingbats=FALSE)
+
+#SummarySE to format data for plotting site name
+corrsa_means_site_all_lin <- summarySE(corrsa_phys_all_lin, measurevar="corallite.avg.poly.mm2", groupvars=c("sitename"))
+corrsa_means_site_2_lin <- summarySE(corrsa_phys_2_lin, measurevar="corallite.avg.poly.mm2", groupvars=c("sitename"))
+
+# plot, treatment x axis colored by site data figure
+corrsa_plot_site <- ggplot(corrsa_means_site_2_lin,aes(x = sitename, y = corallite.avg.poly.mm2, color = sitename, pch = sitename))+
+  theme_bw()+
+  geom_point(size = 3, position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = sitename, ymax = corallite.avg.poly.mm2+se, ymin = corallite.avg.poly.mm2-se), width = .2, position = position_dodge(width=0.3)) +
+  scale_color_manual(name = "Site",
+                     labels = c("CI","PD","SP","BN","BS","CA"),
+                     values = cols_site)+
+  scale_shape_manual(name = "Site",
+                     labels = c("CI","PD","SP","BN","BS","CA"),
+                     values=c(19,19,19,17,17,17))+
+  xlab("Site Name")+
+  ylab(bquote("Corallite Area (mm" ^2~')'))+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), legend.position = "none")
+corrsa_plot_site
+ggsave(corrsa_plot_site, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Corallite_SA/corrsa_site_2_lin.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
+
+# SummarySE for reef zone
+corrsa_means_reef_all_lin <- summarySE(corrsa_phys_all_lin, measurevar="corallite.avg.poly.mm2", groupvars=c("reef"))
+corrsa_means_reef_2_lin <- summarySE(corrsa_phys_2_lin, measurevar="corallite.avg.poly.mm2", groupvars=c("reef"))
+
+# plot, reef zone x axis
+corrsa_plot_reef <- ggplot(corrsa_means_reef_2_lin,aes(x = reef, y = corallite.avg.poly.mm2, color = reef, pch = reef))+
+  theme_bw()+
+  geom_point(size = 3, position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = reef, ymax = corallite.avg.poly.mm2+se, ymin = corallite.avg.poly.mm2-se), width = .2, position = position_dodge(width=0.3)) +
+  scale_color_manual(name = "Reef Zone",
+                     labels = c("Inshore","Offshore"),
+                     values = c("red4","royalblue4"))+
+  scale_shape_manual(name = "Reef Zone",
+                     labels = c("Inshore","Offshore"),
+                     values=c(19,17))+
+  xlab("Reef Zone")+
+  ylab(bquote("Corallite Area (mm" ^2~')'))+
+  #ylim(3.75,6) +
+  #geom_vline(xintercept = 1.5) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
+  theme(legend.position = "none")
+corrsa_plot_reef
+ggsave(corrsa_plot_reef, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Corallite_SA/corrsa_reef_2_lin.pdf", width=4, height=4, units=c("in"), useDingbats=FALSE)
+
+
 
 #### Skeleton Morphometrics ####
 skel_phys = read.csv("Physiology_Data/data_files/T0_morphology.csv")
