@@ -1652,8 +1652,8 @@ str(calc_phys)
 
 # un-comment the drop_na() corresponding to the time point of data you want to look at.
 calc_phys2 = calc_phys %>%
-  drop_na(T2_T0_rgr) %>%
-  #drop_na(T3_T2_rgr) %>%
+  #drop_na(T2_T0_rgr) %>%
+  drop_na(T3_T2_rgr) %>%
   dplyr::filter(treat!="Control 2") %>%
   dplyr::filter(treat!="Low Var") %>%
   dplyr::filter(treat!="High Var") %>%
@@ -1759,6 +1759,18 @@ growth_means_2_lin <- summarySE(calc_phys_2_lin_nona, measurevar="T2_T0_rgr", gr
 #    treat  N    T2_T0_rgr           sd           se           ci
 #1 Control 39 0.0001938333 0.0002046579 3.277149e-05 6.634242e-05
 #2 Mod Var 43 0.0002890555 0.0002539979 3.873432e-05 7.816902e-05
+
+# lineage  N    T2_T0_rgr           sd           se           ci
+# 1      L1 49 0.0002862905 0.0002483428 3.547754e-05 7.133237e-05
+# 2      L2 33 0.0001806258 0.0002020336 3.516953e-05 7.163800e-05
+
+# treat  N    T3_T2_rgr           sd           se           ci
+# 1 Control 37 0.0005853828 0.0003648244 5.997677e-05 0.0001216385
+# 2 Mod Var 42 0.0006407149 0.0004373524 6.748494e-05 0.0001362886
+
+# lineage  N    T3_T2_rgr           sd           se           ci
+# 1      L1 49 0.0007427781 0.0003885958 5.551369e-05 0.0001116178
+# 2      L2 30 0.0004057687 0.0003389837 6.188967e-05 0.0001265786
 
 # plot, treatment x axis colored by lineage data figure
 calc_plot_lineage <- ggplot(calc_phys_2_lin_nona,aes(x = treat, y = T2_T0_rgr))+
@@ -2181,6 +2193,75 @@ r2(m.full) #get r2 and adjusted r2
 check_model(m.full) #check assumptions and model fit
 
 # Now plot Fv/Fm data
+#SummarySE to format data for plotting - lineage
+phys_pam_all_lin_plots_nona = phys_pam_all_lin_plots %>%
+  drop_na(lineage)
+
+phys_pam_2_lin_plots_nona = phys_pam_2_lin_plots %>%
+  drop_na(lineage)
+
+pam_means_all_lin <- summarySE(phys_pam_all_lin_plots_nona, measurevar="pam", groupvars=c("lineage","time"))
+pam_means_all_lin$time <- as.numeric(as.character(pam_means_all_lin$time))
+pam_means_2_lin <- summarySE(phys_pam_2_lin_plots_nona, measurevar="pam", groupvars=c("lineage","time"))
+pam_means_2_lin$time <- as.numeric(as.character(pam_means_2_lin$time))
+
+# lineage   N       pam         sd          se          ci
+# 1      L1 224 0.5492359 0.05034007 0.003363488 0.006628287
+# 2      L2 147 0.5061236 0.07849098 0.006473827 0.012794519
+
+# plot, treatment x axis colored by site data figure
+pam_plot_lineage <- ggplot(pam_means_2_lin,aes(x = time, y = pam, color = lineage, fill = lineage))+
+  theme_bw()+
+  annotate("rect", xmin = 51, xmax = 64, ymin = - Inf, ymax = Inf, fill = "red4", alpha = 0.15)+
+  annotate("rect", xmin = 64, xmax = Inf, ymin = - Inf, ymax = Inf, fill = "royalblue4", alpha = 0.15)+
+  geom_errorbar(aes(x = time, ymax = pam+se, ymin = pam-se), width = .2, color = "black", position = position_dodge(width=0.3)) +
+  geom_line(aes(group = lineage), size = 1, linetype="dashed", position = position_dodge(width=0.3))+
+  geom_point(size = 3.5, color = "black", pch = 21, position = position_dodge(width=0.3))+
+  #geom_smooth(aes(group=sitename), position = position_dodge(width=0.3), size = 0.5, method='lm', se = FALSE)+
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("L1","L2"),
+                    #breaks = c("L1","L2","L3"),
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("L1","L2"),
+                     #breaks = c("L1","L2","L3"),
+                     values = cols_lineage)+
+  ylab("Fv/Fm")+
+  scale_x_continuous(name = "Time Point", breaks = c(45,54,61,65,70,74,79)) +
+  #ylim(-0.5,4) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+pam_plot_lineage
+
+ggsave(pam_plot_lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PAM/pam_lineage_2.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+
+# plot just CI corals to see if lineage difference holds
+phys_pam_lineage_plots_CI = phys_pam_2_lin_plots_nona %>%
+  subset(sitename == "CI")
+
+pam_lineagemeans_CI = summarySE(phys_pam_lineage_plots_CI, measurevar="pam", groupvars=c("lineage","time"))
+pam_lineagemeans_CI$time = as.numeric(as.character(pam_lineagemeans_CI$time))
+
+# plot, time x axis, shape = symbiont type, color = lineage
+pam_plot_lineage_CI <- ggplot(pam_lineagemeans_CI,aes(x = time, y = pam, color = lineage, fill = lineage))+
+  theme_bw()+
+  annotate("rect", xmin = 51, xmax = 64, ymin = - Inf, ymax = Inf, fill = "red4", alpha = 0.15)+
+  annotate("rect", xmin = 64, xmax = Inf, ymin = - Inf, ymax = Inf, fill = "royalblue4", alpha = 0.15)+
+  geom_point(size = 3, color = "black", pch = 21, position = position_dodge(width=0.3))+
+  geom_line(aes(color = lineage), size = 0.5, linetype="dashed", position = position_dodge(width=0.3))+
+  geom_errorbar(aes(x = time, ymax = pam+se, ymin = pam-se), width = .2, position = position_dodge(width=0.3)) +
+  scale_fill_manual(name = "Lineage",
+                    breaks = c("L1","L2"),
+                    values = cols_lineage)+
+  scale_color_manual(name = "Lineage",
+                     breaks = c("L1","L2"),
+                     values = cols_lineage)+
+  ylab("Fv/Fm")+
+  scale_x_continuous(name = "Time Point", breaks = c(45,54,61,65,70,74,79)) +
+  #ylim(-0.5,4) +
+  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
+pam_plot_lineage_CI
+
+ggsave(pam_plot_lineage_CI, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PAM/pam_lineage_CIonly.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
 
 #SummarySE to format data for plotting - dtv treatment
 pam_means_treat_all_lin <- summarySE(phys_pam_all_lin_plots, measurevar="pam", groupvars=c("treat","time"))
@@ -2237,73 +2318,6 @@ pam_plot_treatment_lin <- ggplot(pam_means_treat_2_lin,aes(x = time, y = pam, co
 pam_plot_treatment_lin
 
 ggsave(pam_plot_treatment_lin, file="/Users/hannahaichelman/Dropbox/BU/TVE/PAM/PAM_treat_lin_facet.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
-
-
-#SummarySE to format data for plotting - lineage
-phys_pam_all_lin_plots_nona = phys_pam_all_lin_plots %>%
-  drop_na(lineage)
-
-phys_pam_2_lin_plots_nona = phys_pam_2_lin_plots %>%
-  drop_na(lineage)
-
-pam_means_all_lin <- summarySE(phys_pam_all_lin_plots_nona, measurevar="pam", groupvars=c("lineage","time"))
-pam_means_all_lin$time <- as.numeric(as.character(pam_means_all_lin$time))
-pam_means_2_lin <- summarySE(phys_pam_2_lin_plots_nona, measurevar="pam", groupvars=c("lineage","time"))
-pam_means_2_lin$time <- as.numeric(as.character(pam_means_2_lin$time))
-
-# plot, treatment x axis colored by site data figure
-pam_plot_lineage <- ggplot(pam_means_2_lin,aes(x = time, y = pam, color = lineage, fill = lineage))+
-  theme_bw()+
-  annotate("rect", xmin = 51, xmax = 64, ymin = - Inf, ymax = Inf, fill = "red4", alpha = 0.15)+
-  annotate("rect", xmin = 64, xmax = Inf, ymin = - Inf, ymax = Inf, fill = "royalblue4", alpha = 0.15)+
-  geom_errorbar(aes(x = time, ymax = pam+se, ymin = pam-se), width = .2, color = "black", position = position_dodge(width=0.3)) +
-  geom_line(aes(group = lineage), size = 1, linetype="dashed", position = position_dodge(width=0.3))+
-  geom_point(size = 3.5, color = "black", pch = 21, position = position_dodge(width=0.3))+
-  #geom_smooth(aes(group=sitename), position = position_dodge(width=0.3), size = 0.5, method='lm', se = FALSE)+
-  scale_fill_manual(name = "Lineage",
-                    breaks = c("L1","L2"),
-                    #breaks = c("L1","L2","L3"),
-                    values = cols_lineage)+
-  scale_color_manual(name = "Lineage",
-                     breaks = c("L1","L2"),
-                     #breaks = c("L1","L2","L3"),
-                     values = cols_lineage)+
-  ylab("Fv/Fm")+
-  scale_x_continuous(name = "Time Point", breaks = c(45,54,61,65,70,74,79)) +
-  #ylim(-0.5,4) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
-pam_plot_lineage
-
-ggsave(pam_plot_lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PAM/pam_lineage_2.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
-
-# plot just CI corals to see if lineage difference holds
-phys_pam_lineage_plots_CI = phys_pam_2_lin_plots_nona %>%
-  subset(sitename == "CI")
-
-pam_lineagemeans_CI = summarySE(phys_pam_lineage_plots_CI, measurevar="pam", groupvars=c("lineage","time"))
-pam_lineagemeans_CI$time = as.numeric(as.character(pam_lineagemeans_CI$time))
-
-# plot, time x axis, shape = symbiont type, color = lineage
-pam_plot_lineage_CI <- ggplot(pam_lineagemeans_CI,aes(x = time, y = pam, color = lineage, fill = lineage))+
-  theme_bw()+
-  annotate("rect", xmin = 51, xmax = 64, ymin = - Inf, ymax = Inf, fill = "red4", alpha = 0.15)+
-  annotate("rect", xmin = 64, xmax = Inf, ymin = - Inf, ymax = Inf, fill = "royalblue4", alpha = 0.15)+
-  geom_point(size = 3, color = "black", pch = 21, position = position_dodge(width=0.3))+
-  geom_line(aes(color = lineage), size = 0.5, linetype="dashed", position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = time, ymax = pam+se, ymin = pam-se), width = .2, position = position_dodge(width=0.3)) +
-  scale_fill_manual(name = "Lineage",
-                    breaks = c("L1","L2"),
-                    values = cols_lineage)+
-  scale_color_manual(name = "Lineage",
-                     breaks = c("L1","L2"),
-                     values = cols_lineage)+
-  ylab("Fv/Fm")+
-  scale_x_continuous(name = "Time Point", breaks = c(45,54,61,65,70,74,79)) +
-  #ylim(-0.5,4) +
-  theme(panel.border = element_rect(colour = "black", fill = NA, size = 1))
-pam_plot_lineage_CI
-
-ggsave(pam_plot_lineage_CI, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/PAM/pam_lineage_CIonly.pdf", width=6, height=4, units=c("in"), useDingbats=FALSE)
 
 
 #SummarySE to format data for plotting - dominant symtype

@@ -247,6 +247,10 @@ summary(density_recent_lm)
 #(Intercept)  1.30024    0.02951  44.065  < 2e-16 ***
 #lineage2     0.16288    0.05111   3.187  0.00426 **
 
+m.emm<- lm(density ~ lineage*site, data = sitemeans_den_cores_recent)
+
+emms<-emmeans(m.emm, ~lineage*site) #, adjust="Bonferoni"
+pairs(emms, simple = "site") %>% rbind(adjust="fdr")
 
 #### All years ####
 # Average density, calcification, and linear extension by lineage only - All years
