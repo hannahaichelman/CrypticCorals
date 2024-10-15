@@ -1,6 +1,6 @@
 ##### METADATA #####
 ##  IN SITU TEMPERATURE DATA ##
-#   project             PANAMA TVE
+#   project             Panama Cryptic Species
 #   author              Hannah Aichelman (hannahaichelman@gmail.com)
 
 #   function:

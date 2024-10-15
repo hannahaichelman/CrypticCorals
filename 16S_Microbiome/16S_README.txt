@@ -1,7 +1,7 @@
 There are three scripts used for analyzing 16S microbiome data associated with this publication that are located in the 'scripts' folder.
 They should be run in the following order:
 
-1. tve16s_AllTimepoints.R includes sequence processing and calling OTUs using the DADA2 pipeline. The raw sequence files can be found on NCBI SRA: X
+1. tve16s_AllTimepoints.R includes sequence processing and calling OTUs using the DADA2 pipeline.
 
 2. 16S_DiversityAnalyses.Rmd takes the outputs from the tve16s_AllTimepoints.R script and calculates microbiome diversity metrics.
 

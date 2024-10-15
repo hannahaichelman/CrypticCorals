@@ -1,3 +1,4 @@
+#### Set Up ####
 library(plyr)
 library(dplyr)
 library(tidyverse)
@@ -15,7 +16,7 @@ colnames(bams)<- "bam"
 # # removing "b" replicates
 # goods=which(!(bams %in% repsb))
 
-#--------------------
+#### Metadata ####
 
 # loading individual to population correspondences
 i2p=read.table("2bRAD/data_files/bam_barcode_names_tuftscustom.csv",sep=",",header=TRUE) # 2-column tab-delimited table of individual assignments to populations; must be in the same order as samples in the bam list or vcf file.
@@ -77,7 +78,7 @@ cols_lineage <- c("#bcbddc","#756bb1")
 # i2p_sym = join(i2p, sym, by="sample_id")
 # i2p_sym$id_symtype = paste(i2p_sym$sample_id, "_", i2p_sym$Dominant_Type)
 
-#-------------
+#### PCoA based on IBS ####
 # clustering / PCoA based on identity by state (IBS) based on single read resampling
 # (for low and/or uneven coverage)
 # all clones removed
@@ -180,6 +181,147 @@ MDS3_4
 
 ggsave(MDS3_4, filename = "/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/tuftscustompipeline_denovo_nosyms/MDS3_4_sitename.pdf", width=5, height=5, units=c("in"), useDingbats=FALSE)
 
+
+#### Analyze relatedness ####
+# read in relatedness matrix - this is the dataset with 50 individuals, no clones or technical replicates included.
+rel=read.table("2bRAD/data_files/ngsrelate.noclone.res", header = TRUE)
+head(rel)
+# i2p file associated with these data (in same order as bams list so matches output of ngsrelate):
+dim(i2p_noclones)
+
+i2p_noclones_relatedness = i2p_noclones %>%
+  mutate(merge_id = as.factor(seq(0,49,by=1)))
+
+ggplot(rel, aes(x = a, y = rab)) +
+  geom_point()
+
+# read in relatedness matrix - this is the dataset with 51 individuals, no technical replicates included but one true clone pair left in.
+rel.allsamps=read.table("2bRAD/data_files/ngsrelate.noclone.allsamps.res", header = TRUE)
+str(rel.allsamps)
+rel.allsamps$a = as.factor(rel.allsamps$a)
+rel.allsamps$b = as.factor(rel.allsamps$b)
+
+# i2p file associated with these data:
+dim(i2p_noclones_allsamps)
+
+# add column to allow us to merge with relatedness file
+i2p_noclones_allsamps_relatedness = i2p_noclones_allsamps %>%
+  mutate(merge_id = as.factor(seq(0,50,by=1)))
+
+# merge metadata and relatedness file
+rel_i2p_merged = left_join(rel.allsamps, i2p_noclones_allsamps_relatedness, by = c("a" = "merge_id"))
+head(rel_i2p_merged)
+
+# plot
+ggplot(rel_i2p_merged, aes(x = sample_id, y = rab)) +
+  geom_point() +
+  labs(title = "Pairwise Relatedness")
+
+# this way of plotting is a little muddy, will clean things up with a heatmap.
+# subset data to only include sample names and the rab metric that we care about
+rel_i2p_filt = rel_i2p_merged %>%
+  select(a, b, rab, sample_id) %>%
+  rename(sample_id_a = sample_id) %>%
+  mutate(sample_id_a = as.factor(sample_id_a))
+
+# merge with metadata again to get the sample_id_b
+rel_i2p_filt2 = left_join(rel_i2p_filt, i2p_noclones_allsamps_relatedness, by = c("b" = "merge_id"))
+head(rel_i2p_filt2)
+
+# now final dataframe with sample_id_a and sample_id_b and relatedness
+rel_i2p_filt_final = rel_i2p_filt2 %>%
+  select(sample_id_a, sample_id, rab) %>%
+  rename(sample_id_b = sample_id) %>%
+  mutate(sample_id_b = as.factor(sample_id_b))
+
+str(rel_i2p_filt_final)
+
+# cut "_CLONE" off sample ID's to make reading and merging easier later on
+rel_i2p_filt_final$sample_id_a = gsub("_CLONE", "", rel_i2p_filt_final$sample_id_a)
+rel_i2p_filt_final$sample_id_b = gsub("_CLONE", "", rel_i2p_filt_final$sample_id_b)
+
+# plot, again not the best way but just to peek.
+rel.plot = ggplot(rel_i2p_filt_final, aes(x = sample_id_a, y = rab, text = sample_id_b)) +
+  geom_point() +
+  labs(title = "Pairwise Relatedness")
+ggplotly(rel.plot)
+
+# order this dataframe so that sample_id_a column is alphabetical
+rel_i2p_filt_final2 = rel_i2p_filt_final[order(rel_i2p_filt_final$sample_id_a),]
+
+# this looks good so far, but want to organize based on lineage so read that in
+lineages = read.csv("Physiology_Data/data_files/tve_lineages_noclones.csv")
+head(lineages)
+
+# merge lineages with relatedness data
+rel_i2p_filt_final_lineage = left_join(rel_i2p_filt_final, lineages, by = c("sample_id_a" = "gen_site")) %>%
+  rename(lineage_a = lineage)
+head(rel_i2p_filt_final_lineage)
+
+# merge again to get lineage associated with sample_id_b
+rel_i2p_filt_final_lineage2 = left_join(rel_i2p_filt_final_lineage, lineages, by = c("sample_id_b" = "gen_site")) %>%
+  rename(lineage_b = lineage) %>%
+  # remove any lineage na's
+  filter(!is.na(lineage_a)) %>%
+  filter(!is.na(lineage_b))
+
+head(rel_i2p_filt_final_lineage2)
+
+# create a new column that combines lineage_a and lineage_b with an '_'
+rel_i2p_filt_final_lineage2$lineage_comparison = paste(rel_i2p_filt_final_lineage2$lineage_a, rel_i2p_filt_final_lineage2$lineage_b, sep = "_")
+rel_i2p_filt_final_lineage2$lineage_comparison = as.factor(rel_i2p_filt_final_lineage2$lineage_comparison)
+levels(rel_i2p_filt_final_lineage2$lineage_comparison)
+
+# re-order lineage_comparison factor
+rel_i2p_filt_final_lineage2$lineage_comparison = factor(rel_i2p_filt_final_lineage2$lineage_comparison, levels = c("L1_L1", "L1_L2", "L1_L3", "L2_L2", "L2_L1", "L2_L3", "L3_L3", "L3_L1", "L3_L2"))
+
+# summarize relatedness by lineage comparison
+rel_lin_summary = rel_i2p_filt_final_lineage2 %>%
+  group_by(lineage_comparison) %>%
+  summarize(mean_rab = mean(rab, na.rm = TRUE),
+            sd_rab = sd(rab, na.rm = TRUE),
+            n = n())
+
+# make boxplot of relatedness by lineage comparison
+comparison_of_interest = c("L1_L1", "L2_L2", "L3_L3")
+# made sure I4G clone is not included in this plot - it isn't!
+
+rel.boxplot = rel_i2p_filt_final_lineage2 %>%
+  # select only certain lineage comparisons for plotting - uncomment this to look at all comparisons
+  filter(lineage_comparison %in% comparison_of_interest) %>%
+  ggplot(aes(x = lineage_comparison, y = rab,fill = lineage_comparison)) +
+  geom_boxplot() +
+  #scale_color_manual(values = c("#3f007d", "#807dba", "#bcbddc")) +
+  scale_fill_manual(values = c("#3f007d", "#807dba", "#bcbddc")) +
+  labs(y = "Pairwise Relatedness (rab)") +
+  theme_bw()
+rel.boxplot
+ggsave(rel.boxplot, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/2bRAD/Analysis/tuftscustompipeline_denovo_nosyms/relatedness_lin.pdf", width=5, height=4, units=c("in"), useDingbats=FALSE)
+
+# create a matrix for the heatmap
+rel.mat = pivot_wider(data = rel_i2p_filt_final, names_from = sample_id_a, values_from = rab) %>%
+  column_to_rownames(var = "sample_id_b")
+
+rel.mat.num = as.matrix(rel.mat)
+str(rel.mat.num)
+corrplot(rel.mat.num,
+         type="lower", # show only lower diagonal of corellogram
+         tl.col="black",  # text color of data label
+         #order = 'alphabet',
+         tl.srt=45)
+
+# summarize pairwise relatedness by lineage
+rel_lin_summary = rel_i2p_filt_final_lineage %>%
+  group_by(lineage) %>%
+  summarize(mean_rab = mean(rab, na.rm = TRUE),
+            sd_rab = sd(rab, na.rm = TRUE),
+            n = n())
+
+
+rel.plot = ggplot(rel_i2p_filt_final_lineage, aes(x = sample_id_a, y = rab, text = sample_id_b, color = lineage)) +
+  geom_point() +
+  labs(title = "Pairwise Relatedness by Lineage")
+rel.plot
 
 #--------------------
 # covariance / PCA (not really needed, Misha prefers IBS)

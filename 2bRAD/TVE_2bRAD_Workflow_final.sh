@@ -5,7 +5,7 @@
 
 #Download scripts from https://github.com/z0on/2bRAD_denovo
 [haich@scc1 TVE_2bRAD]$ pwd
-/projectnb/davies-hb/hannah/TVE_2bRAD
+/projectnb/davies-hb/hannah/TVE_Panama/TVE_2bRAD
 
 git clone https://github.com/z0on/2bRAD_denovo.git
 
@@ -1091,3 +1091,77 @@ realSFS fst stats p23_outliers.fst.idx
 # Used admixturePlotting_v5.R to plot results of NgsAdmix (file = mydata.noclone_k3.qopt)
 
 
+#------------------------------NGSRelate
+# Running NGSRelate during revision to check on relatedness of L3 individuals:
+# Additional workflow details here: https://github.com/ANGSD/NgsRelate
+# Download and Install
+pwd
+/projectnb/davies-hb/hannah/TVE_Panama/TVE_2bRAD/bin
+
+git clone --recursive https://github.com/SAMtools/htslib
+git clone https://github.com/ANGSD/ngsRelate
+cd htslib/;make -j2;cd ../ngsRelate;make HTSSRC=../htslib/
+
+
+pwd
+/projectnb/davies-hb/hannah/TVE_Panama/TVE_2bRAD/tufts_custom_pipeline_files/denovo_nosym
+
+# bams list with samples excluding technical replicates and clones:
+bams_noclones
+# vcf file with samples excluding technical replicates and clones:
+myresult2.noclone.vcf
+
+# need to index vcf file first:
+module load samtools
+
+bgzip -c myresult2.noclone.vcf > myresult2.noclone.vcf.gz
+tabix -p vcf myresult2.noclone.vcf.gz
+
+cat run_ngsrelate.qsub
+#!/bin/bash -l
+#$ -P davies-hb
+#$ -N ngsrelate # job name, anything you want
+#$ -m bea
+#$ -V # inherit the submission environment
+#$ -cwd # start job in submission directory
+#$ -M hannahaichelman@gmail.com
+#$ -j y # Join standard output and error to a single file
+#$ -o ngsrelate.qlog
+#$ -l h_rt=48:00:00
+#$ -pe omp 8
+
+/projectnb/davies-hb/hannah/TVE_Panama/TVE_2bRAD/bin/ngsRelate/ngsRelate -h /projectnb/davies-hb/hannah/TVE_Panama/TVE_2bRAD/tufts_custom_pipeline_files/denovo_nosym/myresult2.noclone.vcf.gz.tbi -O ngsrelate_vcf.res
+
+
+# This version with the vcf file didn't work even after tabix'ing the vcf file...
+# So trying the method by running with NGS data
+
+
+### re-run angsd to get .glf.gz file
+# doing this on two datasets - one with technical replicates and clones removed (ngsrelate.noclone) and one with technical replicates removed but one clone pair retained (ngsrelate.noclone.allsamps)
+# following the pipeline on the ngsrelate website: https://github.com/ANGSD/NgsRelate
+module load angsd
+
+
+### First we generate a file with allele frequencies (angsdput.mafs.gz) and a file with genotype likelihoods (angsdput.glf.gz).
+angsd -b bams_noclones -gl 2 -domajorminor 1 -snp_pval 1e-6 -domaf 1 -minmaf 0.05 -doGlf 3 -out ngsrelate.noclone
+NSITES=`zcat ngsrelate.noclone.mafs.gz | wc -l`
+echo $NSITES
+# 104277
+
+angsd -b bams_noclones_allsamps -gl 2 -domajorminor 1 -snp_pval 1e-6 -domaf 1 -minmaf 0.05 -doGlf 3 -out ngsrelate.noclone.allsamps
+NSITES=`zcat ngsrelate.noclone.allsamps.mafs.gz | wc -l`
+echo $NSITES
+# 104205
+
+### Then we extract the frequency column from the allele frequency file and remove the header (to make it in the format NgsRelate needs)
+zcat ngsrelate.noclone.mafs.gz | cut -f5 |sed 1d >freq.noclone
+
+zcat ngsrelate.noclone.allsamps.mafs.gz | cut -f5 |sed 1d >freq.noclone.allsamps
+
+### run NgsRelate
+/projectnb/davies-hb/hannah/TVE_Panama/TVE_2bRAD/bin/ngsRelate/ngsRelate -g ngsrelate.noclone.glf.gz -n 50 -f freq.noclone -O ngsrelate.noclone.res
+
+/projectnb/davies-hb/hannah/TVE_Panama/TVE_2bRAD/bin/ngsRelate/ngsRelate -g ngsrelate.noclone.allsamps.glf.gz -n 51 -f freq.noclone.allsamps -O ngsrelate.noclone.allsamps.res
+
+# copy *.res output to local computer. output of ngsrelate is analyzed in the angsd_ibs_pca.R script

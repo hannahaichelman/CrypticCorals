@@ -1665,14 +1665,12 @@ lineages = read.csv("Physiology_Data/data_files/tve_lineages_noclones.csv")
 calc_phys_all_lin <- left_join(calc_phys2, lineages, by = "gen_site")
 calc_phys_all_lin$lineage = as.factor(calc_phys_all_lin$lineage)
 
-## combine with dominant symbiont type info
-# merge with majority its type info
-# its2_types = read.csv("Physiology_Data/data_files/ITS2.dominanttype.csv") %>%
-#   select(frag, dominant_type)
-#
-# calc_phys_all_lin <- left_join(calc_phys_all_lin, its2_types, by = "frag")
-# head(calc_phys_all_lin)
-# calc_phys_all_lin$dominant_type = as.factor(calc_phys_all_lin$dominant_type)
+# merge with its2 types for plotting
+its2_types = read.csv("Physiology_Data/data_files/ITS2.dominanttype.prestress.csv") %>%
+  select(frag, dominant_type)
+
+calc_phys_all_lin <- left_join(calc_phys_all_lin, its2_types, by = "frag")
+calc_phys_all_lin$dominant_type = as.factor(calc_phys_all_lin$dominant_type)
 
 calc_phys_2_lin = calc_phys_all_lin %>%
   dplyr::filter(is.na(lineage) | lineage!="L3") # want to keep NA values for lineage here since they still have other info, will remove na's for lineage specific plots
@@ -1803,30 +1801,64 @@ calc_phys_2_lin_nona = calc_phys_2_lin %>%
   drop_na(lineage,dominant_type)
 
 # Plot based on dominant symbiont type
-growth_means_lineage_sym <- summarySE(calc_phys_2_lin_nona, measurevar="T2_T0_perc", groupvars=c("treat","lineage","dominant_type"))
+growth_means_lineage_sym <- summarySE(calc_phys_2_lin_nona, measurevar="T2_T0_rgr", groupvars=c("treat","lineage","dominant_type"))
+# sample size:
+#     treat lineage dominant_type  N     T2_T0_rgr           sd           se           ci
+# 1  Control      L1            C1 11  2.698986e-04 0.0002392437 7.213469e-05 0.0001607261
+# 2  Control      L1          C3af  1  9.277553e-05           NA           NA           NA
+# 3  Control      L1            D1 12  1.930527e-04 0.0001922653 5.550221e-05 0.0001221595
+# 4  Control      L2            C1 10  1.680577e-04 0.0001734497 5.484960e-05 0.0001240784
+# 5  Control      L2            C3  2 -8.081519e-05 0.0001301622 9.203860e-05 0.0011694612
+# 6  Control      L2            D1  2  1.736633e-04 0.0002794062 1.975700e-04 0.0025103651
+# 7  Mod Var      L1            C1 12  3.488881e-04 0.0002850910 8.229867e-05 0.0001811382
+# 8  Mod Var      L1          C3af  1  3.413739e-04           NA           NA           NA
+# 9  Mod Var      L1            D1 11  3.587772e-04 0.0002867804 8.646755e-05 0.0001926617
+# 10 Mod Var      L2            C1 14  2.489225e-04 0.0002116028 5.655322e-05 0.0001221758
+# 11 Mod Var      L2            C3  1 -7.401003e-05           NA           NA           NA
+# 12 Mod Var      L2            D1  2  7.496903e-05 0.0002190365 1.548822e-04 0.0019679651
+
+growth_means_lineage_sym <- summarySE(calc_phys_2_lin_nona, measurevar="T3_T2_rgr", groupvars=c("treat","lineage","dominant_type"))
+# sample size:
+# treat lineage dominant_type  N     T3_T2_rgr           sd           se           ci
+# 1  Control      L1            C1 11  7.705977e-04 3.755353e-04 1.132281e-04 0.0002522880
+# 2  Control      L1          C3af  1  7.778082e-04           NA           NA           NA
+# 3  Control      L1            D1 12  6.243384e-04 2.151228e-04 6.210062e-05 0.0001366825
+# 4  Control      L2            C1  9  4.832587e-04 3.816676e-04 1.272225e-04 0.0002933757
+# 5  Control      L2            C3  2 -1.233795e-04 2.451063e-05 1.733163e-05 0.0002202193
+# 6  Control      L2            D1  2  4.050748e-04 3.317223e-04 2.345631e-04 0.0029804066
+# 7  Mod Var      L1            C1 12  8.335776e-04 3.793931e-04 1.095213e-04 0.0002410548
+# 8  Mod Var      L1          C3af  1 -5.833342e-04           NA           NA           NA
+# 9  Mod Var      L1            D1 11  8.753668e-04 3.868618e-04 1.166432e-04 0.0002598973
+# 10 Mod Var      L2            C1 14  4.928040e-04 2.874217e-04 7.681669e-05 0.0001659524
+# 11 Mod Var      L2            C3  1  5.802842e-05           NA           NA           NA
+# 12 Mod Var      L2            D1  2  1.515286e-04 1.102259e-04 7.794147e-05 0.0009903403
 
 # plot, treatment x axis colored by site data figure
-calc_plot_lineage_sym <- ggplot(growth_means_lineage_sym,aes(x = treat, y = T2_T0_perc, color = dominant_type))+
+calc_plot_lineage_sym <- ggplot(calc_phys_2_lin_nona, aes(x = treat, y = T3_T2_rgr))+
   theme_bw()+
-  geom_point(size = 3, position = position_dodge(width=0.3))+
-  geom_smooth(aes(group=dominant_type), position = position_dodge(width=0.3), size = 0.5, method='lm', se = FALSE)+
-  #geom_line(aes(group = sitename), size = 0.5, linetype="dashed", position = position_dodge(width=0.3))+
-  geom_errorbar(aes(x = treat, ymax = T2_T0_perc+se, ymin = T2_T0_perc-se), width = .2, position = position_dodge(width=0.3)) +
-  #scale_color_manual(name = "Lineage-Sym",
-  #                   values = c("#3f007d","#3f007d","#807dba","#807dba"))+
-  #scale_shape_manual(name = "Lineage-Sym",
-  #                   values=c(19,17,19,17))+
+  geom_jitter(aes(color = dominant_type, fill = dominant_type, shape = dominant_type),
+              position=position_dodge(width=0.3),
+              alpha=0.2, pch = 21,
+              color = "black") +
+  geom_errorbar(data = growth_means_lineage_sym, aes(x = treat, ymax = T3_T2_rgr+se, ymin = T3_T2_rgr-se, color = dominant_type), width = .2, position = position_dodge(width=0.4)) +
+  geom_point(data = growth_means_lineage_sym, mapping = aes(x=treat, y=T3_T2_rgr, color = dominant_type, fill = dominant_type, shape = dominant_type), size = 3.5, color = "black", position = position_dodge(width=0.4))+
+  scale_fill_manual(name = "Dominant ITS2",
+                    #breaks = c("L1","L2"),
+                    values = its2_cols_greens)+
+  scale_color_manual(name = "Dominant ITS2",
+                     #breaks = c("L1","L2"),
+                     values = its2_cols_greens)+
+  scale_shape_manual(name = "Dominant ITS2",
+                     values = c(21,22,23,24))+
   xlab("Treatment")+
-  ylab("Percent Change in Weight")+
-  #ylab(bquote("Calcification (g" ~cm^-2~ ~day^-1~')'))+
-  #ggtitle("Growth during variability")+
-  #ylim(-0.5,4) +
+  ylab(bquote("Specific growth rate ("~day^-1~')'))+
+  ylim(-0.0006,0.0015) +
   geom_hline(yintercept=0, linetype='dotted', color = 'gray')+
   theme(panel.border = element_rect(colour = "black", fill = NA, size = 1)) +
   facet_wrap(~lineage)
 calc_plot_lineage_sym
 
-ggsave(calc_plot_lineage_sym, filename = "/Users/hannahaichelman/Documents/BU/TVE/Growth/calcification_T2T0_lineage_dominantType.pdf", width=8, height=5, units=c("in"), useDingbats=FALSE)
+ggsave(calc_plot_lineage_sym, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/Growth/calcification_T3T2_lineage_dominantType.pdf", width=8.5, height=4, units=c("in"), useDingbats=FALSE)
 
 # plot just CI corals to see if lineage difference holds
 calc_phys_2_lin_nona_CI = calc_phys_2_lin_nona %>%
@@ -2186,6 +2218,10 @@ emms2<-emmeans(m.emm2, ~treat) #, adjust="Bonferoni"
 pairs(emms2, interaction = "pairwise") %>% rbind(adjust="fdr")
 # treat_pairwise    estimate     SE  df t.ratio p.value
 # Control - Mod Var  -0.0075 0.0052 397  -1.441  0.1504
+
+m.emm3<- lmer(pam ~ dominant_type*lineage + (1|gen_site), data = phys_pam_2_lin_plots, REML=FALSE)
+m.emm3<-emmeans(m.emm3, ~dominant_type|lineage) #, adjust="Bonferoni"
+pairs(m.emm3, interaction = "pairwise") %>% rbind(adjust="fdr")
 
 
 #Check model fit
