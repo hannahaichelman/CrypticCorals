@@ -3,7 +3,6 @@
 #https://benjjneb.github.io/dada2/tutorial.html
 #with edits by Carly D. Kenkel and modifications by Nicola Kriefall
 
-# Skip to line 310 to avoid stuff that happened on the BU cluster.
 #~########################~#
 ##### PRE-PROCESSING #######
 #~########################~#
@@ -67,14 +66,15 @@
 # did sftp of *_R1.fastq & *_R2.fastq files to the folder to be used in dada2
 
 # the 16s files for the pre-stress timepoint are here on scc: /projectnb/davies-hb/hannah/TVE_16S_ITS/tve_prestress_files/lane1and2_16S
+# the 16s files for the T0 timepoint are here on scc: /projectnb/davies-hb/hannah/TVE_Panama/TVE_16S_ITS/tve_T0_files/Raw_Reads
 
 #~########################~#
 ##### DADA2 BEGINS #########
 #~########################~#
 
 # ran into issues downstream, need to install & load more recent version of dada2:
-# library(devtools)
-# devtools::install_github("benjjneb/dada2")
+#library(devtools)
+#devtools::install_github("benjjneb/dada2")
 
 library(dada2); packageVersion("dada2")
 #Version 1.29.0
@@ -307,7 +307,7 @@ saveRDS(taxa, file="/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/16S_PreStre
 #write.csv(taxa.plus, file="mr16s_taxaplus.csv")
 #write.csv(taxa, file="mr16s_taxa.csv")
 
-#### Read in previously saved datafiles  - START HERE ####
+#### Read in previously saved datafiles  - START HERE ON LOCAL MACHINE ####
 # Trying now with all samples included, which was previously done following the same steps above just with all samples included
 setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability")
 
@@ -610,7 +610,7 @@ seqtab.rare.prestress <- data.frame(otu_table(ps.rare.prestress))
 
 ### data files - decontaminated, rarefied ####
 
-setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability")
+#setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability")
 ps.rare.1k.t0 = readRDS("16S_Microbiome/data_files/phyloseq.t0.rarefied.1k.rds")
 seqtab.rare.1k.t0 <- data.frame(ps.rare.1k.t0@otu_table)
 samdf.rare.1k.t0 <- data.frame(ps.rare.1k.t0@sam_data)

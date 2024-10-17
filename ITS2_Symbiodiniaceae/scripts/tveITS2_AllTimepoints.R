@@ -1,4 +1,4 @@
-# This script analyzes the ITS2 data from the Panama Daily Thermal Variability experiment - both T0 and data collected before the thermal challenge
+# This script analyzes the ITS2 data from the Panama Daily Thermal Variability/Cryptic Lineages experiment - both T0 and data collected before the thermal challenge
 # Author: Hannah E Aichelman
 # hannahaichelman@gmail.com
 
@@ -21,8 +21,8 @@ library(viridis)
 # SymPortal ITS2 DIV Analysis
 # cleaned file up to remove extraneous info in the header in excel, but original file here:
 # /Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/191_20220121_03_DBV_20220121T084332.profiles.absolute.abund_and_meta.txt
-setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/ITS2_Symbiodiniaceae/")
-its2_all = read.csv("data_files/SymPortal_AllTimes_RawDIVs.csv")
+# setwd("~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/ITS2_Symbiodiniaceae/")
+its2_all = read.csv("ITS2_Symbiodiniaceae/data_files/SymPortal_AllTimes_RawDIVs.csv")
 head(its2_all)
 
 #### Clean up input data ####
@@ -70,12 +70,12 @@ its2_divs = its2_all4
 
 # read in sample data
 # DIVs - this sample info includes all T0 and Pre-Stress Individuals that were run through SymPortal together.
-samdf = read.csv("data_files/SampleInfo.csv")
+samdf = read.csv("ITS2_Symbiodiniaceae/data_files/SampleInfo.csv")
 dim(samdf)
 head(samdf)
 
 # add identifying data that includes lineage 3
-phys_metadata = read.csv("data_files/phys_metadata_its2.csv")
+phys_metadata = read.csv("ITS2_Symbiodiniaceae/data_files/phys_metadata_its2.csv")
 head(phys_metadata)
 dim(phys_metadata)
 
@@ -341,18 +341,18 @@ ps.cleanest.ps <- subset_samples(ps.cleaner4.ps,(treat!="High Var")) #84 samples
 ps.cleanest.rel.ps <- transform_sample_counts(ps.cleanest.ps, function(OTU) OTU/sum(OTU))
 
 # save phyloseq object
-saveRDS(ps.cleanest.ps, "data_files/ps.its2.prestress.RDS")
-saveRDS(ps.cleanest.rel.ps, "data_files/ps.its2.prestress.rel.RDS")
+saveRDS(ps.cleanest.ps, "ITS2_Symbiodiniaceae/data_files/ps.its2.prestress.RDS")
+saveRDS(ps.cleanest.rel.ps, "ITS2_Symbiodiniaceae/data_files/ps.its2.prestress.rel.RDS")
 
 # write this out as dataframe
 seqtab.rel.ps <- data.frame(ps.cleanest.rel.ps@otu_table)
-write.csv(seqtab.rel.ps, file="data_files/ITS2.prestress.seqtab.rel.csv")
+write.csv(seqtab.rel.ps, file="ITS2_Symbiodiniaceae/data_files/ITS2.prestress.seqtab.rel.csv")
 sample.data.ps = data.frame(sample_data(ps.cleanest.rel.ps))
-write.csv(sample.data.ps, file="data_files/ITS2.prestress.sample.data.rel.csv")
+write.csv(sample.data.ps, file="ITS2_Symbiodiniaceae/data_files/ITS2.prestress.sample.data.rel.csv")
 
 taxa.ps <- data.frame(ps.cleanest.rel.ps@tax_table)
 mtaxa.ps <- as.matrix(taxa.ps)
-write.csv(taxa.ps, file = "data_files/symportal_taxa.prestress.csv")
+write.csv(taxa.ps, file = "ITS2_Symbiodiniaceae/data_files/symportal_taxa.prestress.csv")
 
 #### Compare time points ####
 p.all.gen_site = plot_bar(ps.rel.all, x="frag", fill="majority_its2") +
@@ -391,7 +391,7 @@ ps.norm
 # otu_table()   OTU Table:         [ 440 taxa and 156 samples ]
 # sample_data() Sample Data:       [ 176 samples by 9 sample variables ]
 # tax_table()   Taxonomy Table:    [ 440 taxa by 7 taxonomic ranks ]
-saveRDS(ps.norm, "data_files/ps.its2.norm.RDS")
+saveRDS(ps.norm, "ITS2_Symbiodiniaceae/data_files/ps.its2.norm.RDS")
 
 
 #### PS Object Versions ####
@@ -437,7 +437,6 @@ its2_cols_greens = c("A4" = "#ffeda0", "A4z" =  "#fd8d3c",
                      "C1" = "#edf8e9", "C15" = "#feb24c",  "C3" = "#a1d99b",
                      "C3af" = "#238b45", "D1" = "#00441b")
 
-#its2_cols_blues = c("#f6eff7", "#d0d1e6", "#a6bddb", "#67a9cf", "#3690c0", "#02818a", "#016450")
 
 # bar plot of all individuals - T0
 p.all = plot_bar(ps.cleanest.t0.rel, x="gen_site", fill="majority_its2") +
@@ -446,7 +445,7 @@ p.all = plot_bar(ps.cleanest.t0.rel, x="gen_site", fill="majority_its2") +
   xlab("Sample") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 p.all
-ggsave(p.all, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_t0.pdf", width=11, height=4, units=c("in"), useDingbats=FALSE)
+#ggsave(p.all, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_t0.pdf", width=11, height=4, units=c("in"), useDingbats=FALSE)
 
 # Now facet wrap/aggregate by interesting factors
 
@@ -459,7 +458,7 @@ p.lineage = plot_bar(ps.rel.lin, fill="majority_its2") +
   scale_fill_manual(name = "Majority ITS2", values = its2_cols_greens) +
   theme_bw()
 p.lineage
-ggsave(p.lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_t0_lineage.pdf", width=4, height=3.5, units=c("in"), useDingbats=FALSE)
+#ggsave(p.lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_t0_lineage.pdf", width=4, height=3.5, units=c("in"), useDingbats=FALSE)
 
 
 # Lineage only:
@@ -472,7 +471,7 @@ p.lin = plot_bar(ps.cleanest.t0.rel, x="gen_site", fill="majority_its2") +
   #theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), axis.title.y = element_blank())
 p.lin
-ggsave(p.lin, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_lineagefacet_t0_majorityITS2.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
+#ggsave(p.lin, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_lineagefacet_t0_majorityITS2.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
 
 # Site of Origin:
 p.site = plot_bar(ps.cleanest.t0.rel, x="gen_site", fill="majority_its2") +
@@ -486,14 +485,10 @@ p.site
 ggsave(p.site, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_sitefacet_t0_majorityITS2.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
 
 #### Bar plot - post-processing PreStress ####
-#its2_cols_end = c("#D53E4F", "#F46D43", "#3288BD", "#FEE08B", "#E6F598", "#ABDDA4", "#66C2A5", "#3288BD", "#FDAE61")
-#its2_cols_purple = c("white", "#efedf5","#bcbddc", "#756bb1")
 its2_cols_greens = c("A4" = "#ffeda0", "A4z" =  "#fd8d3c",
                      "B19" = "#4eb3d3", "B5a" = "#0868ac", "B5" = "#800026",
                      "C1" = "#edf8e9", "C15" = "#feb24c",  "C3" = "#a1d99b",
                      "C3af" = "#238b45", "D1" = "#00441b")
-
-#its2_cols_blues = c("#f6eff7", "#d0d1e6", "#a6bddb", "#67a9cf", "#3690c0", "#02818a", "#016450")
 
 # bar plot of all individuals
 p.all = plot_bar(ps.cleanest.ps.rel, x="frag", fill="majority_its2") +
@@ -502,7 +497,7 @@ p.all = plot_bar(ps.cleanest.ps.rel, x="frag", fill="majority_its2") +
   xlab("Sample") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 p.all
-ggsave(p.all, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_prestress.pdf", width=11, height=4, units=c("in"), useDingbats=FALSE)
+#ggsave(p.all, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_prestress.pdf", width=11, height=4, units=c("in"), useDingbats=FALSE)
 
 # subset by factors we need:
 ps.cleanest.rel.control = subset_samples(ps.cleanest.ps.rel, treat=="Control")
@@ -522,7 +517,7 @@ p.lineage = plot_bar(ps.rel.lin, fill="majority_its2") +
   scale_fill_manual(name = "Majority ITS2", values = its2_cols_greens) +
   theme_bw()
 p.lineage
-ggsave(p.lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_prestress_lineage.pdf", width=4, height=3.5, units=c("in"), useDingbats=FALSE)
+#ggsave(p.lineage, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_prestress_lineage.pdf", width=4, height=3.5, units=c("in"), useDingbats=FALSE)
 
 # Treatment:
 p.treat = plot_bar(ps.cleanest.ps.rel, x="frag", fill="majority_its2") +
@@ -532,7 +527,7 @@ p.treat = plot_bar(ps.cleanest.ps.rel, x="frag", fill="majority_its2") +
   facet_grid(~treat, scales = "free", space = "free") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), axis.title.y = element_blank())
 p.treat
-ggsave(p.treat, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_prestress_treatment.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
+#ggsave(p.treat, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_prestress_treatment.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
 
 # Treatment faceted by lineage
 p.treat.control = plot_bar(ps.cleanest.rel.control, x="frag", fill="majority_its2") +
@@ -556,7 +551,7 @@ p.treat.mod
 p.alltreat = ggarrange(p.treat.control, p.treat.mod,
                        legend = "right", ncol = 2, nrow = 1,
                        label.x = FALSE, common.legend = TRUE)
-ggsave(p.alltreat, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_treatment_lineagefacet_majorityITS2.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
+#ggsave(p.alltreat, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_treatment_lineagefacet_majorityITS2.pdf", width=8, height=4, units=c("in"), useDingbats=FALSE)
 
 # Lineage only:
 p.lin = plot_bar(ps.cleanest.ps.rel, x="frag", fill="majority_its2") +
@@ -567,7 +562,7 @@ p.lin = plot_bar(ps.cleanest.ps.rel, x="frag", fill="majority_its2") +
   #theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), axis.title.y = element_blank())
 p.lin
-ggsave(p.lin, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_lineagefacet_prestress_majorityITS2.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
+#ggsave(p.lin, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_lineagefacet_prestress_majorityITS2.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
 
 # Site of Origin:
 p.site = plot_bar(ps.cleanest.ps.rel, x="frag", fill="majority_its2") +
@@ -577,7 +572,7 @@ p.site = plot_bar(ps.cleanest.ps.rel, x="frag", fill="majority_its2") +
   facet_grid(~sitename, scales = "free", space = "free") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), axis.title.x = element_blank(), axis.title.y = element_blank())
 p.site
-ggsave(p.site, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_sitefacet_prestress_majorityITS2.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
+#ggsave(p.site, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/16S_ITS2/ITS_All_Timepoints/syms_sitefacet_prestress_majorityITS2.pdf", width=10, height=4, units=c("in"), useDingbats=FALSE)
 
 
 

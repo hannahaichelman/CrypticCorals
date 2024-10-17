@@ -66,7 +66,7 @@ pan_cores$coreID <- dplyr::recode(pan_cores$coreID,
 # W_OR_BS_20_S, W_OR_DM_38_S, W_IR_PL_48_S all didn't sequence, no lineage assignment
 # N=24 total cores with lineage assignment and growth chronology
 
-# take a look at the metadata that Annabel gave us
+# take a look at the metadata from Annabel
 #loading in RAD data with core ID and bam file name
 rad_meta <- read.csv("Physiology_Data/data_files/all_SSID_updated.csv")
 rad_meta <- filter(rad_meta, Project=="cores")

@@ -1,8 +1,8 @@
-## Analysis of TVE 16S and ITS data for time point after variability
+## Analysis of TVE 16S and ITS data
 
 ## Get files from Tufts:
 # Lane 1:
-[haich@scc1 davies-hb]$ wget -r -nH --cut-dirs=5 -nc ftp://sarah.davies:XVddLhQ@130.64.74.72//210407-0362M_Sarah_Davies_6325-1/ 
+[haich@scc1 davies-hb]$ wget -r -nH --cut-dirs=5 -nc ftp://sarah.davies:XVddLhQ@130.64.74.72//210407-0362M_Sarah_Davies_6325-1/
 
 # Lane 2:
 [haich@scc1 davies-hb]$ wget -r -nH --cut-dirs=5 -nc ftp://sarah.davies:XVddLhQ@130.64.74.72//210409-0364M_Sarah_Davies_6325-2/fastq_Lane1/
@@ -16,7 +16,7 @@
 
 
 ## Unzip fastq files (still working in separate lane directories)
-nano gunzip_files 
+nano gunzip_files
 
 #!/bin/bash
 #$ -V # inherit the submission environment
@@ -45,7 +45,7 @@ gunzip *.gz
 ##1. download BBMap package, scp to SCC:
 [haich@scc1 hannah]$ pwd
 /projectnb/davies-hb/hannah
-##2. untar: 
+##2. untar:
 # tar -xvzf BBMap_(version).tar.gz
 ##3. test package:
 # cd bbmap
@@ -53,7 +53,7 @@ gunzip *.gz
 
 
 ## my adaptors, which I saved as adaptors.fasta
-[haich@scc1 lane2_fastqs]$ cat adaptors.fasta 
+[haich@scc1 lane2_fastqs]$ cat adaptors.fasta
 >forward
 AATGATACGGCGACCAC
 >forwardrc
@@ -75,7 +75,7 @@ GTATGCCGTCTTCTGCTTG
 ## Make a sample list based on the first phrase before the underscore in the .fastq name
 [haich@scc1 lane2_fastqs]$ ls *R1_001.fastq | cut -d '_' -f 1 > samples.list
 
-[haich@scc1 lane2_fastqs]$ cat samples.list 
+[haich@scc1 lane2_fastqs]$ cat samples.list
 
 # Cut off the extra words in the .fastq file names and adds lane designation (change to 1 or 2 accordingly). Note you will need to change samples.list to include these lane designations
 [haich@scc1 lane1_fastqs_backup]$ for file in $(cat samples.list); do  mv ${file}_*R1*.fastq ${file}_lane1_R1.fastq; mv ${file}_*R2*.fastq ${file}_lane1_R2.fastq; done
@@ -86,7 +86,7 @@ GTATGCCGTCTTCTGCTTG
 [haich@scc1 lane2_fastqs]$ for file in $(cat samples.list); do /projectnb/davies-hb/hannah/bbmap/bbduk.sh in1=${file}_R1.fastq in2=${file}_R2.fastq ref=adaptors.fasta out1=${file}_R1_NoIll.fastq out2=${file}_R2_NoIll.fastq; done &>bbduk_NoIll.log
 
 # You can check how many were removed like this:
-[haich@scc1 lane2_fastqs]$ grep "Total Removed:" bbduk_NoIll.log 
+[haich@scc1 lane2_fastqs]$ grep "Total Removed:" bbduk_NoIll.log
 
 ## Get rid of first 4 bases (degenerate primers created them)
 
@@ -113,12 +113,12 @@ do
 cutadapt -g GTGAATTGCAGAACTCCGTG -a AAGCATATAAGTAAGCGGAGG -G CCTCCGCTTACTTATATGCTT -A CACGGAGTTCTGCAATTCAC -n 2 --discard-untrimmed -o ${file}_R1_ITS_final.fastq -p ${file}_R2_ITS_final.fastq ${file}_R1_ITS.fastq ${file}_R2_ITS.fastq
 done &> clip.log
 
-##-g regular 5' forward primer 
+##-g regular 5' forward primer
 ##-G regular 5' reverse primer
 ##-o forward out
 ##-p reverse out
 ##-max-n 0 means 0 Ns allowed
-##this overwrote my original renamed files 
+##this overwrote my original renamed files
 
 
 # Take these files into DADA2, helpful info here: https://benjjneb.github.io/dada2/ITS_workflow.htmn
@@ -130,7 +130,7 @@ do
 cutadapt --minimum-length 1 -o ${file}_lane1_R1_ITS_final_minlength.fastq -p ${file}_lane1_R2_ITS_final_minlength.fastq ${file}_lane1_R1_ITS_final.fastq ${file}_lane1_R2_ITS_final.fastq
 done &> minlength.log
 
-# NOTE: don't remove the ITS2 primer for samples that you submit to SymPortal. Stop at the step before removing the primer. 
+# NOTE: don't remove the ITS2 primer for samples that you submit to SymPortal. Stop at the step before removing the primer.
 
 ##########################################################################################
 ## Now pre-processing 16S samples, started with the _NoIll_No4N.fastq files that I created above, because same adaptors
@@ -138,7 +138,7 @@ done &> minlength.log
 
 ## Only keep reads that start with the 16S primer
 
-#primers for 16S: 
+#primers for 16S:
 # >forward
 # GTGYCAGCMGCCGCGGTA
 # >reverse
@@ -156,7 +156,7 @@ do
 cutadapt -g GTGYCAGCMGCCGCGGTA -a ATTAGAWACCCVHGTAGTCC -G GGACTACHVGGGTWTCTAAT -A TACCGCGGCKGCTGRCAC -n 2 --discard-untrimmed -o ${file}_R1_16S_final.fastq -p ${file}_R2_16S_final.fastq ${file}_R1_NoIll_No4N_16S.fastq ${file}_R2_NoIll_No4N_16S.fastq
 done &> clip16S.log
 
-##-g regular 5' forward primer 
+##-g regular 5' forward primer
 ##-G regular 5' reverse primer
 ##-o forward out
 ##-p reverse out
@@ -174,7 +174,7 @@ awk -F'\t' 'system("mv " $1 " " $2)' sampleIDs_all
 ## checked to make sure (via bbduk log files) that the ITS and 16S processed reads add up to 100% - they do!
 
 ##########################################################################################
-## Need to do this for t0 samples as well, realized they had primers left after running dada2. 
+## Need to do this for t0 samples as well, realized they had primers left after running dada2.
 
 [haich@scc1 16s_seqs1]$ pwd
 /projectnb/davies-hb/hannah/TVE_16S_ITS/tve_T0_files/16s_seqs1
@@ -187,7 +187,7 @@ do
 cutadapt -g GTGYCAGCMGCCGCGGTA -a ATTAGAWACCCVHGTAGTCC -G GGACTACHVGGGTWTCTAAT -A TACCGCGGCKGCTGRCAC -n 2 --discard-untrimmed -o ${file}_R1_16S_final.fastq -p ${file}_R2_16S_final.fastq ${file}_R1.fastq ${file}_R2.fastq
 done &> clip16S.log
 
-##-g regular 5' forward primer 
+##-g regular 5' forward primer
 ##-G regular 5' reverse primer
 ##-o forward out
 ##-p reverse out

@@ -1,0 +1,1 @@
+There is one script used for analyzing the ITS2 data associated with identifying Symbiodiniaceae assemblages across cryptic lineages of Siderastrea siderea, found in 'scripts' folder. All input data needed to run this script is found in the 'data_files' folder.

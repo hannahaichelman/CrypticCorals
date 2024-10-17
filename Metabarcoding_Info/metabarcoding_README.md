@@ -1,0 +1,1 @@
+Analysis_Pipeline.txt contains information on processing the Illumina MiSeq data. The output from this pre-processing creates the input for the analyses in the '16S_Microbiome' folder and the 'ITS2_Symbiodiniaceae' folder.
