@@ -3,18 +3,14 @@ library(plyr)
 library(dplyr)
 library(tidyverse)
 library(vegan)
+library(adegenet) # for transp()
+library(plotly)
+library(corrplot)
 
 #setwd('~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/2bRAD/')
 bams=data.frame(read.table("2bRAD/data_files/bams.txt", header=FALSE)) # list of bam files
 colnames(bams)<- "bam"
 #goods=c(1:length(bams))
-
-# reading table of pairs of replicates (tab-delimited) - skip if there are no clones
-# clonepairs=read.table("clonepairs.tab",sep="\t")
-# repsa= clonepairs[,1]
-# repsb= clonepairs[,2]
-# # removing "b" replicates
-# goods=which(!(bams %in% repsb))
 
 #### Metadata ####
 
@@ -32,7 +28,7 @@ i2p$sitename <- ifelse(i2p$pop == 'I2', 'SP',
                        ifelse(i2p$pop == 'O3', 'CA',
                        'BN')))))
 
-# create new data frame using i2p without clones (duplicated preps), but still with two actual clones (I4G + I4F)
+# create new data frame using i2p without technical replicates (duplicated preps), but still with two actual clones (I4G + I4F)
 # this is removing files that have the lower coverage/fewer reads
 i2p_noclones_allsamps = i2p %>%
   dplyr::filter(bam != "4-MullenDavies_S4_TCAC.nosymbio.fastq.bam") %>% # O4E
@@ -71,12 +67,6 @@ cols_site <- c("CI" = "#543005", "PD"= "#bf812d",  "SP"= "#dfc27d",  "BN" = "#00
 cols_treat <- c("darkgrey", "#FF9966","#CC3300","#7f0000")
 cols_lineage <- c("#bcbddc","#756bb1")
 
-# load in symbiont type data to create combined name
-#sym=read.table("/Users/hannahaichelman/Documents/BU/TVE/16S_ITS2/Laura_SymPortal_InitialData_DominantTypes.csv", sep=",", header=TRUE)
-
-# merge the i2p and sym type dataframes together, keep the order of the i2p because this is important! matches with matrix rows and columns below
-# i2p_sym = join(i2p, sym, by="sample_id")
-# i2p_sym$id_symtype = paste(i2p_sym$sample_id, "_", i2p_sym$Dominant_Type)
 
 #### PCoA based on IBS ####
 # clustering / PCoA based on identity by state (IBS) based on single read resampling
@@ -121,10 +111,9 @@ eigs[1,1]/sum(eigs[2:49, 1])
 # % variance explained by MDS2 = 3.9% variance explained
 eigs[2,1]/sum(eigs[3:49, 1])
 
-
+# set which principal components to plot, then plot
 axes2plot=c(1,2)
 quartz()
-library(adegenet) # for transp()
 cmd=pp0
 plot(cmd,choices=axes2plot,display="sites",type="n") # choices - axes to display
 points(cmd,choices=axes2plot,pch=19,col=transp(colors,alpha=0.7))
@@ -139,7 +128,7 @@ ordiellipse(cmd$CA$u[,axes2plot],groups= conds$site,draw="polygon",col=colpops,l
 identify(cmd$CA$u[,axes2plot],labels=colnames(ma),n=3,cex=0.7)
 # I2I, I2D, I2H are the three outliers from I2 here - don't correspond to lowest or highest coverage in quality.txt file
 
-# prettier ggplot option
+# now make the same plot, but with prettier ggplot options for the manuscript
 axes2plot=c(1,2)
 pca_s <- as.data.frame(cmd$CA$u[,axes2plot])
 #colors=c('royalblue4','cornflowerblue','lightblue','red4','indianred3','mistyrose3')
@@ -163,7 +152,7 @@ MDS1_2
 ggsave(MDS1_2, filename = "/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/tuftscustompipeline_denovo_nosyms/MDS1_2_sitename.pdf", width=6, height=5, units=c("in"), useDingbats=FALSE)
 
 
-#plotting 2 and 3
+#plotting axes 2 and 3
 axes2plot=c(3,4)
 pca_s <- as.data.frame(cmd$CA$u[,axes2plot])
 
@@ -323,7 +312,7 @@ rel.plot = ggplot(rel_i2p_filt_final_lineage, aes(x = sample_id_a, y = rab, text
   labs(title = "Pairwise Relatedness by Lineage")
 rel.plot
 
-#--------------------
+#### Old code, not used in manuscript ####
 # covariance / PCA (not really needed, Misha prefers IBS)
 
 # performing PCoA and CAP
@@ -402,8 +391,6 @@ MDS3_4
 ggsave(MDS3_4, filename = "/Users/hannahaichelman/Documents/BU/TVE/2bRAD/Analysis/tuftscustompipeline_denovo_nosyms/MDS3_4_sitename.pdf", width=5, height=5, units=c("in"), useDingbats=FALSE)
 
 
-
-#-------------
 # t-SNE:  machine learning to identify groups of samples
 # based on genotypes' correlations
 # (only makes sense if you have hundreds of samples)

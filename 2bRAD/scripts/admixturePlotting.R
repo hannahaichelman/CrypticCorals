@@ -1,3 +1,4 @@
+#### Set-Up ####
 #setwd('~/Dropbox/BU/TVE/TVE_Github/DielTempVariability/')
 
 # assembling the input table
@@ -8,7 +9,7 @@ inName="mydata.noclone_k3.qopt" # name of the input file to plot, output of ngsA
 #------------
 
 npops=as.numeric(sub(".+(\\d+)\\..+","\\1",inName))
-tbl=read.table("2bRAD/data_files/mydata.noclone_k3.qopt")
+tbl=read.table("2bRAD/data_files/mydata.noclone_k3.qopt") # change this to mydata.noclone_k2.qopt to look at K=2 results.
 i2p=read.table("2bRAD/data_files/bam_barcode_names_tuftscustom_noclone.csv", header = TRUE, sep = ",")
 i2p = i2p[,1:2]
 
@@ -25,7 +26,8 @@ levels(tbl$pop) <- c("SP","CI","PD","BS","CA","BN")
 cols_lineage_k2 <- c("#3f007d", "#807dba")
 cols_lineage_k3 <- c("#bcbddc", "#807dba", "#3f007d")
 
-#Download below from https://github.com/z0on/2bRAD_denovo/blob/master/plot_admixture_v5_function.R
+# make admixture plot
+#Downloaded below function from https://github.com/z0on/2bRAD_denovo/blob/master/plot_admixture_v5_function.R
 source("2bRAD/data_files/plot_admixture_v5_function.R")
 quartz()
 ords=plotAdmixture(data=tbl,npops=npops,grouping.method="distance",vshift=0.1,colors=cols_lineage_k3)
