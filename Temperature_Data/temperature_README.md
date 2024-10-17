@@ -1,0 +1,3 @@
+There are two scripts in the 'scripts' folder, one that is used to analyze data from the in situ temperature loggers ('PanamaFieldTemps.R') and one that is used to analyze data from the ex situ DTV experiment ('ExperimentTankTemps.R'). 
+
+The input files needed to run these scripts are found in the 'data_files' folder. Input for the 'PanamaFieldTemps.R' script is found in 'data_files/Field_HOBO_txt_files/', which contains temperature data from the in situ Hobo loggers. Input for the 'ExperimentTankTemps.R' script is found in 'data_files/TankTemps/', which contains Apex output data, data from Hobo loggers in each aquaria, as well as extra glass thermometer readings. 

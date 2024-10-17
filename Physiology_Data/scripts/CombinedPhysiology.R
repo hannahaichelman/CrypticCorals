@@ -1,5 +1,7 @@
 # Written by Hannah Aichelman (hannahaichelman@gmail.com)
 # Physiology Analysis
+# Each individual physiology parameter is named as a level in the table of contents for ease of navigating the code.
+# After you run the code in the 'Read in and format data' and 'Surface Area Measurements' sections, you can jump around to different physiology parameters.
 
 library(ggplot2)
 library(lme4)
@@ -36,8 +38,6 @@ library(cowplot)
 library(vegan)
 
 ##### Read in and format data #####
-# set wd
-# setwd("/Users/hannahaichelman/Documents/BU/TVE")
 # read in the data
 post_phys <- read.csv('Physiology_Data/data_files/dtvmaster.csv') # physiology data taken at the end of the experiment
 init_phys <- read.csv('Physiology_Data/data_files/initial-phys-mod.csv') # physiology data taken at the start of the experiment
@@ -966,6 +966,7 @@ scarb_phys = phys %>%
 
 head(scarb_phys)
 
+# Add in standard curve info for each plate
 scarb_phys$scarbxcoef <- as.numeric(ifelse(scarb_phys$scarbplate_ha == 'O18', 0.149980,
                                            ifelse(scarb_phys$scarbplate_ha == 'O19', 0.168115,
                                                   ifelse(scarb_phys$scarbplate_ha == 'O20', 0.1412873,
@@ -2950,7 +2951,7 @@ pca_t0_lineage_skel
 ggsave(pca_t0_lineage_skel, filename = "/Users/hannahaichelman/Dropbox/BU/TVE/SkeletonMorphometry/pca_t0_skeleton_lineage.pdf", width=5.5, height=4, units=c("in"), useDingbats=FALSE)
 
 #### Prep data for PCA ####
-
+# You will need to run the code sections for each individual physiology parameter before running this section
 # separating data frames by metric and by time point to consider
 calc_pca_end = calc_phys_all_lin %>%
   select(frag,treat,sitename,lineage,T3_T0_rgr) # want to consider growth over the whole experiment
